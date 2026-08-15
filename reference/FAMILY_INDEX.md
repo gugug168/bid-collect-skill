@@ -1,10 +1,10 @@
 # 省平台架构家族索引（FAMILY_INDEX）
 
-> 加新省 / 查某省打法前先读此页。2026-08-14 全量实测更新：32 省 adapter 全部验证，**27 省厚字段已打通可重复采集，5 省受限**（见下方总表）。
+> 加新省 / 查某省招标公告打法前先读此页。下方状态表是 2026-08-14 的**历史厚字段快照**；当前招标公告实时状态以 [`ZB_LIVE_STATUS_2026-08-15.md`](ZB_LIVE_STATUS_2026-08-15.md) 为准。
 > 厚字段标准见 `SKILL.md`：owner/agency/projectCode/controlPrice/budget/bond/funding/bidOpen/duration/qualification/performance/evaluation/consortium/fullScore/contact/phone/docLink/city/projectSite/type/date/title/url（26 项）。
 > **诚实纪律**：没有任何省能在每条记录填满全部 26 项（源页本就不含 performance/fullScore/projectSite 等）；"打通"= 源页**实际存在的**厚字段成功抽出，不存在的诚实留空，绝不伪造。
 
-## 一、全省验证状态总表（2026-08-14 实测）
+## 一、全省验证状态总表（历史厚字段快照 · 2026-08-14）
 
 | adapter | 省/市 | 家族 kind | 状态 | 厚字段 | 关键修正 / 注记 |
 |---|---|---|---|---|---|
