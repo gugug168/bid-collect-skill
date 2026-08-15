@@ -18,11 +18,11 @@ node scripts/self-test.cjs
 
 ## 完整说明
 
-WorkBuddy 技能：跨省公共资源交易平台招标公告采集器。覆盖 **32 个省/市级交易平台**，按「家族」逆向适配，仅公开采集招标公告。
+WorkBuddy 技能：跨省公共资源交易平台招投标公告采集器。覆盖 **32 个省/市级交易平台**，按「家族」逆向适配，支持招标公告、中标候选、中标结果与合同阶段。
 
 ## 能力现状（2026-08-15）
 
-本轮公开验收只计招标公告（`zb`）。候选/中标/合同历史实现保留在代码中作兼容回归，但不再列入公开参数、示例、能力统计或验收结论。
+本 PR 的全国实时状态总账与分层验收只计招标公告（`zb`）；候选/中标/合同继续作为现有公开能力保留，但不以本 PR 的 zb 实测结果替它们背书全国准确率。各阶段实际覆盖以 `reference/FAMILY_INDEX.md` 为准。
 
 ## 架构
 
@@ -44,6 +44,16 @@ node scripts/province-collect.cjs -p anhui -d 30 --limit 20 --detail \
 `biaobiaotong16` 固定生成 `房建市政 / 水利 / 公路 / 其他项目` 4 个 sheet，并严格使用参考工作簿的 16 列顺序；工作簿内置表头样式、列宽、自动换行、首行冻结和筛选。
 
 指定 `--out` 时同时生成同目录 `<输出文件名>.run-report.json`，记录 `snapshot_at`、来源、参数、数量、状态和错误；空结果标为 `CONNECTED_NO_RECENT_DATA`，不与 `FAILED` 混淆。
+
+## 阶段选择
+
+```bash
+node scripts/province-collect.cjs -p hainan --stage candidate -d 120 --limit 20 --out out/hainan-candidate.xlsx
+node scripts/province-collect.cjs -p hainan --stage result -d 120 --limit 20 --out out/hainan-result.xlsx
+node scripts/province-collect.cjs -p hainan --stage contract -d 120 --limit 20 --out out/hainan-contract.xlsx
+```
+
+不传 `--stage` 时默认 `zb`。B 阶段栏目不能跨省盲推；只运行对应 adapter 已在 `stages` 中明确配置的阶段。
 
 ## 城市/区县筛选
 
@@ -76,8 +86,8 @@ diff -q province-collect.cjs <skill>/scripts/province-collect.cjs   # 须 IDENTI
 ## 协作（Codex / Claude Code）
 
 本仓库用于多 AI 协作完善：
-- **Issue**：报告某省招标公告入口、字段抽取噪声、城市筛选或新省适配问题。
-- **PR**：修复 `list`/`parse`/详情函数、补充 `reference/*.md` 招标公告注记。
+- **Issue**：报告某省公告入口、阶段路由、字段抽取噪声、城市筛选或新省适配问题。
+- **PR**：修复 `list`/`parse`/详情函数、补充 `reference/*.md` 的实测证据。
 - 提交前请确保双副本一致，且语法检查与 `scripts/self-test.cjs` 全部通过。
 
 ## 代理

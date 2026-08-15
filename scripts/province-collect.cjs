@@ -3,7 +3,7 @@
 // 与粤公平 ygp-collect.cjs 共享：限流防护 + 输出格式；差异：省级平台是服务端渲染 HTML，需正则提取公告链接。
 // 升级 v2 (Goal v1)：进详情页抓厚字段（对标标标通）+ 输出标标通 xlsx（房建市政/水利/公路/其他 分 sheet）。
 // 用法:
-//   node province-collect.cjs -p shandong -k 管网 -d 30 --delay 800 [--csv] [--xlsx] [--out file] [--limit N]
+//   node province-collect.cjs -p shandong -k 管网 -d 30 --stage zb --delay 800 [--csv] [--xlsx] [--out file] [--limit N]
 //   node province-collect.cjs -p shandong -d 30 --out shandong-all.xlsx   # 自动出 xlsx+md+csv
 //   node province-collect.cjs -p shandong -d 30 --no-detail                # 只抓列表层，不进详情页
 require("dns").setDefaultResultOrder("ipv4first");
@@ -3460,7 +3460,7 @@ function parseArgs(argv) {
     else if (x === "--csv") a.csv = true;
     else if (x === "--xlsx") a.xlsx = true;
     else if (x === "--no-xlsx") a.xlsx = false;
-    else if (x === "--xlsx-layout") a.xlsxLayout = argv[++i] || "full29";
+    else if (x === "--xlsx-layout") a.xlsxLayout = argv[++i] || "biaobiaotong16";
     else if (x === "--no-detail") a.detail = false;
     else if (x === "--attach") a.attach = true;
     else if (x === "--probe") a.probe = true;
@@ -3472,9 +3472,6 @@ function parseArgs(argv) {
     else if (x === "--dump-text") a.dumpText = true;
   }
   if (!["full29", "biaobiaotong16"].includes(a.xlsxLayout)) throw new Error(`--xlsx-layout 仅支持 full29 或 biaobiaotong16，收到: ${a.xlsxLayout}`);
-  if (a.stage !== "zb") {
-    throw new Error(`当前公开契约只支持招标公告阶段 zb；候选/中标/合同阶段已退出公开接口。`);
-  }
   return a;
 }
 
@@ -3905,7 +3902,7 @@ function buildRunReport(prov, ad, result, args, meta = {}) {
       stage: args.stage || "zb",
       detail: !!args.detail,
       limit: args.limit || 0,
-      xlsx_layout: args.xlsxLayout || "full29",
+      xlsx_layout: args.xlsxLayout || "biaobiaotong16",
     },
     counts: { total: rows.length, verified_records: real.length },
     output: meta.output || null,
@@ -3931,7 +3928,7 @@ function writeRunReport(outputPath, report) {
   args._run = { errors: [], auth_walls: [], rate_limits: [], transport_errors: [] };
   global.__RUN_REPORT = args._run;
   global.__RESEARCH = !!args.dumpText;
-  if (!args.province && !args.probeAll) { console.error("用法: node province-collect.cjs -p <省份> [-c 城市/区县[,城市]] -k <关键词> -d <天数> [--delay 800] [--csv] [--xlsx|--no-xlsx] [--xlsx-layout full29|biaobiaotong16] [--no-detail] [--out 文件] [--limit N] [--probe] [--probe-all] [--verify]"); process.exit(1); }
+  if (!args.province && !args.probeAll) { console.error("用法: node province-collect.cjs -p <省份> [-c 城市/区县[,城市]] -k <关键词> -d <天数> [--stage zb|candidate|result|contract] [--delay 800] [--csv] [--xlsx|--no-xlsx] [--xlsx-layout full29|biaobiaotong16] [--no-detail] [--out 文件] [--limit N] [--probe] [--probe-all] [--verify]"); process.exit(1); }
   // R2 探测模式：自动试 cnum 001-004 + TPBidder/EpointWebBuilder 子上下文 + http 兜底，定位 EPoint 端点
   if (args.probeAll) {
     const summary = await probeAllEvidence(args.keyword || "管网");

@@ -52,32 +52,25 @@ test("招标公告实时状态总账覆盖全部32个 adapter", () => {
   assert.match(text, /`FAILED`：1 个/);
 });
 
-test("公开参数默认 zb 与标标通16列，并拒绝其它阶段", () => {
+test("参数默认 zb 与标标通16列，并保留已配置阶段", () => {
   const args = M.parseArgs(["-p", "anhui"]);
   assert.equal(args.stage, "zb");
   assert.equal(args.xlsxLayout, "biaobiaotong16");
-  assert.throws(() => M.parseArgs(["-p", "anhui", "--stage", "candidate"]), /公开契约只支持招标公告阶段/);
+  assert.equal(M.parseArgs(["-p", "anhui", "--stage", "candidate"]).stage, "candidate");
 });
 
-test("公开文档不暴露已退出阶段参数", () => {
+test("公开文档保留阶段选择并明确本 PR 只验收 zb", () => {
   const root = path.join(__dirname, "..");
-  const files = [
-    path.join(root, "SKILL.md"),
-    path.join(root, "README.md"),
-    path.join(root, "CONTRIBUTING.md"),
-    ...fs.readdirSync(path.join(root, "reference"))
-      .filter((name) => name.endsWith(".md"))
-      .map((name) => path.join(root, "reference", name)),
-  ];
-  for (const file of files) {
-    const text = fs.readFileSync(file, "utf8");
-    assert.doesNotMatch(text, /--stage\s+(?:candidate|result|contract)/, `${path.basename(file)} 暴露旧阶段命令`);
-    assert.doesNotMatch(text, /B 阶段/, `${path.basename(file)} 暴露旧阶段说明`);
-  }
+  const skill = fs.readFileSync(path.join(root, "SKILL.md"), "utf8");
+  const family = fs.readFileSync(path.join(root, "reference", "FAMILY_INDEX.md"), "utf8");
+  assert.match(skill, /--stage candidate/);
+  assert.match(skill, /全国状态总账与分层验收只覆盖 `zb`/);
+  assert.match(family, /B 阶段/);
+  assert.match(family, /--stage contract/);
 });
 
 test("已配置阶段都有类型和可执行路由", () => {
-  const routeKeys = ["cats", "listUrl", "noticeType", "gcjsEndpoint", "jsgcEndpoint", "GGTYPE", "channelId", "unionCondition", "iType", "iTypes", "noticeTypeName", "searchword"]; // TRS 族客户端路由（jilin/nmg/liaoning 2026-08-15 B 阶段）
+  const routeKeys = ["cats", "listUrl", "noticeType", "gcjsEndpoint", "jsgcEndpoint", "GGTYPE", "channelId", "unionCondition", "iType", "iTypes", "noticeTypeName", "searchword", "tradingProcess", "categoryNum", "notice"]; // 含 TRS、粤公平、河南与湖南 B 阶段客户端路由
   for (const [adapterName, adapter] of Object.entries(M.ADAPTERS)) {
     for (const [stageName, stage] of Object.entries(adapter.stages || {})) {
       assert.ok(["candidate", "result", "contract"].includes(stageName), `${adapterName}.${stageName} 非法`);
