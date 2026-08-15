@@ -196,6 +196,29 @@ test("标的类型按标题量纲标记", () => {
   assert.equal(M.inferTenderType("某某项目"), "");
 });
 
+
+// 由 Cowork 补：浙江「中标候选人排序|投标人」表头（复刻 2026-08-15 岱山真实页面结构：rowspan/colspan 嵌套表头）
+test("浙江候选人表头(投标人列头)可解析第一名", () => {
+  const html = '<table>' +
+    '<tr><td rowspan="2">中标候选人排序</td><td rowspan="2">投标人</td><td rowspan="2">投标报价</td><td rowspan="2">工期（或服务期、交货期）</td><td rowspan="2">质量承诺</td><td colspan="3">项目负责人</td><td rowspan="2">中标候选人响应招标文件的资格能力条件</td></tr>' +
+    '<tr><td>姓名</td><td>相关证书名称及编号</td><td>个人业绩</td></tr>' +
+    '<tr><td>1</td><td>浙江舟山成盛建设有限公司</td><td>91,238,540.00元</td><td>526天</td><td>合格</td><td>林珊</td><td>无</td><td>无</td><td>无</td></tr>' +
+    '</table>';
+  const out = M.extractCandidateTables(html);
+  assert.equal(out.winner, "浙江舟山成盛建设有限公司");
+  assert.equal(out.winPrice, "9123.854");
+  assert.equal(out.rank, "1");
+  assert.ok(String(out.duration).includes("526"));
+});
+
+// 由 Cowork 补：合同主体角色括号后缀（海南真实表述）
+test("合同主体(甲方)/(乙方)角色后缀可抽取", () => {
+  const text = '五、合同主体 采购人(甲方)：海口市琼山区水务局 地址：海南省海口市 联系方式：0898-65915889 供应商(乙方)：中粤建设集团（海南）有限公司 法定代表人：王天焕';
+  const out = M.extractWinDetail({ stageKey: "contract" }, "<p>" + text + "</p>", { url: "https://example.invalid/9" }, "");
+  assert.equal(out.partyA, "海口市琼山区水务局");
+  assert.equal(out.partyB, "中粤建设集团（海南）有限公司");
+});
+
 let passed = 0;
 for (const { name, fn } of tests) {
   try {

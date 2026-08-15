@@ -1759,10 +1759,12 @@ function tableMoneyWan(value, header) {
 function extractCandidateTables(html) {
   let basic = {}, manager = "";
   for (const rows of tableRows(html)) {
-    const hi = rows.findIndex((row) => row.some((c) => /中标候选人名称|候选人名称/.test(c)));
+    // 中标候选人排序：浙江 SSR 页表头是「中标候选人排序 | 投标人 | 投标报价…」（无"名称"二字），
+    // 原锚点 /中标候选人名称|候选人名称/ 整表跳过 → winner 全空（2026-08-15 岱山实测复现）
+    const hi = rows.findIndex((row) => row.some((c) => /中标候选人名称|候选人名称|中标候选人排序/.test(c)));
     if (hi < 0) continue;
     const headers = rows[hi];
-    const winnerI = tableColumn(headers, [/中标候选人名称/, /候选人名称/, /投标人名称/]);
+    const winnerI = tableColumn(headers, [/中标候选人名称/, /候选人名称/, /投标人名称/, /投标人/]); // 光杆"投标人"=浙江列头
     const priceI = tableColumn(headers, [/投标.*报价/, /中标价/, /报价/]);
     const durationI = tableColumn(headers, [/工期/, /交货期/, /服务期/]);
     const scoreI = tableColumn(headers, [/评标结果/, /综合得分/, /评审得分/, /得分/]);
@@ -1787,6 +1789,19 @@ function extractCandidateTables(html) {
   return { ...basic, winManager: manager };
 }
 
+// 合同主体行常见「采购人(甲方)：××」「供应商(乙方)：××」——角色括号后缀插在标签与值之间，
+// 通用 grab 的标签→值间隙匹配会失败（海南合同公示 2026-08-15 实测：乙方整条丢失、甲方带"(甲方)："残leak）。
+// 专用通道按角色词定位，值再走 org 完形/校验；失败回退通用路径。
+function grabPartyByRole(text, roleWord) {
+  const re = new RegExp("[（(]" + roleWord + "[）)]\\s*[:：]?\\s*([^\\n，。;；]{4,60})", "");
+  const m = String(text || "").match(re);
+  if (!m) return "";
+  let v = m[1].trim();
+  // 值区用空格分隔无标点（海南合同公示实测），在下一段字段词（地址：/联系方式：/法定代表人：…）处截断
+  v = v.split(/\s+(?=(?:地址|联系方式|法定代表人|电话|联系人|传真|邮编|开户行|账号|户名|乙方|甲方|名称)[（(]?[^\s：]{0,8}[）)]?\s*[:：])/)[0];
+  return completeOrgName(v, text);
+}
+
 function extractWinDetail(ad, html, item, pdfText) {
   if (ad && ad.winDetail && typeof ad.winDetail === "function") return ad.winDetail(html, item, pdfText);
   const text = pdfText ? (htmlToText(html) + "\n" + pdfText) : htmlToText(html);
@@ -1803,8 +1818,8 @@ function extractWinDetail(ad, html, item, pdfText) {
     winScore: table.winScore || grabScore(text, flat),
     rank: table.rank || grabRank(text),
     contractAmount: stage === "contract" ? (grabMoneyWan(text, ["合同金额", "合同价", "合同总价", "签约合同价", "合同估算价"]) || grabMoneyWan(flat, ["合同金额", "合同价", "合同总价", "签约合同价"])) : "",
-    partyA: completeOrgName(grabBoth(text, flat, PARTY_A_LABELS), flat),
-    partyB: winner,
+    partyA: grabPartyByRole(text, "甲方") || completeOrgName(grabBoth(text, flat, PARTY_A_LABELS), flat),
+    partyB: (stage === "contract" ? grabPartyByRole(text, "乙方") : "") || winner,
     projectCode: grabProjectCode(text, flat),
   };
   return Object.fromEntries(Object.entries(out).map(([k, v]) => [k, cleanOutputCell(v)]));
