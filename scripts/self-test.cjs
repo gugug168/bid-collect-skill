@@ -59,6 +59,23 @@ test("公开参数默认 zb 与标标通16列，并拒绝其它阶段", () => {
   assert.throws(() => M.parseArgs(["-p", "anhui", "--stage", "candidate"]), /公开契约只支持招标公告阶段/);
 });
 
+test("公开文档不暴露已退出阶段参数", () => {
+  const root = path.join(__dirname, "..");
+  const files = [
+    path.join(root, "SKILL.md"),
+    path.join(root, "README.md"),
+    path.join(root, "CONTRIBUTING.md"),
+    ...fs.readdirSync(path.join(root, "reference"))
+      .filter((name) => name.endsWith(".md"))
+      .map((name) => path.join(root, "reference", name)),
+  ];
+  for (const file of files) {
+    const text = fs.readFileSync(file, "utf8");
+    assert.doesNotMatch(text, /--stage\s+(?:candidate|result|contract)/, `${path.basename(file)} 暴露旧阶段命令`);
+    assert.doesNotMatch(text, /B 阶段/, `${path.basename(file)} 暴露旧阶段说明`);
+  }
+});
+
 test("已配置阶段都有类型和可执行路由", () => {
   const routeKeys = ["cats", "listUrl", "noticeType", "gcjsEndpoint", "jsgcEndpoint", "GGTYPE", "channelId", "unionCondition", "iType", "iTypes", "noticeTypeName", "searchword"]; // TRS 族客户端路由（jilin/nmg/liaoning 2026-08-15 B 阶段）
   for (const [adapterName, adapter] of Object.entries(M.ADAPTERS)) {
