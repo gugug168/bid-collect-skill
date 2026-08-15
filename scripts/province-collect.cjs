@@ -319,7 +319,8 @@ const ADAPTERS = {
         const url = "https://ggzy.ah.gov.cn" + am[1];
         const area = (block.match(/class=["']area[^"']*["'][^>]*>([\s\S]*?)<\/span>/i) || [,""])[1].replace(/<[^>]+>/g, " ").trim();
         const titleAll = block.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-        const title = (titleAll.replace(area, "").trim()) || titleAll;
+        // 列表 <li> 文本含日期 span，去 area 后仍残留「… 2026-08-14」尾巴（2026-08-15 实测 23/23），剥离之
+        const title = ((titleAll.replace(area, "").trim()).replace(/\s*\d{4}-\d{2}-\d{2}\s*$/, "").trim()) || titleAll;
         const dm = block.match(/(\d{4}-\d{2}-\d{2})/);
         items.push({ url, title: (area + " " + title).trim(), date: dm ? dm[1] : "" });
       }
@@ -1385,7 +1386,9 @@ const OPEN_LABELS = [
   "投标截止时间", "递交截止时间",
   "开标",
 ];
-const FUND_LABELS = ["建设资金来自", "资金来自", "资金来源为", "资金来源", "建设资金", "所需资金", "出资比例"];
+// 资金来源及比例 必须排在 资金来源 之前：安徽公告栏目名即「资金来源及比例：政府性资金100%」，
+// 先匹配短标签会把「及比例：政府性资金100%」当值抓出（2026-08-15 实测 23/23 条全部带此脏前缀）
+const FUND_LABELS = ["资金来源及比例", "建设资金来自", "资金来自", "资金来源为", "资金来源", "建设资金", "所需资金", "出资比例"];
 // 勘察设计/监理/服务类标段通篇没有"工期"二字，写成「2.5 勘察设计服务期限： 210 日历天」。
 // 首轮 75 条核验实测漏抓 2 条（上虞区管网勘察设计、缙云产业园配套勘察设计），必须把服务期类标签补齐。
 // 顺序＝特异性降序：先试最长最专的，避免"工期"这种泛标签抢先命中无关条款。
@@ -1628,7 +1631,10 @@ function extractDetail(ad, html, item, pdfText) {
   const text = pdfText ? (htmlToText(html) + "\n" + pdfText) : htmlToText(html);
   const flat = flatten(text);   // 兜底通道，见 flatten() 注释
   // 金额走严格模式：邻域必须有数字+单位，否则留空（不把"保证金不予退还"这类条款当金额）
-  const controlWan = grabMoneyWan(text, ["招标控制价", "控制价", "最高投标限价", "最高限价", "预算金额", "预算价"]);
+  // 合同估算价放最后兜底：安徽公告无"控制价/最高限价"栏目，价款披露就是「N、合同估算价：5000038.66元」
+  // （2026-08-15 对标标标通实测：安徽 23 条控制价填充率 43%→补此标签后可近满额；标标通控制价列即取此值）。
+  // 语义上它是估算口径，但为安徽公告唯一价款字段，按标标通口径入控制价列；严格口径用户可看 budget 列。
+  const controlWan = grabMoneyWan(text, ["招标控制价", "控制价", "最高投标限价", "最高限价", "预算金额", "预算价", "合同估算价"]);
   const bondWan = grabMoneyWan(text, ["投标保证金", "保证金"]);
   const docLink = grabDocLink(html, item.url);
   return {
@@ -3167,7 +3173,7 @@ async function enrichFromAttachment(rec, args) {
     }
     // 只记录「真实补到的字段」，不夸大（此前用 need=补抽前为空的字段列表，会写成未补到的字段）
     const filled = [];
-    if (!rec.controlPrice) { const v = grabMoneyWan(text, ["招标控制价", "控制价", "最高投标限价", "最高限价", "预算金额", "预算价"]); if (v) { rec.controlPrice = v; filled.push("controlPrice"); } }
+    if (!rec.controlPrice) { const v = grabMoneyWan(text, ["招标控制价", "控制价", "最高投标限价", "最高限价", "预算金额", "预算价", "合同估算价"]); if (v) { rec.controlPrice = v; filled.push("controlPrice"); } }
     if (!rec.budget) { const v = grabBudgetWan(flatten(text)); if (v) { rec.budget = v; filled.push("budget"); } }
     if (!rec.bond) { const v = grabMoneyWan(text, ["投标保证金", "保证金"]); if (v) { rec.bond = v; filled.push("bond"); } }
     if (filled.length) {
@@ -3598,11 +3604,13 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
             for (const [k, v] of Object.entries(df)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
             // 详情页为未渲染 mustache SPA 时，docLink 会被写成 {{downloadurl}}（或 URL 编码 %7B%7Bdownloadurl%7D%7D）脏值，务必清掉
             if (rec.docLink && /downloadurl|%7[Bb]|%7[Dd]|[\{\}]/i.test(rec.docLink)) rec.docLink = "";
-            // 缺口一：HTML 未载控制价/概算/保证金时，从招标文件附件补抽
-            await enrichFromAttachment(rec, args);
             if (!rec.city && df.projectSite) rec.city = df.projectSite;
             rec.url = normUrl(df.detailUrl || item.url, ad);
           }
+          // 缺口一（统一出口）：HTML 未载控制价/概算/保证金时，从招标文件附件补抽。
+          // 原先仅通用 HTML 分支调用；bespoke 详情分支（ah/xz/hn/yn/hb/gz/nmg/gs）的片段同样可能带附件，
+          // 统一放在 try 尾部后全路径同享（--attach 门禁不变，docLink 为空/已解析过则安全 no-op）
+          await enrichFromAttachment(rec, args);
         } catch (e) {
           console.error("[detail] FAIL", item.url.slice(0, 60), e.message);
         }
