@@ -1,7 +1,7 @@
 # 贵州省 采集参考
 
 > 数据源 adapter：`guizhou` · kind=`gz` · 验证状态：**✅ 已打通（厚字段可重复采集）**
-> 最后验证：2026-08-14（全量实测矩阵 + 单省复测）
+> 最后验证：2026-08-15（全量实测矩阵 + 单省复测 + 城市筛选）
 
 ## 机制
 bespoke `gzDetail`：`api/trade/detail?id=` 取结构化详情。
@@ -13,6 +13,9 @@ bespoke `gzDetail`：`api/trade/detail?id=` 取结构化详情。
 ```bash
 HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p guizhou -k 管网 --detail -d 120 --csv -o out/guizhou.csv
 ```
+
+## 城市/区县筛选（2026-08-15 实测）
+`-c 仁怀 --limit 1 --detail` 返回 1/1 条 `仁怀市` 记录（长岗镇农村公路安全生命防护工程）；筛选靠真实地区/标题/提取地点匹配，不将空地区补写成城市。
 
 ## 诚实留空字段（源页无则空，绝不伪造）
 performance / fullScore（源页普遍无评分细则/业绩要求，全省一致诚实留空）；projectSite / city / type 依省而异（源页无则空）

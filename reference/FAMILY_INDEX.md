@@ -148,7 +148,7 @@ node province-collect.cjs -p <adapter> --stage contract    # 合同公示
 |---|---|---|---|---|
 | jiangsu | 江苏 | epoint | ✅ candidate/result | cats 候选`003001007`/结果`003001008`（合同栏目`003004006`仅测试条目→不配）；winner 18/20·rank 16/20·partyA 20/20，少数行含"公示-"/得分噪声（同标杆级抽样噪声） |
 | zhejiang | 浙江 | epoint | ✅ candidate/result/contract | 候选`002001004`/结果`002001005`/合同`002002004`（合同在 002002 分支）；winner 14/20·partyA 20/20，少数行"公示[代码]"泄漏 |
-| hainan | 海南 | epoint | ✅ candidate/result/contract | 候选`003001005`/结果`003001006`/合同`003002005`（合同在 003002 分支）；winner 20/20·partyA/partyB 20/20（最干净） |
+| hainan | 海南 | epoint | ✅ candidate/result/contract | 候选`003001005`/结果`003001006`/合同`003002005`（合同在 003002 分支）；2026-08-15 实时 smoke 3/3 命中 projectCode/winner/winPrice/duration/winScore/rank/winManager/partyA，候选历史合同额污染 0/3 |
 | sichuan | 四川 | epoint | ✅ candidate/result/contract | 候选`002001006`/结果`002001008`/合同`002001007`（全在 00200100x 分支）；winner 18/20·rank 19/20·partyA 20/20，少数行含"招标人代表/得分"噪声 |
 | xinjiangbt | 新疆兵团 | epoint | ✅ candidate/result | 候选`004001002003`/结果`004001003004`（结果在 003 分支）；rank 20/20·partyA 20/20 但 **winner=0/20**（详情页中标人名疑似 JS 渲染未入 SSR，待 grabWinner 调优或诚实空） |
 | ningxia | 宁夏 | epointX | ✅ candidate/result/contract | 候选`001001001004`/结果`001001001003`/合同`001001001006`(合同信息公示)；winner 10/10·rank 10/10·partyA/partyB 10/10（最干净之一），winPrice 候选阶段源页无→诚实空 |

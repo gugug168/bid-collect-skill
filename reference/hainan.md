@@ -19,9 +19,13 @@ performance / fullScore（源页普遍无评分细则/业绩要求，全省一�
 
 ## 中标/合同阶段（B 阶段 · Goal v1）
 
-本省的 `--stage candidate|result|contract`（中标候选/结果/合同）**待逐省枚举端点，尚未配置 `stages`**。
-原因：B 阶段栏目码因省而异，盲推会把错类目当中标候选（浙江 `002001003` 实证=开标记录）。
-状态与正确做法见 `FAMILY_INDEX.md` §3.1「其余 26 省 B 阶段现状」。
+已配置并验证：候选 `003001005`、结果 `003001006`、合同 `003002005`。
+
+2026-08-15 真实候选人 smoke test（近 30 天，`--limit 3 --detail`）：严格返回 3 条；项目编号/第一中标候选人/投标报价/工期/得分/排名/项目负责人/招标人均 3/3 有效。候选人历史业绩中的合同金额不再写入当前 `contractAmount`。
+
+```bash
+node scripts/province-collect.cjs -p hainan --stage candidate -d 30 --limit 3 --detail --csv --out out/hainan-candidate.xlsx
+```
 
 ## 家族与通用纪律
 见 `FAMILY_INDEX.md`（家族总览 + 代理/鉴权/mustache 脏值拦截/去重坍缩等通用提醒）。

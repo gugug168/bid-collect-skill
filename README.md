@@ -45,6 +45,32 @@ WorkBuddy 技能：跨省公共资源交易平台招投标数据采集器。覆�
 - `reference/*.md` —— 各省适配注记（前端 JS 逆向结论、栏目码、坑）。
 - `SKILL.md` —— 技能使用说明与调度协议。
 
+## 标标通兼容输出
+
+```bash
+node scripts/province-collect.cjs -p anhui -d 30 --limit 20 --detail \
+  --xlsx-layout biaobiaotong16 --out out/anhui.xlsx
+```
+
+`biaobiaotong16` 固定生成 `房建市政 / 水利 / 公路 / 其他项目` 4 个 sheet，并严格使用参考工作簿的 16 列顺序；工作簿内置表头样式、列宽、自动换行、首行冻结和筛选。中标候选人等 B 阶段的扩展字段请使用默认 `full29` 或 CSV，避免为了兼容 16 列而丢失中标人、得分、排名等信息。
+
+## 城市/区县筛选
+
+```bash
+node scripts/province-collect.cjs -p hainan -c "海口,文昌" -k 管网 -d 30 --detail --out out/hainan-city.xlsx
+```
+
+`-c, --city` 支持城市或区县简称、全称及逗号/顿号 OR。由于各省服务端的行政区字段不统一，采集器在客户端对平台地区、标题和提取地点做匹配；留空或传入 `全省` 表示不过滤。
+
+## 提交前验证
+
+```bash
+node --check scripts/province-collect.cjs
+node scripts/self-test.cjs
+```
+
+GitHub Actions 会对每个 PR 自动运行以上离线回归；真实站点 smoke test 仍需本地执行并在 PR 中记录采样时间和条数。
+
 ## 本地开发双副本纪律
 
 技能副本（`~/.workbuddy/skills/collect-bid-notices/`）与项目工作副本（`E:/工程项目/_工具脚本/bid-collect/`）**必须保持一致**：
@@ -61,7 +87,7 @@ diff -q province-collect.cjs <skill>/scripts/province-collect.cjs   # 须 IDENTI
 本仓库用于多 AI 协作完善：
 - **Issue**：报告某省 B 阶段栏目码缺失 / 字段抽取噪声 / 新省适配需求。
 - **PR**：新增省份 `stages` 配置、修复 `list`/`parse` 函数、补充 `reference/*.md` 注记。
-- 提交前请确保双副本一致且 `node --check` 通过。
+- 提交前请确保双副本一致，且语法检查与 `scripts/self-test.cjs` 全部通过。
 
 ## 代理
 
