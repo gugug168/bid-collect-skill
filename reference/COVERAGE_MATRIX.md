@@ -58,7 +58,7 @@
 | neimenggu | 内蒙古 | nmg | bespoke(nmgDetail) | ✅ WORKS | — | ≈4/14（仅链接·项目名·工期·联合体满；源厚字段弱） | TRS 公开 JSON 详情 nmgDetail（15/15，过滤 1970 脏开标） |
 | liaoning | 辽宁 | ln | generic(extractDetail) | ✅ WORKS | 18/20 | 实测 8/15（原 city/项目地点被 verbose projectSite 污染→已修；控制价/保证金/业绩/满分/评标办法/招标文件留空） | TRS，perpage≤20 |
 | gansu | 甘肃 | gs | bespoke(gsDetail) | ✅ WORKS | 18/20 | ≈5/14（仅链接·项目名强；源厚字段弱） | gsDetail 双分支，0 undefined/0 dirty |
-| shanghai | 上海 | html | generic(extractDetail) | ✅ WORKS | 18/20 | 实测：控制价/保证金可填(537.51/2、75.19)；工期原误抓导航脏值→已修(建设周期240日历天)；city 污染已修；资质要求仅抓到标签(内容截断，已知缺口) | 开箱即用 |
+| shanghai | 上海 | html | generic(extractDetail) | ✅ WORKS | 18/20 | 实测：控制价/保证金可填(537.51/2、75.19)；工期原误抓导航脏值→已修(建设周期240日历天)；city 污染已修；资质要求**(内容截断已修)** 现得"施工资质要求 第一条 市政公用工程施工总承包三级及其以上…" | 开箱即用 |
 | qinghai | 青海 | epointX | generic(extractDetail) | ✅ WORKS | 18/20 | 待真机 | inteligentSearch 方法名非标准 |
 
 _共 32 省。bespoke 省(hn/yn/hb/gz/nmg/gs/ah/xizang)走各自详情函数（同池 grab* 抽取器）；其余走通用 extractDetail。16 列实际填充率待任务 #110/#111 真机回填。_
@@ -72,15 +72,16 @@ _共 32 省。bespoke 省(hn/yn/hb/gz/nmg/gs/ah/xizang)走各自详情函数（�
 |---|---|---|---|
 | jilin | generic(extractDetail) | 8/15 满 | 控制价/保证金/业绩/满分/招标文件源页 HTML 未载（应在 PDF 附件，需 `--attach` 补抽），其余（开标/工期/资金/资质/评标/联合体/联系人）均满 |
 | liaoning | generic(extractDetail) | 8/15 满 | 原 `city`/`项目地点` 被 verbose projectSite（"位于鞍山市高新区，工程施工期为540天"）污染 → **已修**（仅短地名回填 city） |
-| shanghai | generic(extractDetail) | 控制价/保证金优 | 控制价(537.51/75.19)、保证金(2) 抽取良好；原 `工期` 误抓导航脏值"间的所有交易信息" → **已修**（补 `建设周期`/`设计周期` 标签，现得 240日历天）；`资质要求` 仍只抓到标签("施工/设计资质要求")，正文"第一条 市政行业排水工程专业资质甲级…"被截断 → **已知缺口**（脆弱，未强修以免回归其他 27 省） |
+| shanghai | generic(extractDetail) | 控制价/保证金优 | 控制价(537.51/75.19)、保证金(2) 抽取良好；原 `工期` 误抓导航脏值"间的所有交易信息" → **已修**（补 `建设周期`/`设计周期` 标签，现得 240日历天）；`资质要求` 原只抓到标签("施工/设计资质要求")、正文被截断 → **已修**（grabQualification 增补"裸子标签续抓正文"分支，现得"施工资质要求 第一条 市政公用工程施工总承包三级及其以上…"） |
 
 ### 本轮代码修复（province-collect.cjs）
 1. `DUR_LABELS` 增补 `建设周期`/`设计周期`（上海等平台用此而非"工期"）→ 工期误抓/留空修复。
 2. 详情回填 `rec.city` 增加守卫：仅当 `projectSite` 短(≤20字)且不含标点时才回填，杜绝 verbose projectSite 污染 city。
+3. `grabQualification` 增补"裸子标签续抓正文"分支：当取到的值仅是裸子标签（如 `设计资质要求`/`施工资质要求`）时，从扁平文本续抓其后的正文（遇句末/分号/220字/下一字段标签为止）补全。修复上海等"资质要求： 设计资质要求 第一条…"写法下只留标签不填正文的问题。仅对裸标签触发，其他省已拿完整短语的不受影响；QUAL_OK/QUAL_BAD/countQual 三重把关防回归。
 
 ### 诚实口径
 - 16 列中"控制价/保证金/业绩要求/满分标准/招标文件"多数省源页 HTML 不含，落在 PDF 附件，需 `--attach`（缺口一 enrichFromAttachment）补抽；源页真无则留空，绝不伪造。
-- shanghai `资质要求` 内容截断为已知待修补缺口（属 bespoke 级 HTML 结构，建议归入第二波或单独立项）。
+- `满分标准`/`备注` 全局源站 HTML 不载（在 PDF/子页），非代码缺陷，不伪造。
 
 ## 真机实测记录（2026-08-15 第二波 · bespoke 8 省）
 

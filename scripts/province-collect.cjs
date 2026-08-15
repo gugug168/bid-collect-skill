@@ -1579,6 +1579,24 @@ function grabQualification(text, flat) {
       if (isMeaningful(v2, 6) && !QUAL_BAD.test(v2)) phrase = v2;
     }
   }
+  // shanghai 等平台写成「资质要求： 设计资质要求 第一条 市政行业排水工程专业资质甲级 以上…」，
+  // grabBoth 主通道只取到子标签（"设计资质要求"）就因前缀增长上限(12字)回退；此处若 phrase 仅是裸子标签，
+  // 从 flat 续抓其后正文（遇句末/分号/220字为止，并截断到下一字段标签前）补全，避免只留一个无内容标签。
+  // 仅对"裸标签"触发，其他省已拿到完整短语的不受影响；QUAL_OK/QUAL_BAD/countQual 三重把关防回归。
+  if (phrase) {
+    const bare = phrase.replace(/\s/g, "");
+    if (/^(?:设计|施工|监理|勘察|供货|货物|投标)?资质要求?$/.test(bare)) {
+      const esc = bare.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const em = flat.match(new RegExp(esc + "\\s*[:：]?\\s*([^。；;]{4,220})"));
+      if (em) {
+        let ev = cleanVal(em[1]).replace(/\s+/g, " ").trim();
+        ev = ev.replace(/(项目负责人|项目经理|其他要求|是否接受联合体|投标有效期|招标文件获取).*$/, "").trim();
+        if (ev && QUAL_OK.test(ev) && !QUAL_BAD.test(ev) && countQual(ev) >= countQual(phrase)) {
+          phrase = (phrase + " " + ev).replace(/\s+/g, " ");
+        }
+      }
+    }
+  }
   // 整条 vs 短语择优：仅当整条覆盖的资质项**更多**才替换。
   // 平手时保留短语（如"水利水电工程施工总承包叁级及以上资质"比整句更干净），避免无谓改动。
   const clause = grabQualClause(flat);
