@@ -21,7 +21,7 @@ description: 从中国大陆 31 个省级行政区及新疆生产建设兵团的
 node scripts/self-test.cjs
 ```
 
-必须看到 `SELF_TEST 8/8 passed`。失败时先修门禁，不开始批量联网。
+必须看到 `SELF_TEST 24/24 passed`（以 scripts/self-test.cjs 实际用例数为准）。失败时先修门禁，不开始批量联网。
 
 选定省份后，读取 `reference/<adapter>.md`。家族路由与 B 阶段总表见 `reference/FAMILY_INDEX.md`；新增省份读 `reference/NEW_PROVINCE_TEMPLATE.md`。
 
@@ -87,7 +87,7 @@ node scripts/province-collect.cjs -p 浙江 -k 管网 -d 365 --verify
 ## 输出 schema
 
 - XLSX schema 以 `scripts/province-collect.cjs` 的 `XLSX_HEADER` 为唯一真相源，当前 29 列，按房建市政、水利、公路、其他项目分 sheet。
-- CSV schema 以同文件的 `CSV_HEADER` 为唯一真相源，当前 36 列，额外保留日期、类型、预算、招标人、代理、联系人和 B 阶段字段。
+- CSV schema 以同文件的 `CSV_HEADER` 为唯一真相源，当前 37 列（含 tenderType 标的类型量纲标记：施工/监理/EPC总承包/…，控制价列在标的价与服务费两种量纲间靠它区分），额外保留日期、类型、预算、招标人、代理、联系人和 B 阶段字段。
 - XLSX 与 CSV 不是同一列集。预算 `budget` 与控制价 `controlPrice` 是两个事实，禁止合并。
 - 输出层清理 `undefined`、`null`、`NaN` 和未渲染 `{{downloadurl}}`；合法数值 `0` 不会被当成缺失。
 
