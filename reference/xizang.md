@@ -20,7 +20,5 @@ performance / fullScore（源页普遍无评分细则/业绩要求，全省一�
 ## 家族与通用纪律
 见 `FAMILY_INDEX.md`（家族总览 + 代理/鉴权/mustache 脏值拦截/去重坍缩等通用提醒）。
 
-## 中标/合同阶段（B 阶段 · Goal v1）
-- `--stage candidate`(jyxxgchxr) 列表通 + AJAX 取正文命中；`result`(jyxxgcjg) 为 AJAX 壳页（SSR 无正文，诚实空）。
-- 实测命中（candidate）：中标人 / 中标价 / 项目经理 / 得分 / 招标人 经 `xizangWinHtml` 命中。
-- 用法：`-p xizang --stage candidate -k 管网 --detail -d 120 --csv`
+## 历史兼容说明（不属于公开契约）
+本文件公开使用范围仅为招标公告（zb）。候选/中标/合同旧实现不在本轮实现或验收。

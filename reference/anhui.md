@@ -20,7 +20,5 @@ performance / fullScore（源页普遍无评分细则/业绩要求，全省一�
 ## 家族与通用纪律
 见 `FAMILY_INDEX.md`（家族总览 + 代理/鉴权/mustache 脏值拦截/去重坍缩等通用提醒）。
 
-## 中标/合同阶段（B 阶段 · Goal v1）
-- `--stage candidate`(bulletinNature=2) / `result`(bulletinNature=3) 列表均通；详情复用 `anhuiWinHtml` AJAX 取正文（与 zb 期 `anhuiDetail` 同一函数）。
-- 实测命中：中标人 / 中标价 / 项目经理 / 中标得分 / 招标人 全命中（bn=2 候选、bn=3 结果均稳）。
-- 用法：`-p anhui --stage result -k 管网 --detail -d 120 --csv`
+## 历史兼容说明（不属于公开契约）
+本文件公开使用范围仅为招标公告（zb）。候选/中标/合同旧实现不在本轮实现或验收。

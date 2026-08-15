@@ -20,7 +20,5 @@ performance / fullScore（源页普遍无评分细则/业绩要求，全省一�
 ## 家族与通用纪律
 见 `FAMILY_INDEX.md`（家族总览 + 代理/鉴权/mustache 脏值拦截/去重坍缩等通用提醒）。
 
-## 中标/合同阶段（B 阶段 · Goal v1）
-- `--stage candidate`(list/12) / `result`(list/13) 列表均通；详情为 PDF 正文（pdfjs 加载，`extractWinDetail` 复用 zb 期 grab 池）。
-- 实测命中：中标人 / 招标人 / 项目经理 / 得分 部分命中（PDF 结构化差异大，字段覆盖弱于 list 层）。
-- 用法：`-p shanxi --stage candidate -k 管网 --detail -d 120 --csv`
+## 历史兼容说明（不属于公开契约）
+本文件公开使用范围仅为招标公告（zb）。候选/中标/合同旧实现不在本轮实现或验收。

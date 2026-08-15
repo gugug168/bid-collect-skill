@@ -20,7 +20,5 @@ performance / fullScore（源页普遍无评分细则/业绩要求，全省一�
 ## 家族与通用纪律
 见 `FAMILY_INDEX.md`（家族总览 + 代理/鉴权/mustache 脏值拦截/去重坍缩等通用提醒）。
 
-## 中标/合同阶段（B 阶段 · Goal v1）
-- `--stage candidate`(jyxxzbhxrgs) / `result`(jyxxzbjggg) / `contract`(jyxxgcjshtgs) 列表均通。
-- 详情 JS 渲染：**候选/结果中标人名称不在 SSR**（诚实空）；但 `partyA`(招标人)/`rank` 及结果期 `winPrice`/`winScore` 可从 SSR 碎片拿到。
-- 用法：`-p beijing --stage result -k 管网 --detail -d 120 --csv`
+## 历史兼容说明（不属于公开契约）
+本文件公开使用范围仅为招标公告（zb）。候选/中标/合同旧实现不在本轮实现或验收。
