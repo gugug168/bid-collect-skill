@@ -167,6 +167,23 @@ test("XLSX 与 CSV schema 由代码常量锁定", () => {
   assert.equal(new Set(M.CSV_HEADER).size, M.CSV_HEADER.length);
 });
 
+test("运行报告区分真实记录、空窗口与失败", () => {
+  assert.equal(M.classifyRunStatus([{ title: "公告", date: "2026-08-15", url: "https://example.invalid/1" }]), "VERIFIED_RECORD");
+  assert.equal(M.classifyRunStatus([]), "CONNECTED_NO_RECENT_DATA");
+  assert.equal(M.classifyRunStatus([], [{ code: "HTTP", message: "timeout" }]), "FAILED");
+  assert.equal(M.classifyRunStatus([], [], { auth_walls: [{ status: 403 }] }), "BROWSER_REQUIRED");
+  const report = M.buildRunReport("anhui", M.ADAPTERS.anhui, [], { province: "anhui", city: "", keyword: "", days: 30, stage: "zb", detail: false, limit: 1, xlsxLayout: "biaobiaotong16" });
+  assert.equal(report.schema_version, "bid-collect.run-report.v1");
+  assert.equal(report.status, "CONNECTED_NO_RECENT_DATA");
+  assert.equal(report.counts.total, 0);
+  assert.match(report.status_reason, /空结果/);
+});
+
+test("详情标题覆盖列表层截断值", () => {
+  assert.equal(M.extractNoticeTitle('<p class="article-title">长江沿线无为市镇区污水管网提升改造项目二标段(姚沟镇)招标公告</p>', "项目..."), "长江沿线无为市镇区污水管网提升改造项目二标段(姚沟镇)招标公告");
+  assert.equal(M.extractNoticeTitle('<title>招标公告</title>', "项目..."), "项目...");
+});
+
 test("XLSX 行宽与 schema 一致且脏哨兵不出现在单元格", () => {
   const sheets = M.buildXlsxSheets([{
     sheet: "其他项目",
