@@ -106,7 +106,7 @@ HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p <adapter> -k 管�
 - **频率纪律**：逐省间隔 ≥8s、`--delay 500` 起、单省熔断 180s；粤公平/受限源降频。
 - **扩展新网站**：照 `NEW_PROVINCE_TEMPLATE.md`；改 adapter 必须同步改对应 `reference/<key>.md`（本表即总账）。
 
-## 五、中标 / 合同阶段（B 阶段 · Goal v1 · 2026-08-14）
+## 五、中标 / 合同阶段（B 阶段 · 2026-08-15 快照）
 
 > 在招标公告（默认 `zb`）之外，扩展到**中标候选人公示 / 中标结果公示 / 合同公示**三阶段，抽取全新字段。
 > 验收标准：抽样可见即可（不强制全量覆盖）。6 个标杆省端点已全摸清单并端到端实测。
@@ -136,13 +136,13 @@ node province-collect.cjs -p <adapter> --stage contract    # 合同公示
 | xizang | ✅（jyxxgchxr） | ⚠️ AJAX 壳页(诚实空) | 未配 | 候选 AJAX 命中；结果 `jyxxgcjg` 为 AJAX 壳页，正文取不到 |
 | beijing | ✅ list+招标人+排名 | ✅ list+中标价+得分 | ✅ list | 详情 JS 渲染：候选/结果中标人名称不在 SSR（诚实空），结果能从 SSR 碎片抓到中标价/得分 |
 
-### 3.1 其余 26 省 B 阶段现状（2026-08-15 安全闸门结论）
+### 3.1 其余 26 省 B 阶段现状（2026-08-15 逐省实证快照）
 
 > ⚠️ **重要**：B 阶段栏目码**不可盲推**。曾假设「EPoint 标准栏目码 001=招标公告 → 003/004/005=中标候选/结果/合同」可套用，
 > 但 2026-08-15 真机实测**浙江 `--stage candidate`（cats `002001003`）返回的是「开标记录」而非「中标候选人公示」**
 > （标题全为「…开标记录」，winner/winPrice 恒空）。证明该规则**因省而异**，盲配会把错类目当中标候选，**违反诚实纪律**。
-> 故 26 省 B 阶段**一律回退推测配置，诚实标「待复测 / 需逐省枚举端点」**，禁止臆造栏目码。
-> 正确做法：对每省**实探其中标候选/结果/合同栏目码或端点**（参照 6 标杆省逐省摸排法），验证抽到真实中标人后再写 `stages`。
+> 因此只允许写入逐省实探确认的阶段：代码 `ADAPTERS[*].stages` 是配置真相源，下表记录相应现场证据和限制。
+> 尚未实探、源站无独立栏目或当前环境不可达时，分别写「待枚举」「不配 + 原因」或「受限」，不得用推测栏目码补齐。
 
 | adapter | 省 | 家族 | B 阶段状态 | 说明 |
 |---|---|---|---|---|
@@ -160,9 +160,9 @@ node province-collect.cjs -p <adapter> --stage contract    # 合同公示
 | shanghai | 上海 | html | ⚠️ 待逆向（JS 渲染 SPA） | 列表为 JS/AJAX 渲染（`res[i].PROJECT_NAME` 模板，无静态 `<li>`），当前 `parse` 无法抽取；须逆向其列表 AJAX/JSON 接口后才能配 B 阶段，本期诚实不配 |
 | guangxi | 广西 | html | ⏳ 待枚举 | 需探 zbtb 中标候选 categoryId |
 | tianjin | 天津 | tj | ✅ candidate/result/contract | channelId 候选`82324`/结果`82323`/合同`82325`（从 `jyxxgcjs.jhtml` 原始 HTML 取 link text 映射确认）；三类均真机返回真实记录（合同示"XX合同订立信息公告"），详情走 JEECMS POST（毫秒时间戳） |
-| neimenggu | 内蒙古 | nmg | ⏳ 待枚举 | 需探 TRS 中标候选端点 |
-| liaoning | 辽宁 | ln | ⏳ 待枚举 | 需探 TRS 中标候选端点 |
-| jilin | 吉林 | jl | ⏳ 待枚举 | 需探 TRS 中标候选端点 |
+| neimenggu | 内蒙古 | nmg | ✅ candidate/result/contract | `searchPublishResource` 用 `noticeTypeName` 隔离：候选`中标候选人公示`/结果`中标结果公告`(站点无"中标结果公示"字面=0)/合同`合同公示`，均真机数万条；**nmgList 原硬编码 noticeTypeName 为空 → 已改为读 ad.noticeTypeName（stages 覆盖生效）** |
+| liaoning | 辽宁 | ln | ✅ candidate/result（无合同栏目） | TRS `was5/web/search`：母栏目 channelId=219677 固定，仅 DOCCHANNEL 隔离；候选`149561`(中标候选人公示)/结果`149562`(中标结果公告)，均真机 2800+/2500+ 条；合同=`Y164624` 走独立 layui 后端非 TRS → 诚实不配 contract；lnList 动态读 ad.searchword 无需改代码 |
+| jilin | 吉林 | jl | ✅ candidate/result/contract | TRS `was5/web/search` channelId=237687（**全类型混合栏目 66 万+ 条**，无独立 B 阶段 channelId）；服务端 `iType='…'` 检索式恒返 0 → 改**客户端按 iType 字段过滤**：候选`中标候选人公示`/结果`中标结果公告`+`中标公告`/合同`合同公示`；**顺带修复 ZB 基线**（原检索式返 0，现拉全量客户端过滤；rn 调 50 使 crawlRound 跨页累加到 limit，避免连续空页提前 break） |
 | hubei | 湖北 | hb | ✅ result（无独立候选/合同栏目） | `jsgcZbjggs` 真机 100 条；湖北公共资源**无独立中标候选人/合同公示栏目** → 诚实不配 candidate/contract；`hbList` 已修复 B 阶段动态 listKey(`endpoint+"List"`) 与双日期格式(`YYYYMMDDHHmmss`/`2026-08-14`) |
 | hunan | 湖南 | hn | ⚠️ 诚实不配（detail-only） | app.js 仅 `constructionTender/listByFile` 一个 listByFile；中标/合同均为 detail-by-sectionId（`selectWinningBidNotice`/`selectconstructionSectionId`），**无独立 B 阶段列表 API**，无法独立爬取 → 不配 stages |
 | guizhou | 贵州 | gz | ✅ candidate/result（合同不配） | candidate=`A03`(中标候选人公示)/result=`A04`(中标结果公示)；A04.2 合同栏目未发布→不配；**顺带修复 ZB `noticeType:affiche`→`A01`+`prjType:A`**（原 affiche 实为"招标计划"误标，find_gz_zb.js 实证 A01=prjType A=招标公告） |
@@ -173,7 +173,7 @@ node province-collect.cjs -p <adapter> --stage contract    # 合同公示
 | shaanxi | 陕西 | sntba | ⛔ 不可达 | sntba 仅最新 10 条无详情，B 阶段无意义 |
 | shandong | 山东 | html | ⏳ 待枚举 | 沙箱不可达，待开放网络 |
 
-### 4. 已知限制（非代码缺陷，属环境）
+### 4. 已知限制（环境、站点公开范围或页面结构）
 - **北京**候选/结果详情页为 JS 渲染，中标人机构名不在 SSR HTML（仅标题/栏目/评标办法条款），故 `winner` 诚实留空；`partyA`(招标人)/`rank` 与结果期 `winPrice`/`winScore` 可从 SSR 碎片拿到。彻底打通需逆向 JS 端点（超出 Goal v1 范围）。
 - **西藏 result**（`jyxxgcjg`）列表为 AJAX 壳页，正文取不到 → 诚实空；候选期已实证可用。
 - 安徽/西藏少数记录因页面结构差异出现 `名 称`/`已经确定` 等标签碎片泄漏（个别行）， majority 正确，属可接受的抽样噪声。
