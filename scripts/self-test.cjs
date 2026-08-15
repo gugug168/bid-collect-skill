@@ -45,7 +45,7 @@ test("已配置阶段都有类型和可执行路由", () => {
 test("full29、biaobiaotong16 与 CSV schema 锁定", () => {
   assert.equal(M.XLSX_HEADER.length, 29);
   assert.equal(M.BIAOBIAOTONG_HEADER.length, 16);
-  assert.equal(M.CSV_HEADER.length, 36);
+  assert.equal(M.CSV_HEADER.length, 37); // 2026-08-15 +tenderType（标的量纲标记）
   assert.deepEqual(M.BIAOBIAOTONG_HEADER, ["序号", "项目地点", "开标时间", "项目名称", "资金来源", "工期", "资质要求", "业绩要求", "控制价万元", "保证金万元", "评标办法", "联合体", "满分标准", "链接", "招标文件", "备注"]);
 });
 
@@ -162,7 +162,7 @@ test("中标人噪声留空，表格第一名可识别", () => {
 
 test("XLSX 与 CSV schema 由代码常量锁定", () => {
   assert.equal(M.XLSX_HEADER.length, 29);
-  assert.equal(M.CSV_HEADER.length, 36);
+  assert.equal(M.CSV_HEADER.length, 37); // 2026-08-15 +tenderType（标的量纲标记）
   assert.equal(new Set(M.XLSX_HEADER).size, M.XLSX_HEADER.length);
   assert.equal(new Set(M.CSV_HEADER).size, M.CSV_HEADER.length);
 });
@@ -183,6 +183,17 @@ test("XLSX 行宽与 schema 一致且脏哨兵不出现在单元格", () => {
   assert.equal(sheets[0].rows[1].length, M.XLSX_HEADER.length);
   assert.ok(!sheets[0].rows[1].some((value) => /^(?:undefined|null|nan)$/i.test(String(value))));
   assert.ok(!sheets[0].rows[1].some((value) => /downloadurl|%7[Bb]|%7[Dd]|[{}]/i.test(String(value))));
+});
+
+// 由 Cowork 补：标的类型（量纲标记）抽取
+test("标的类型按标题量纲标记", () => {
+  assert.equal(M.inferTenderType ? M.inferTenderType("马鞍山市城区市政污水管网提质增效工程（二期）监理") : "", "监理");
+  assert.equal(M.inferTenderType("含山县污水管网提升改造项目EPC"), "EPC总承包");
+  assert.equal(M.inferTenderType("含山县污水管网提升改造项目EPC（监理）"), "监理"); // EPC监理标=服务费量纲
+  assert.equal(M.inferTenderType("某管网改造工程施工"), "施工");
+  assert.equal(M.inferTenderType("污水泵站设备采购"), "货物采购");
+  assert.equal(M.inferTenderType("水质检测服务采购"), "检测监测"); // 检测服务采购=检测监测类，比货物采购更精确
+  assert.equal(M.inferTenderType("某某项目"), "");
 });
 
 let passed = 0;

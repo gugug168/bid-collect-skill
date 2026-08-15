@@ -3346,6 +3346,25 @@ function parseArgs(argv) {
   return a;
 }
 
+// 标的类型（量纲标记）：控制价列在「施工/EPC 标的价」与「监理/设计等服务费」两种量纲间混列
+// （马鞍山例：EPC 控制价 12780万 vs 监理标控制价 166.15万 = 概算 12424.65万 × 1.34% 标准监理费率），
+// 不标记类型就会错用口径（服务费当标的价）。标题无信号时诚实留空，不猜。
+// 概算按费用类别的拆分（监理费份额）公告层普遍不披露，无法直接抽取——本列即替代解法。
+function inferTenderType(title) {
+  const t = String(title || "");
+  // 监理须在 EPC 之前：EPC 项目的监理标（「…EPC（监理）」）是服务费量纲，判成 EPC总承包会当标的价错用
+  if (/监理/.test(t)) return "监理";
+  if (/EPC|工程总承包|设计采购施工|交钥匙/i.test(t)) return "EPC总承包";
+  if (/全过程咨询/.test(t)) return "全过程咨询";
+  if (/造价咨询|招标代理/.test(t)) return "造价咨询";
+  if (/勘察设计/.test(t)) return "勘察设计";
+  if (/设计(?!.*施工)/.test(t)) return "设计";
+  if (/检测|监测/.test(t)) return "检测监测";
+  if (/采购|设备|货物/.test(t)) return "货物采购";
+  if (/施工|修缮|改造|修复|治理|新建|扩建/.test(t)) return "施工";
+  return "";
+}
+
 function inferType(title) {
   if (/中标结果|中标公告|中标公示/.test(title)) return "中标结果";
   if (/中标候选人/.test(title)) return "中标候选人";
@@ -3525,6 +3544,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
       const rec = {
         // adapter 已按栏目/categorynum 锁定公告类型时直接采用，避免靠标题猜（江苏多数标题不含"招标公告"字样）
         date: item.date, city, type: item.stageHint || ad.defaultType || inferType(item.title),
+        tenderType: inferTenderType(item.title),
         title: cleanTitle, url: item.url, owner: "", projectCode: "", method: "", scale: "", scope: "", approval: "", manager: "", _attachNote: "",
         projectSite: "", bidOpen: "", funding: "", duration: "",
         qualification: "", performance: "", controlPrice: "", budget: "", bond: "",
@@ -3607,6 +3627,10 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
             if (!rec.city && df.projectSite) rec.city = df.projectSite;
             rec.url = normUrl(df.detailUrl || item.url, ad);
           }
+          // 量纲兜底：标题不含"监理"但资质要求是监理资质的（如「含山县…项目EPC」实为其监理标，
+          // 2026-08-15 实测：控制价 180万 vs 同项目 EPC 施工标 12780万，错判量纲会当标的价误用），
+          // 以资质字段纠偏——监理综合资质/监理资质出现即必为监理标
+          if (rec.tenderType !== "监理" && /监理(?:综合)?资质/.test(rec.qualification || "")) rec.tenderType = "监理";
           // 缺口一（统一出口）：HTML 未载控制价/概算/保证金时，从招标文件附件补抽。
           // 原先仅通用 HTML 分支调用；bespoke 详情分支（ah/xz/hn/yn/hb/gz/nmg/gs）的片段同样可能带附件，
           // 统一放在 try 尾部后全路径同享（--attach 门禁不变，docLink 为空/已解析过则安全 no-op）
@@ -3645,7 +3669,7 @@ function buildMarkdown(prov, ad, result, args) {
 // full29 保留采集器全部业务字段；biaobiaotong16 严格兼容参考工作簿的 16 列顺序。
 const XLSX_HEADER = ["序号", "项目地点", "开标时间", "项目名称", "资金来源", "工期", "资质要求", "业绩要求", "控制价万元", "保证金万元", "评标办法", "联合体", "满分标准", "招标方式", "建设规模", "招标范围", "项目编号", "项目经理", "链接", "招标文件", "附件说明", "中标人", "中标价万元", "项目负责人", "中标得分", "排名", "合同金额万元", "招标人", "承包人"];
 const BIAOBIAOTONG_HEADER = ["序号", "项目地点", "开标时间", "项目名称", "资金来源", "工期", "资质要求", "业绩要求", "控制价万元", "保证金万元", "评标办法", "联合体", "满分标准", "链接", "招标文件", "备注"];
-const CSV_HEADER = ["date", "city", "type", "title", "url", "projectCode", "method", "scale", "scope", "approval", "manager", "owner", "agency", "bidOpen", "duration", "controlPrice", "budget", "bond", "funding", "qualification", "performance", "evaluation", "consortium", "fullScore", "contact", "phone", "docLink", "_attachNote", "winner", "winPrice", "winManager", "winScore", "rank", "contractAmount", "partyA", "partyB"];
+const CSV_HEADER = ["date", "city", "type", "tenderType", "title", "url", "projectCode", "method", "scale", "scope", "approval", "manager", "owner", "agency", "bidOpen", "duration", "controlPrice", "budget", "bond", "funding", "qualification", "performance", "evaluation", "consortium", "fullScore", "contact", "phone", "docLink", "_attachNote", "winner", "winPrice", "winManager", "winScore", "rank", "contractAmount", "partyA", "partyB"];
 
 function cleanOutputCell(value) {
   if (value == null) return "";
@@ -3763,5 +3787,5 @@ function ensureParentDir(filePath) {
 })();
 
 
-module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote,
+module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, inferTenderType, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, cqList, tjList, nmgList, lnList, gsList };
