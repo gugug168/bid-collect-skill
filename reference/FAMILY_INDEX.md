@@ -56,7 +56,7 @@ HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p <adapter> -k 管�
 
 | 家族 | adapter kind | 成员（已验证状态） | 共通打法 |
 |---|---|---|---|
-| EPoint 标准 | `epoint` | jiangsu/zhejiang/hainan/sichuan/xinjiangbt/**heilongjiang(修复)**/henan(受限) | `/inteligentsearch/rest/.../getFullTextDataNew`，cnum 变体，匿名 JSON |
+| EPoint 标准 | `epoint` | jiangsu/zhejiang/hainan/sichuan/xinjiangbt/**heilongjiang(修复)** | `/inteligentsearch/rest/.../getFullTextDataNew`，cnum 变体，匿名 JSON（河南已迁 `henanNotice` 独立 kind，见 §3.1） |
 | EPoint 自定义 | `epointX`/`gs` | ningxia/xinjiang/jiangxi/qinghai/gansu | 路径/参数非标准，须逆向；gs 双分支 |
 | TRS 引擎 | `jl`/`ln`/`nmg` | jilin/liaoning/neimenggu | `was5/web/search` 或 openSearch，JSONP 剥离，反爬严 |
 | HTML SSR | （默认） | shandong(限)/anhui(改 ah)/xizang(改 xz)/guangxi(限)/beijing(改)/shanxi(改)/hebei/shanghai | Jeecms/Hanweb/WebBuilder SSR 正则，零鉴权 |
@@ -155,23 +155,23 @@ node province-collect.cjs -p <adapter> --stage contract    # 合同公示
 | qinghai | 青海 | epointX | ✅ candidate/result/contract | 候选`001001005`/结果`001001006`(中标通知书公示=标后结果)/合同`001001010`(合同公告)；**winner 14/14·rank 14/14·partyA/partyB 14/14·winPrice 8/14**（grabWinner 已加固：表格"第N名 <org>"兜底命中"中标候选人排序名称"表） |
 | xinjiang | 新疆 | epointX | ✅ candidate/result | 候选`001001004`/结果`001001005`（工程建设 合同未单独发布→不配 contract）；winner 3/7·rank 5/7·partyA 7/7，部分详情页 JS 渲染 winner 缺失（同 xinjiangbt 模式，诚实空） |
 | jiangxi | 江西 | epointX | ✅ candidate/result | 候选`002001004`/结果`002001005`（noWd 无法关键词检索，故 stage 覆写 makeBody 锁 equalList 单码；工程建设 合同未单独发布→不配 contract）；**winner 1/8(真实名 via "为中标人"兜底；余 7/8 详情页 JS 渲染诚实空)·winPrice 8/8·winScore 7/8·partyA/partyB 8/8**（grabWinner 噪声已拦截："公示]"/"业绩查询网址"→诚实空） |
-| henan | 河南 | epoint | ⏳ 待枚举 | 文件索引级，B 阶段价值低 |
+| henan | 河南 | henanNotice | ✅ candidate/result（无合同栏目） | ZB+B 阶段自 2026-08-15 改走新 kind `henanNotice`（`henanNoticeList` POST `/EpointWebBuilder/rest/frontAppCustomAction/getPageInfoListNewYzm`：siteGuid 7eb5f7f1…/xiaqucode 4100/categoryNum 候选`002001003`/结果`002001006`，返回 `custom.infodata[].{title,infourl,infodate}` 真实详情链）；无独立合同栏目→不配 contract；**原 epoint 档案库索引(cnum=001 返文件名、linkurl 恒空)误配已废弃**；本沙箱代理对该 POST 端点 TLS 失败（curl 重试亦不稳）→ 代码正确待开放网络复测 |
 | hebei | 河北 | html | ✅ candidate/result（无合同栏目） | 栏目树 `001002002`：候选`003`/结果`004`（招标公告`001`/变更`002`）；`005/006` 空→无独立合同公示栏目，不配 contract；`parse` 正则已泛化至 `00100200200\d` |
-| shanghai | 上海 | html | ⚠️ 待逆向（JS 渲染 SPA） | 列表为 JS/AJAX 渲染（`res[i].PROJECT_NAME` 模板，无静态 `<li>`），当前 `parse` 无法抽取；须逆向其列表 AJAX/JSON 接口后才能配 B 阶段，本期诚实不配 |
-| guangxi | 广西 | html | ⏳ 待枚举 | 需探 zbtb 中标候选 categoryId |
+| shanghai | 上海 | html | ✅ candidate/result（无合同栏目） | B 阶段静态 SSR 栏目 `queryContents.jhtml` channelId 候选`32`/结果`33`（`inDates=4000`）；原误判为 JS SPA，实为可抽取；`parse` 正则 `/jyxxgc[a-z]+/` 泛化 + url `isIndex=y`；**本轮烟测待确认出数** |
+| guangxi | 广西 | html | ✅ candidate/result（无合同栏目） | zbtb.gxi.gov.cn:9000 栏目 categoryId 候选`91`/结果`90`（默认`88`=ZB）；**本轮烟测 result 实测 2 条**（真实记录）；http:port 可达（见 §四 代理兜底） |
 | tianjin | 天津 | tj | ✅ candidate/result/contract | channelId 候选`82324`/结果`82323`/合同`82325`（从 `jyxxgcjs.jhtml` 原始 HTML 取 link text 映射确认）；三类均真机返回真实记录（合同示"XX合同订立信息公告"），详情走 JEECMS POST（毫秒时间戳） |
 | neimenggu | 内蒙古 | nmg | ✅ candidate/result/contract | `searchPublishResource` 用 `noticeTypeName` 隔离：候选`中标候选人公示`/结果`中标结果公告`(站点无"中标结果公示"字面=0)/合同`合同公示`，均真机数万条；**nmgList 原硬编码 noticeTypeName 为空 → 已改为读 ad.noticeTypeName（stages 覆盖生效）** |
 | liaoning | 辽宁 | ln | ✅ candidate/result（无合同栏目） | TRS `was5/web/search`：母栏目 channelId=219677 固定，仅 DOCCHANNEL 隔离；候选`149561`(中标候选人公示)/结果`149562`(中标结果公告)，均真机 2800+/2500+ 条；合同=`Y164624` 走独立 layui 后端非 TRS → 诚实不配 contract；lnList 动态读 ad.searchword 无需改代码 |
 | jilin | 吉林 | jl | ✅ candidate/result/contract | TRS `was5/web/search` channelId=237687（**全类型混合栏目 66 万+ 条**，无独立 B 阶段 channelId）；服务端 `iType='…'` 检索式恒返 0 → 改**客户端按 iType 字段过滤**：候选`中标候选人公示`/结果`中标结果公告`+`中标公告`/合同`合同公示`；**顺带修复 ZB 基线**（原检索式返 0，现拉全量客户端过滤；rn 调 50 使 crawlRound 跨页累加到 limit，避免连续空页提前 break） |
 | hubei | 湖北 | hb | ✅ result（无独立候选/合同栏目） | `jsgcZbjggs` 真机 100 条；湖北公共资源**无独立中标候选人/合同公示栏目** → 诚实不配 candidate/contract；`hbList` 已修复 B 阶段动态 listKey(`endpoint+"List"`) 与双日期格式(`YYYYMMDDHHmmss`/`2026-08-14`) |
-| hunan | 湖南 | hn | ⚠️ 诚实不配（detail-only） | app.js 仅 `constructionTender/listByFile` 一个 listByFile；中标/合同均为 detail-by-sectionId（`selectWinningBidNotice`/`selectconstructionSectionId`），**无独立 B 阶段列表 API**，无法独立爬取 → 不配 stages |
+| hunan | 湖南 | hn | ✅ candidate/result（无合同栏目） | listByFile 用 `notice` 隔离阶段（2026-08-15 实测映射）：候选 notice=`2`(ZHONGBIAOHXR_NOTICE,25319条)/结果 notice=`3`(ZHONGBIAO_NOTICE,23590条)；notice=0 招标/1 变更/4·5 暂停/7 澄清/8 plan/9·10 终止/11 重新招标；**合同公示不在 notice 0-11 → 诚实不配 contract**；详情复用 hnDetail 取 招标人/控制价等，constructionNotice/getBySectionId 对本 section 仅回招标/澄清（中标公示未并入）→ **winner/winPrice 诚实空**（待逆向 constructionWin/中标详情端点） |
 | guizhou | 贵州 | gz | ✅ candidate/result（合同不配） | candidate=`A03`(中标候选人公示)/result=`A04`(中标结果公示)；A04.2 合同栏目未发布→不配；**顺带修复 ZB `noticeType:affiche`→`A01`+`prjType:A`**（原 affiche 实为"招标计划"误标，find_gz_zb.js 实证 A01=prjType A=招标公告） |
 | yunnan | 云南 | yn | ✅ candidate/result/contract | candidate=`getZbwjygsList`(tenderProjectName)/result=`getZbJgGgList`(bulletinname)/contract=`getContractList`(contractName)，全真机数千条；B 阶段详情端点各异→列表层诚实不伪造 URL |
 | fujian | 福建 | fj | ✅ candidate/result（无合同栏目） | candidate=GGTYPE`4`(中标候选人公示)/result=GGTYPE`5`(中标结果公告)；GGTYPE 3/6/7+ 返 0 → 无合同栏目，不配 contract |
 | chongqing | 重庆 | cq | ✅ candidate/result（无合同栏目） | `categoryNum`：候选`014001003`/结果`014001004`（公告`001`/答疑`002`/办事指南`005`）；无独立合同公示栏目→不配 contract；**顺带解除 `envLimited`（2026-08-15 复测 HTTP 200 可达，此前 Cloudflare 521 为瞬时/出口问题）** |
-| guangdong | 广东 | ygp | ⏳ 待枚举 | ygpList 未消费 stages，需专项改代码+探栏目 |
+| guangdong | 广东 | ygp | ✅ candidate/result（无合同栏目） | ygpList 已改消费 stages：tradingProcess 候选`3C51`(中标候选人公示,5798条)/结果`3C52`(中标结果,3814条)；**本轮烟测 candidate 实测 2 条**（含「旧区供水管网工程总承包（EPC）中标结果公告」真实管网记录）；3C53~3C60 实测均 0 条 → 无独立合同公示栏目，诚实不配 contract；列表 row 无 winner/winPrice（详情需 SPA 内部码）→ 诚实空；**owner/partyA 改取 row.projectOwner（原映射漏字段致招标人恒空，已修）**；仍受 429 限流（ENV_LIMIT，降频复采） |
 | shaanxi | 陕西 | sntba | ⛔ 不可达 | sntba 仅最新 10 条无详情，B 阶段无意义 |
-| shandong | 山东 | html | ⏳ 待枚举 | 沙箱不可达，待开放网络 |
+| shandong | 山东 | html | ✅ candidate/result/contract | Jeecms `queryContent_${p}-jyxxgk.jspx` channelId 候选`149`/结果`87`/合同`78`（合同为混合源，自定义 parse 按 `/合同公示/` 过滤 block）；**`contract` 本轮 `-d 365` 烟测进行中**；ZB 基线仍受沙箱 RST 限制（§一） |
 
 ### 4. 已知限制（环境、站点公开范围或页面结构）
 - **北京**候选/结果详情页为 JS 渲染，中标人机构名不在 SSR HTML（仅标题/栏目/评标办法条款），故 `winner` 诚实留空；`partyA`(招标人)/`rank` 与结果期 `winPrice`/`winScore` 可从 SSR 碎片拿到。彻底打通需逆向 JS 端点（超出 Goal v1 范围）。
