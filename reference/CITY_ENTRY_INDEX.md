@@ -19,11 +19,11 @@
 | zhejiang | 浙江 | EPoint 地区字段 | 客户端地区/标题匹配 | `VERIFIED_SAMPLE`：义乌市（1/1） |
 | anhui | 安徽 | 列表 + AJAX 详情 | 客户端地区/标题匹配 | `VERIFIED_SAMPLE`：合肥市（1/1） |
 | fujian | 福建 | 官方 REST/SSR 壳页 | 客户端地区/标题匹配 | `VERIFIED_SAMPLE`：闽侯县（1/1） |
-| jiangxi | 江西 | 官方 EPointX | 客户端地区/标题匹配 | UNVERIFIED |
+| jiangxi | 江西 | 官方 EPointX | 客户端地区/标题匹配 | `VERIFIED_SAMPLE`：南昌市本级（1/1） |
 | shandong | 山东 | 省级 SSR 列表/详情 | 客户端地区/标题匹配 | `VERIFIED_SAMPLE`：青岛（1/1） |
 | henan | 河南 | 官方 EPoint 文件索引 | 仅客户端字段匹配；不补造详情 URL | `CONNECTED_NO_RECENT_DATA`（30/90/365 天） |
 | hubei | 湖北 | 官方 REST | 客户端地区/标题匹配 | `VERIFIED_SAMPLE`：襄阳市、武汉（各1/1） |
-| hunan | 湖南 | 官方 REST | 客户端地区/标题匹配 | `VERIFIED_SAMPLE`：郴州市（1/1） |
+| hunan | 湖南 | 官方 REST | 客户端地区/标题匹配 | `VERIFIED_SAMPLE`：郴州市、长沙市（各1/1） |
 | guangdong | 广东 | 粤公平逐地市 API | 官方 `siteCode` 循环 21 地市；不使用省码 440000 | `FAILED`：官方 429 限流，待冷却后复测 |
 | guangxi | 广西 | 官方 SSR（HTTP 入口） | 客户端地区/标题匹配 | UNVERIFIED |
 | hainan | 海南 | EPoint 地区字段 | 客户端地区/标题匹配 | `VERIFIED_SAMPLE`：海口/文昌命令已跑通 |
