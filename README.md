@@ -42,7 +42,7 @@ node scripts/province-collect.cjs -p anhui -d 30 --limit 20 --detail \
 node scripts/province-collect.cjs -p hainan -c "海口,文昌" -k 管网 -d 30 --detail --out out/hainan-city.xlsx
 ```
 
-`-c, --city` 支持城市或区县简称、全称及逗号 OR。由于各省服务端的行政区字段不统一，采集器在客户端对平台地区、标题和提取地点做匹配；留空或传入 `全省` 表示不过滤。
+`-c, --city` 支持城市或区县简称、全称及逗号/顿号 OR。由于各省服务端的行政区字段不统一，采集器在客户端对平台地区、标题和提取地点做匹配；留空或传入 `全省` 表示不过滤。
 
 ## 提交前验证
 

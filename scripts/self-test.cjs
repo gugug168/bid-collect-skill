@@ -91,6 +91,7 @@ test("城市/区县筛选支持简称、全称和逗号 OR", () => {
   assert.equal(M.matchesCityFilter("海口", ["海口市", "项目标题"]), true);
   assert.equal(M.matchesCityFilter("涡阳", ["涡阳县", "项目标题"]), true);
   assert.equal(M.matchesCityFilter("三亚,海口", ["海口市", "项目标题"]), true);
+  assert.equal(M.matchesCityFilter("三亚、海口", ["海口市", "项目标题"]), true);
   assert.equal(M.matchesCityFilter("三亚", ["海口市", "项目标题"]), false);
 });
 

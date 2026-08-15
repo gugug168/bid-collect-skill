@@ -3376,7 +3376,7 @@ function normalizeArea(value) {
 // 城市筛选是客户端 OR 过滤：不同平台的行政区字段不一致，故同时使用列表地区、标题和提取值。
 // 不以“未命中”推断为不属于任何城市，只在用户明确给出 --city 时排除不匹配的记录。
 function matchesCityFilter(cityArg, candidates) {
-  const filters = String(cityArg || "").split(/[,，]/).map((s) => s.trim()).filter((s) => s && s !== "全省");
+  const filters = String(cityArg || "").split(/[,，、]/).map((s) => s.trim()).filter((s) => s && s !== "全省");
   if (!filters.length) return true;
   const fields = (candidates || []).map((value) => String(value || "").replace(/\s+/g, "")).filter(Boolean);
   return filters.some((filter) => {
