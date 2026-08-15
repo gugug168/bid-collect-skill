@@ -24,7 +24,7 @@
 | henan | `CONNECTED_NO_RECENT_DATA` | 0 | 90/365 仍 0 | `henan.run-report.json`, `henan-90d`, `henan-365d` | 文件索引级限制仍保留 |
 | hubei | `VERIFIED_RECORD` | 3 | — | `hubei.run-report.json` | 武汉另有城市筛选证据 |
 | hunan | `VERIFIED_RECORD` | 3 | — | `hunan.run-report.json` | 官方 REST |
-| guangdong | `FAILED` | — | 未执行扩大 | `guangdong-cooldown-v1.manual-observation.json` | 官方接口首个请求 429/60000ms 冷却 |
+| guangdong | `FAILED` | — | 未执行扩大 | `guangdong-cooldown-v1.run-report.json` | 官方接口首个请求 429/60000ms 冷却；manual_observation |
 | guangxi | `VERIFIED_RECORD` | 3 | — | `guangxi.run-report.json` | HTTP 官方入口 |
 | hainan | `VERIFIED_RECORD` | 3 | — | `hainan.run-report.json` | 多栏目拆轮后有记录 |
 | chongqing | `VERIFIED_RECORD` | 3 | — | `chongqing.run-report.json` | Nuxt SSR |
