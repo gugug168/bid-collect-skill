@@ -12,6 +12,19 @@ description: 从中国大陆 31 个省级行政区及新疆生产建设兵团的
 - `未获取`、`源站未公开`、`当前网络受限`、`样本字段为空`是不同事实；不得写成数字 `0`。
 - 每条结果保留官方详情链接。链接为空时诚实留空，不拼造 URL。
 - 用户确认信息是否齐全；AI 负责按官方页面逐字段复核准确性。
+- 本轮验收范围只计 `zb` 招标公告；其他阶段代码保留作兼容回归，不作为本轮省份通过依据。
+
+### 机器侧运行状态
+
+有 `--out` 时，采集器会在同目录生成 `<输出文件名>.run-report.json`，不写入业务表。状态只使用以下口径：
+
+- `VERIFIED_RECORD`：至少一条记录同时有标题、日期和官方详情链接。
+- `CONNECTED_NO_RECENT_DATA`：本次窗口没有形成可核对记录；空结果不等同于失败。
+- `FAILED`：采集过程观测到程序错误，详见 sidecar 的 `errors`。
+- `UNVERIFIED`：尚未进行本省现场验证，由逐省 reference/验证记录维护。
+- `BROWSER_REQUIRED`：静态方式确实不可用，需要人工浏览器路径；不得因本机偶尔可达而省略此标记。
+
+sidecar 保存 `snapshot_at`、参数、来源、记录数量、状态和错误摘要；Excel/CSV 继续只放业务字段。
 
 ## 开始前
 
@@ -21,7 +34,7 @@ description: 从中国大陆 31 个省级行政区及新疆生产建设兵团的
 node scripts/self-test.cjs
 ```
 
-必须看到 `SELF_TEST 24/24 passed`（以 scripts/self-test.cjs 实际用例数为准）。失败时先修门禁，不开始批量联网。
+必须看到 `SELF_TEST 26/26 passed`（以 scripts/self-test.cjs 实际用例数为准）。失败时先修门禁，不开始批量联网。
 
 选定省份后，读取 `reference/<adapter>.md`。家族路由与 B 阶段总表见 `reference/FAMILY_INDEX.md`；新增省份读 `reference/NEW_PROVINCE_TEMPLATE.md`。
 

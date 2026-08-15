@@ -54,6 +54,8 @@ node scripts/province-collect.cjs -p anhui -d 30 --limit 20 --detail \
 
 `biaobiaotong16` 固定生成 `房建市政 / 水利 / 公路 / 其他项目` 4 个 sheet，并严格使用参考工作簿的 16 列顺序；工作簿内置表头样式、列宽、自动换行、首行冻结和筛选。中标候选人等 B 阶段的扩展字段请使用默认 `full29` 或 CSV，避免为了兼容 16 列而丢失中标人、得分、排名等信息。
 
+指定 `--out` 时同时生成同目录 `<输出文件名>.run-report.json`，记录 `snapshot_at`、来源、参数、数量、状态和错误；空结果标为 `CONNECTED_NO_RECENT_DATA`，不与 `FAILED` 混淆。
+
 ## 城市/区县筛选
 
 ```bash

@@ -36,7 +36,7 @@ function classifyErr(e) {
 
 function _curlResp(status, bodyBuf, extra = {}) {
   const b = bodyBuf || Buffer.alloc(0);
-  return {
+  const response = {
     status,
     ok: status >= 200 && status < 400,
     headers: { get: (k) => (String(k).toLowerCase() === "content-length" ? (extra.contentLength || null) : null) },
@@ -52,6 +52,13 @@ function _curlResp(status, bodyBuf, extra = {}) {
     httpsError: extra.httpsError || null,
     triedHttp: !!extra.triedHttp,
   };
+  const run = global.__RUN_REPORT;
+  if (run) {
+    if (status === 401 || status === 403) run.auth_walls.push({ status, klass: response.klass });
+    else if (status === 429) run.rate_limits.push({ status, klass: response.klass });
+    else if (status === 0 || status >= 500) run.transport_errors.push({ status, klass: response.klass });
+  }
+  return response;
 }
 
 // curl 兜底：执行级失败（TLS 握手/schannel/超时）一律返回带 klass 的结构化结果，绝不抛错。
@@ -1626,6 +1633,20 @@ function grabFullScore(text, flat) {
 
 // ---- 从详情 HTML 提取厚字段；优先各省 adapter.detail()，否则通用提取
 // pdfText：当省平台正文是 PDF 附件时（如浙江），由 maybePdfText() 提取后并入正文一起匹配
+function extractNoticeTitle(html, fallback = "") {
+  const raw = String(html || "");
+  const candidates = [
+    raw.match(/class=["'][^"']*article-title[^"']*["'][^>]*>([\s\S]*?)<\//i),
+    raw.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i),
+    raw.match(/<meta\b[^>]*property=["']og:title["'][^>]*content=["']([^"']+)/i),
+  ];
+  for (const m of candidates) {
+    const value = htmlToText(m && m[1] || "").replace(/\s+/g, " ").trim();
+    if (value && value.length > 4 && !/^(?:招标公告|公告|公示|详情)$/.test(value)) return value;
+  }
+  return String(fallback || "").trim();
+}
+
 function extractDetail(ad, html, item, pdfText) {
   if (ad.detail && typeof ad.detail === "function") return ad.detail(html, item, pdfText);
   const text = pdfText ? (htmlToText(html) + "\n" + pdfText) : htmlToText(html);
@@ -1638,6 +1659,7 @@ function extractDetail(ad, html, item, pdfText) {
   const bondWan = grabMoneyWan(text, ["投标保证金", "保证金"]);
   const docLink = grabDocLink(html, item.url);
   return {
+    title: extractNoticeTitle(html, item && item.title),
     projectSite: grabBoth(text, flat, SITE_LABELS),
     // 主通道用原文（保留换行边界更精准），失败再走扁平化文本
     bidOpen: grabDateTime(text, OPEN_LABELS) || grabDateTime(flat, OPEN_LABELS),
@@ -3642,6 +3664,12 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
             if (!rec.city && df.projectSite) rec.city = df.projectSite;
             rec.url = normUrl(df.detailUrl || item.url, ad);
           }
+          // 列表标题可能被平台截断（例如安徽以省级列表返回省略号），详情正文标题优先；
+          // 标题修正后同步重算标的类型和标标通 sheet，避免业务表保留截断标题。
+          if (rec.title) {
+            rec.tenderType = inferTenderType(rec.title) || rec.tenderType;
+            rec.sheet = classifySheet(rec.title);
+          }
           // 量纲兜底：标题不含"监理"但资质要求是监理资质的（如「含山县…项目EPC」实为其监理标，
           // 2026-08-15 实测：控制价 180万 vs 同项目 EPC 施工标 12780万，错判量纲会当标的价误用），
           // 以资质字段纠偏——监理综合资质/监理资质出现即必为监理标
@@ -3651,6 +3679,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
           // 统一放在 try 尾部后全路径同享（--attach 门禁不变，docLink 为空/已解析过则安全 no-op）
           await enrichFromAttachment(rec, args);
         } catch (e) {
+          if (args._run) args._run.errors.push({ code: "DETAIL_FETCH_OR_PARSE", url: item.url, message: String(e && e.message || e) });
           console.error("[detail] FAIL", item.url.slice(0, 60), e.message);
         }
       }
@@ -3739,10 +3768,70 @@ function ensureParentDir(filePath) {
   return parent;
 }
 
+// 机器侧运行回执：不污染业务 XLSX/CSV，明确区分真实记录、空窗口和程序失败。
+// 交通/解析函数中部分历史分支会把单页异常降级为空数组，因此 errors 只记录本次调用已显式观测到的错误；
+// 空结果仍不得冒充 FAILED，报告会保留 status_reason 供后续逐省复核。
+function classifyRunStatus(result, errors = [], signals = {}) {
+  const real = (result || []).filter((r) => r && r.title && r.date && r.url);
+  if (real.length) return "VERIFIED_RECORD";
+  if ((signals.auth_walls || []).length) return "BROWSER_REQUIRED";
+  if (errors.length || (signals.rate_limits || []).length || (signals.transport_errors || []).length) return "FAILED";
+  return "CONNECTED_NO_RECENT_DATA";
+}
+
+function buildRunReport(prov, ad, result, args, meta = {}) {
+  const rows = Array.isArray(result) ? result : [];
+  const errors = Array.isArray(meta.errors) ? meta.errors : [];
+  const signals = meta.signals || {};
+  const real = rows.filter((r) => r && r.title && r.date && r.url);
+  const status = classifyRunStatus(rows, errors, signals);
+  return {
+    schema_version: "bid-collect.run-report.v1",
+    snapshot_at: new Date().toISOString(),
+    status,
+    status_reason: status === "VERIFIED_RECORD"
+      ? "至少一条记录同时具备标题、日期和官方详情链接"
+      : status === "CONNECTED_NO_RECENT_DATA"
+        ? "本次窗口未形成可核对的标题+日期+链接记录；空结果不等同于采集失败"
+        : status === "BROWSER_REQUIRED"
+          ? "官方端点返回鉴权/登录限制，静态方式不可用，需人工浏览器处理"
+          : "采集过程观测到程序错误或外部限流/传输异常，详见 errors 与 signals",
+    province: prov,
+    adapter: Object.keys(ADAPTERS).find((k) => ADAPTERS[k] === ad) || prov,
+    source: { name: ad && ad.name || "", base: ad && ad.base || "" },
+    args: {
+      province: args.province,
+      city: args.city || "",
+      keyword: args.keyword || "",
+      days: args.days,
+      stage: args.stage || "zb",
+      detail: !!args.detail,
+      limit: args.limit || 0,
+      xlsx_layout: args.xlsxLayout || "full29",
+    },
+    counts: { total: rows.length, verified_records: real.length },
+    output: meta.output || null,
+    code_commit: process.env.BID_COLLECT_COMMIT || null,
+    signals,
+    errors,
+  };
+}
+
+function writeRunReport(outputPath, report) {
+  if (!outputPath) return null;
+  const abs = path.resolve(outputPath);
+  const sidecar = abs.replace(/\.(?:xlsx|md|csv)$/i, "") + ".run-report.json";
+  ensureParentDir(sidecar);
+  fs.writeFileSync(sidecar, JSON.stringify(report, null, 2) + "\n", "utf8");
+  return sidecar;
+}
+
 // 仅作为 CLI 直接运行时执行；被 require 时只导出函数，便于离线单测提取器
  if (require.main === module) (async () => {
  try {
   const args = parseArgs(process.argv.slice(2));
+  args._run = { errors: [], auth_walls: [], rate_limits: [], transport_errors: [] };
+  global.__RUN_REPORT = args._run;
   global.__RESEARCH = !!args.dumpText;
   if (!args.province && !args.probeAll) { console.error("用法: node province-collect.cjs -p <省份> [-c 城市/区县[,城市]] -k <关键词> -d <天数> [--stage zb|candidate|result|contract] [--delay 800] [--csv] [--xlsx|--no-xlsx] [--xlsx-layout full29|biaobiaotong16] [--no-detail] [--out 文件] [--limit N] [--probe] [--probe-all] [--verify]"); process.exit(1); }
   // R2 探测模式：自动试 cnum 001-004 + TPBidder/EpointWebBuilder 子上下文 + http 兜底，定位 EPoint 端点
@@ -3791,16 +3880,23 @@ function ensureParentDir(filePath) {
       fs.writeFileSync(csvPath, "﻿" + [CSV_HEADER.join(","), ...rows].join("\n"));
       console.error("CSV:", csvPath);
     }
+    const reportPath = writeRunReport(xlsxPath || mdPath, buildRunReport(args.province, ad, result, args, {
+      errors: args._run.errors,
+      signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors },
+      output: { markdown: mdPath, xlsx: xlsxPath, csv: csvPath },
+    }));
+    if (reportPath) console.error("运行报告:", reportPath);
     console.error("报告:", mdPath);
   } else {
     console.log(md);
   }
  } catch (e) {
+  if (typeof args !== "undefined" && args && args._run) args._run.errors.push({ code: "FATAL", message: String(e && e.message || e) });
   console.error("FATAL:", e && (e.stack || e.message) || e);
   process.exit(1);
  }
 })();
 
 
-module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, inferTenderType, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote,
+module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, inferTenderType, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, extractNoticeTitle, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, buildRunReport, writeRunReport, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, cqList, tjList, nmgList, lnList, gsList };
