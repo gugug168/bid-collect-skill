@@ -36,7 +36,7 @@ function classifyErr(e) {
 
 function _curlResp(status, bodyBuf, extra = {}) {
   const b = bodyBuf || Buffer.alloc(0);
-  return {
+  const response = {
     status,
     ok: status >= 200 && status < 400,
     headers: { get: (k) => (String(k).toLowerCase() === "content-length" ? (extra.contentLength || null) : null) },
@@ -52,6 +52,13 @@ function _curlResp(status, bodyBuf, extra = {}) {
     httpsError: extra.httpsError || null,
     triedHttp: !!extra.triedHttp,
   };
+  const run = global.__RUN_REPORT;
+  if (run) {
+    if (status === 401 || status === 403) run.auth_walls.push({ status, klass: response.klass });
+    else if (status === 429) run.rate_limits.push({ status, klass: response.klass });
+    else if (status === 0 || status >= 500) run.transport_errors.push({ status, klass: response.klass });
+  }
+  return response;
 }
 
 // curl 兜底：执行级失败（TLS 握手/schannel/超时）一律返回带 klass 的结构化结果，绝不抛错。
@@ -184,6 +191,30 @@ const ADAPTERS = {
       }
       return items;
     },
+    // ---- B 阶段（2026-08-15 枚举）：山东 Jeecms channelId：候选=149(中标候选人公示)/结果=87(交易结果公告·中标结果)；合同=78 混合源(按"信息分类:合同公示"过滤) ----
+    stages: {
+      candidate: { type: "中标候选人", listUrl: (p) => `https://ggzyjy.shandong.gov.cn/queryContent_${p}-jyxxgk.jspx?channelId=149&pageNo=1` },
+      result:    { type: "中标结果",   listUrl: (p) => `https://ggzyjy.shandong.gov.cn/queryContent_${p}-jyxxgk.jspx?channelId=87&pageNo=1` },
+      contract:  { type: "合同公示",   listUrl: (p) => `https://ggzyjy.shandong.gov.cn/queryContent_${p}-jyxxgk.jspx?channelId=78&pageNo=1`,
+        parse(html) {
+          const items = [];
+          const liRe = /<li\b[^>]*>([\s\S]*?)<[/]li>/gi;
+          let li;
+          while ((li = liRe.exec(html))) {
+            const block = li[1];
+            if (!/合同公示/.test(block)) continue;
+            const am = block.match(/<a[^>]+href=["'](https?:[/][/]ggzyjy[.]shandong[.]gov[.]cn[^"']+[.]jhtml)["'][^>]*>([\s\S]*?)<[/]a>/i);
+            if (!am) continue;
+            const url = am[1];
+            const title = am[2].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+            if (title.length < 4) continue;
+            const dm = block.match(/(\d{4}-\d{2}-\d{2})/);
+            items.push({ url, title, date: dm ? dm[1] : "" });
+          }
+          return items;
+        },
+      },
+    },
   },
   // 后续省在此追加 adapter 即可（listUrl + parse + 可选 detail），框架自动复用。
   // ===== EPoint（国泰新点）智能搜索接口系 =====
@@ -280,25 +311,35 @@ const ADAPTERS = {
     cities: GD_CITIES, // 粤公平"省级(440000)"返回 0，须逐 21 地市循环取全省
     category: "A", // A=工程建设
     defaultType: "", // 粤公平标题已含类型，交由 inferType 归类
+    // ---- B 阶段（2026-08-15 深挖）：粤公平 trading-type 用 tradingProcess 隔离：候选=3C51(中标候选人公示,5798条)/结果=3C52(中标结果,3814条)；
+    //   3C53~3C60 实测均 0 条 → 无独立合同公示栏目，诚实不配 contract；列表 row 无 winner/winPrice（详情需 SPA 内部码）→ 诚实空；
+    //   owner/partyA 改取 row.projectOwner（原映射漏该字段致招标人恒空）。 ----
+    stages: {
+      candidate: { type: "中标候选人", tradingProcess: "3C51" },
+      result:    { type: "中标结果",   tradingProcess: "3C52" },
+    },
   },
-  // ===== 河南（EPoint 全文检索 · 2026-08-12 实测）=====
-  // 数据源: POST https://hnsggzyjy.henan.gov.cn/inteligentsearch/rest/esinteligentsearch/getFullTextDataNew
-  // cnum=001 命中（与黑/苏/浙同构内核）；返回真实"管网"记录。
-  // 重要诚实说明：河南该实例的全文索引为【招投标文件附件索引】——records 的 linkurl 恒为空，
-  //   故列表层只取 标题(文件名)+日期(categorynum/syscategory=001=建设工程)，【不伪造详情链接】(allowNoUrl)。
-  //   详情页 /jyxx/002001/.../<uuid>.html 虽可达，但列表索引 403+验证码网关，无法规模化发现 URL，
-  //   故本 adapter 定位为"文件索引级"源，而非公告页级源。
+  // ===== 河南（真公告接口 · 2026-08-15 修正）=====
+  // 修正：原 adapter 误走 EPoint 全文档案库索引(cnum=001 返回文件名，linkurl 恒空)，不适用公告页级采集。
+  // 现改真公告数据源：POST /EpointWebBuilder/rest/frontAppCustomAction/getPageInfoListNewYzm
+  // 参数：siteGuid(固定) / categoryNum(栏目码, stage 覆盖) / xiaqucode(4100=全省) / pageIndex / pageSize
+  // 返回 custom.infodata[].{title, infourl, infodate}，infourl 为真实详情链接（B 阶段 5 省枚举之一）
   henan: {
-    name: "河南省公共资源交易（EPoint 全文·文件索引）",
-    verified: true, // 端到端实测返回真实"管网"记录（标题+日期），证据见 test-logs/henan-管网.md
-    kind: "epoint",
+    name: "河南省公共资源交易（工程建设公告）",
+    verified: true, // 2026-08-15 修正：原 adapter 误走档案库索引(cnum=001 返回文件名)，现改真公告接口 getPageInfoListNewYzm
+    kind: "henanNotice", // 真公告数据源（epointList 档案库索引不适用）
     base: "https://hnsggzyjy.henan.gov.cn",
     referer: "https://hnsggzyjy.henan.gov.cn/",
-    cnum: "001", // 河南默认 001 即命中（与黑/苏/浙同构）
-    cats: null, // 不锁栏目，按关键词全量检索；total 字段缺失，靠分页至空判止
-    sortField: "infodatepx", // 用 infodate(date) 排序以正确近 N 天截断
-    defaultType: "",
-    allowNoUrl: true, // ★ 河南 linkurl 恒空（文件索引），放行无 URL 记录，诚实不伪造详情链接
+    siteGuid: "7eb5f7f1-9041-43ad-8e13-8fcb82ea831a", // 真公告接口固定 siteGuid
+    xiaqucode: "4100", // 省级（河南全省）
+    rn: 8, // 验证码网关：前 6 页(pageSize=8→48条)免验证，深翻页受限
+    categoryNum: "002001001", // 工程建设-招标公告(默认 ZB)
+    defaultType: "招标公告",
+    // ---- B 阶段（2026-08-15 枚举·真公告接口）：候选=002001003(评标结果公示/中标候选人公示)/结果=002001006(中标结果公告)；工程建设无独立合同栏目→不配 contract ----
+    stages: {
+      candidate: { type: "中标候选人", categoryNum: "002001003" },
+      result:    { type: "中标结果",   categoryNum: "002001006" },
+    },
   },
   anhui: {
     name: "安徽省公共资源交易中心",
@@ -319,7 +360,8 @@ const ADAPTERS = {
         const url = "https://ggzy.ah.gov.cn" + am[1];
         const area = (block.match(/class=["']area[^"']*["'][^>]*>([\s\S]*?)<\/span>/i) || [,""])[1].replace(/<[^>]+>/g, " ").trim();
         const titleAll = block.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-        const title = (titleAll.replace(area, "").trim()) || titleAll;
+        // 列表 <li> 文本含日期 span，去 area 后仍残留「… 2026-08-14」尾巴（2026-08-15 实测 23/23），剥离之
+        const title = ((titleAll.replace(area, "").trim()).replace(/\s*\d{4}-\d{2}-\d{2}\s*$/, "").trim()) || titleAll;
         const dm = block.match(/(\d{4}-\d{2}-\d{2})/);
         items.push({ url, title: (area + " " + title).trim(), date: dm ? dm[1] : "" });
       }
@@ -542,9 +584,15 @@ const ADAPTERS = {
     rn: 20,                      // 每页条数 → size
     clientFilterOnly: true,  // 服务端按 notice/tenderProjectType 过滤"公告类型"；关键词(管网等)仍由 crawlRound 客户端按标题过滤（与 html 等 bespoke kind 一致）
     defaultType: "招标公告",
-    // B 阶段（2026-08-14 复核）：hunan 公共资源 SPA 无独立「中标/合同」列表 API——app.js 仅 constructionTender/listByFile 一个 listByFile，
-    //   中标通知书/合同均经 detail-by-sectionId 接口（/constructionNotice/selectWinningBidNotice/、/constructionContract/selectconstructionSectionId/）返回，
-    //   无法按栏目独立爬取 → 诚实不配 stages（B 阶段需先取招标公告 sectionId 再回查详情，超出列表采集框架）
+    // B 阶段（2026-08-15 深挖）：listByFile 用 notice 隔离阶段（实测映射）：
+    //   notice=2=ZHONGBIAOHXR_NOTICE(中标候选人公示,25319条) / notice=3=ZHONGBIAO_NOTICE(中标结果公示,23590条)；
+    //   notice=0 招标/1 变更/4·5 暂停/7 澄清/8 plan/9·10 终止/11 重新招标；合同公示不在 notice 0-11 → 诚实不配 contract。
+    //   详情复用 hnDetail（constructionTender/getBySectionId + constructionNotice/getBySectionId）取 招标人/控制价等；
+    //   中标人/中标价需中标公示正文，constructionNotice/getBySectionId 对本 section 仅回招标/澄清（中标公示未并入）→ winner/winPrice 诚实空。
+    stages: {
+      candidate: { type: "中标候选人公示", notice: "2" },
+      result:    { type: "中标结果公示",   notice: "3" },
+    },
   },
   // 广西：招标投标公共服务平台 HTML 列表服务端渲染（http://zbtb.gxi.gov.cn:9000）
   guangxi: {
@@ -556,6 +604,11 @@ const ADAPTERS = {
     listUrl: (page) => `http://zbtb.gxi.gov.cn:9000/xxfbcms/category/bulletinList.html?categoryId=88&page=${page}&dates=300`,
     clientFilterOnly: true, // 无服务端关键词检索，采集时按标题客户端过滤
     defaultType: "招标公告",
+    // ---- B 阶段（2026-08-15 枚举）：广西 zbtb 栏目 categoryId：候选=91(中标候选人公示)/结果=90(中标结果公示)；无独立合同公示栏目→不配 contract ----
+    stages: {
+      candidate: { type: "中标候选人", listUrl: (page) => `http://zbtb.gxi.gov.cn:9000/xxfbcms/category/bulletinList.html?categoryId=91&page=${page}&dates=300` },
+      result:    { type: "中标结果",   listUrl: (page) => `http://zbtb.gxi.gov.cn:9000/xxfbcms/category/bulletinList.html?categoryId=90&page=${page}&dates=300` },
+    },
     parse(html) {
       const items = [];
       const trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
@@ -898,12 +951,17 @@ const ADAPTERS = {
       : `https://www.shggzy.com/jyxxgcgg?cExt=&isIndex=y&pageNo=${page}`,
     clientFilterOnly: true, // 列表端点无生效的服务端关键词参数；按关键词 client 过滤
     defaultType: "招标公告", // /jyxxgcgg 即建设工程·招标公告子栏目（channelId=29）
+    // ---- B 阶段（2026-08-15 枚举·逆向 queryContents.jhtml）：候选 channelId=32(中标候选人公示)/结果 channelId=33(中标结果公示)；无独立合同公示栏目→不配 contract ----
+    stages: {
+      candidate: { type: "中标候选人公示", listUrl: (page) => "https://www.shggzy.com/search/queryContents.jhtml?channelId=32&inDates=4000" + (page > 1 ? "&pageNo=" + page : "") },
+      result:    { type: "中标结果公示", listUrl: (page) => "https://www.shggzy.com/search/queryContents.jhtml?channelId=33&inDates=4000" + (page > 1 ? "&pageNo=" + page : "") },
+    },
     parse(html) {
       const items = [];
-      const liRe = /<li[^>]*onclick="window\.open\('(\/jyxxgcgg\/\d+\?cExt=&isIndex=y)'\)"[^>]*>([\s\S]*?)<\/li>/g;
+      const liRe = /<li[^>]*onclick="window\.open\('(\/jyxxgc[a-z]+\/\d+\?cExt=&isIndex=)[^']*'\)"[^>]*>([\s\S]*?)<\/li>/g;
       let m;
       while ((m = liRe.exec(html))) {
-        const url = "https://www.shggzy.com" + m[1];
+        const url = ("https://www.shggzy.com" + m[1]).replace("isIndex=", "isIndex=y");
         const block = m[2];
         const t = block.match(/<span[^>]*class="cs-span2"[^>]*>\s*([\s\S]*?)\s*<\/span>/);
         const d = block.match(/<span>(\d{4}-\d{2}-\d{2})<\/span>/);
@@ -1023,10 +1081,24 @@ function grabDateTime(text, labels) {
 
 // 评标办法：优先识别标准办法名词，避免抓到"5.1、评标入围"这类章节残片
 function grabEvaluation(text) {
-  // "评定分离"为浙江特色定标机制，也属评标办法口径
-  const m = text.match(/(综合评估法|经评审的最低投标价法|最低投标价法|合理低价法|合理低价中标法|性价比法|综合评分法|评定分离|双信封|抽签|票决|直接摇号)/);
-  if (m) return m[1];
-  return grab(text, ["评标办法", "评标方法", "评审办法"], 6);
+  const methods = [
+    "智能筛查合理价格法", "经评审的最低投标价法", "合理低价中标法", "综合评估法",
+    "最低投标价法", "合理低价法", "综合评分法", "性价比法", "双信封", "评定分离",
+    "抽签", "票决", "直接摇号",
+  ];
+  const methodRe = methods.map(labRe).join("|");
+  // 先看“评标办法/方法/评审办法”的标签邻域。安徽公告可能先写“评定分离”的定标机制，
+  // 后写真正的“评标办法采用智能筛查合理价格法”；全篇取首个术语会把两件事混为一谈。
+  const labeled = text.match(new RegExp("(?:评标办法|评标方法|评审办法)[\\s\\S]{0,40}?(" + methodRe + ")"));
+  if (labeled) return labeled[1].replace(/\s+/g, "");
+  const raw = grab(text, ["评标办法", "评标方法", "评审办法"], 4);
+  if (raw) {
+    const hit = methods.find((name) => raw.replace(/\s+/g, "").includes(name));
+    if (hit) return hit;
+    return raw;
+  }
+  // 无标签时按“评标方法优先、定标机制靠后”的语义顺序找，而不是按正文出现顺序找。
+  return methods.find((name) => text.replace(/\s+/g, "").includes(name)) || "";
 }
 
 // 联合体：标标通该列只关心"接受/不接受"，规范化为二值，识别不到才留空
@@ -1139,8 +1211,34 @@ function grabMoneyWan(text, labels) {
       if (wan <= 0 || wan > 1e8) continue; // 明显异常值丢弃
       return String(Math.round(wan * 10000) / 10000);
     }
+    // 中文大写金额兜底：公告常写“投标保证金人民币叁万元整”。数字通道必须先跑，
+    // 这里仅在同一标签的近邻中识别标准中文数字，避免把远处其他金额误配过来。
+    const cnRe = new RegExp(lab + "[\\s\\S]{0,40}?([零〇一二两三四五六七八九十百千万亿壹贰叁肆伍陆柒捌玖拾佰仟萬億]+)\\s*(万元|万|元)", "i");
+    const cm = text.match(cnRe);
+    if (cm) {
+      const num = chineseNumberToNumber(cm[1]);
+      if (Number.isFinite(num) && num > 0) {
+        const wan = cm[2] === "元" ? num / 10000 : num;
+        if (wan > 0 && wan <= 1e8) return String(Math.round(wan * 10000) / 10000);
+      }
+    }
   }
   return "";
+}
+
+function chineseNumberToNumber(raw) {
+  const digits = { 零: 0, 〇: 0, 一: 1, 壹: 1, 二: 2, 两: 2, 贰: 2, 三: 3, 叁: 3, 四: 4, 肆: 4, 五: 5, 伍: 5, 六: 6, 陆: 6, 七: 7, 柒: 7, 八: 8, 捌: 8, 九: 9, 玖: 9 };
+  const units = { 十: 10, 拾: 10, 百: 100, 佰: 100, 千: 1000, 仟: 1000, 万: 10000, 萬: 10000, 亿: 100000000, 億: 100000000 };
+  let total = 0, section = 0, number = 0;
+  for (const ch of String(raw || "")) {
+    if (Object.prototype.hasOwnProperty.call(digits, ch)) { number = digits[ch]; continue; }
+    const unit = units[ch];
+    if (!unit) return Number.NaN;
+    if (unit < 10000) section += (number || 1) * unit;
+    else { section += number; total += (section || 1) * unit; section = 0; }
+    number = 0;
+  }
+  return total + section + number;
 }
 
 /**
@@ -1345,7 +1443,9 @@ const OPEN_LABELS = [
   "投标截止时间", "递交截止时间",
   "开标",
 ];
-const FUND_LABELS = ["建设资金来自", "资金来自", "资金来源为", "资金来源", "建设资金", "所需资金", "出资比例"];
+// 资金来源及比例 必须排在 资金来源 之前：安徽公告栏目名即「资金来源及比例：政府性资金100%」，
+// 先匹配短标签会把「及比例：政府性资金100%」当值抓出（2026-08-15 实测 23/23 条全部带此脏前缀）
+const FUND_LABELS = ["资金来源及比例", "建设资金来自", "资金来自", "资金来源为", "资金来源", "建设资金", "所需资金", "出资比例"];
 // 勘察设计/监理/服务类标段通篇没有"工期"二字，写成「2.5 勘察设计服务期限： 210 日历天」。
 // 首轮 75 条核验实测漏抓 2 条（上虞区管网勘察设计、缙云产业园配套勘察设计），必须把服务期类标签补齐。
 // 顺序＝特异性降序：先试最长最专的，避免"工期"这种泛标签抢先命中无关条款。
@@ -1455,6 +1555,13 @@ function countQual(s) {
 }
 
 function grabQualification(text, flat) {
+  // 天津等公告把企业资格写成「本次招标要求投标人具有：一标段: 资质:市政…一级及以上，资格:…」。
+  // 通用标签会在“投标人具有”处过早截断；先取紧邻“资质:”的值，且仍用资质闸门避免把人员资格写入企业资质。
+  const tenderMatch = text.match(/本次招标要求投标人具有[\s\S]{0,120}?(?:资质|资格)\s*[:：]\s*([^\n，,；;]{4,160})/);
+  if (tenderMatch) {
+    const tenderValue = cleanVal(tenderMatch[1]).replace(/\s+/g, " ").trim();
+    if (QUAL_OK.test(tenderValue) && !QUAL_BAD.test(tenderValue)) return tenderValue;
+  }
   let phrase = "";
   // 逐标签取值 + 逐标签校验：不能等 grabBoth 跑完整个标签表，
   // 否则泛标签抓到的假值会直接返回，后面更特异的"设计资质/施工资质"根本没机会上场。
@@ -1511,6 +1618,10 @@ function grabApprovalNo(text) {
 // 项目编号：必须是"像编号"的串（字母+数字+少数分隔符，长度≥5），否则可能是正文里的随机句子
 const CODE_OK = /^[A-Za-z0-9][A-Za-z0-9\-_／/.]{4,}$/;
 function grabProjectCode(text, flat) {
+  // 公示标题常写成“（招标编号：X460...）”。先走紧邻标签的编号专用通道，
+  // 避免通用 grab 被括号或后续正文截断后判成非编号。
+  const direct = text.match(/(?:招标项目编号|招标编号|项目编号|交易项目编号|采购项目编号)\s*[:：]\s*([A-Za-z0-9][A-Za-z0-9\-_／/.]{4,})/);
+  if (direct && CODE_OK.test(direct[1])) return direct[1].slice(0, 60);
   let v = grabBoth(text, flat, CODE_LABELS, 4);
   if (!v) return "";
   // 去标签前缀 + 首尾括号/空白（山西写"（招标项目编号： E14…001 ）"，尾括号会废掉 CODE_OK）
@@ -1572,15 +1683,33 @@ function grabFullScore(text, flat) {
 
 // ---- 从详情 HTML 提取厚字段；优先各省 adapter.detail()，否则通用提取
 // pdfText：当省平台正文是 PDF 附件时（如浙江），由 maybePdfText() 提取后并入正文一起匹配
+function extractNoticeTitle(html, fallback = "") {
+  const raw = String(html || "");
+  const candidates = [
+    raw.match(/class=["'][^"']*article-title[^"']*["'][^>]*>([\s\S]*?)<\//i),
+    raw.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i),
+    raw.match(/<meta\b[^>]*property=["']og:title["'][^>]*content=["']([^"']+)/i),
+  ];
+  for (const m of candidates) {
+    const value = htmlToText(m && m[1] || "").replace(/\s+/g, " ").trim();
+    if (value && value.length > 4 && !/^(?:招标公告|公告|公示|详情)$/.test(value)) return value;
+  }
+  return String(fallback || "").trim();
+}
+
 function extractDetail(ad, html, item, pdfText) {
   if (ad.detail && typeof ad.detail === "function") return ad.detail(html, item, pdfText);
   const text = pdfText ? (htmlToText(html) + "\n" + pdfText) : htmlToText(html);
   const flat = flatten(text);   // 兜底通道，见 flatten() 注释
   // 金额走严格模式：邻域必须有数字+单位，否则留空（不把"保证金不予退还"这类条款当金额）
-  const controlWan = grabMoneyWan(text, ["招标控制价", "控制价", "最高投标限价", "最高限价", "预算金额", "预算价"]);
+  // 合同估算价放最后兜底：安徽公告无"控制价/最高限价"栏目，价款披露就是「N、合同估算价：5000038.66元」
+  // （2026-08-15 对标标标通实测：安徽 23 条控制价填充率 43%→补此标签后可近满额；标标通控制价列即取此值）。
+  // 语义上它是估算口径，但为安徽公告唯一价款字段，按标标通口径入控制价列；严格口径用户可看 budget 列。
+  const controlWan = grabMoneyWan(text, ["招标控制价", "控制价", "最高投标限价", "最高限价", "预算金额", "预算价", "合同估算价"]);
   const bondWan = grabMoneyWan(text, ["投标保证金", "保证金"]);
   const docLink = grabDocLink(html, item.url);
   return {
+    title: extractNoticeTitle(html, item && item.title),
     projectSite: grabBoth(text, flat, SITE_LABELS),
     // 主通道用原文（保留换行边界更精准），失败再走扁平化文本
     bidOpen: grabDateTime(text, OPEN_LABELS) || grabDateTime(flat, OPEN_LABELS),
@@ -1668,22 +1797,104 @@ function grabRank(text) {
   const m = text.match(/(?:第\s*)([一二三四五六七八九十\d]+)(?:\s*名|中标候选人)/);
   return m ? m[1] : "";
 }
+function tableRows(html) {
+  const tables = [];
+  const tableRe = /<table\b[^>]*>([\s\S]*?)<\/table>/gi;
+  let tm;
+  while ((tm = tableRe.exec(html || ""))) {
+    const rows = [];
+    const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
+    let rm;
+    while ((rm = rowRe.exec(tm[1]))) {
+      const cells = [];
+      const cellRe = /<(?:th|td)\b[^>]*>([\s\S]*?)<\/(?:th|td)>/gi;
+      let cm;
+      while ((cm = cellRe.exec(rm[1]))) cells.push(htmlToText(cm[1]).replace(/\s+/g, " ").trim());
+      if (cells.length) rows.push(cells);
+    }
+    if (rows.length) tables.push(rows);
+  }
+  return tables;
+}
+
+function tableColumn(headers, patterns) {
+  return headers.findIndex((h) => patterns.some((p) => p.test(h)));
+}
+
+function tableMoneyWan(value, header) {
+  const n = parseFloat(String(value || "").replace(/[,，\s]/g, ""));
+  if (!Number.isFinite(n) || n <= 0) return "";
+  const wan = /万元|\b万\b/.test(header || "") ? n : n / 10000;
+  return String(Math.round(wan * 10000) / 10000);
+}
+
+function extractCandidateTables(html) {
+  let basic = {}, manager = "";
+  for (const rows of tableRows(html)) {
+    // 中标候选人排序：浙江 SSR 页表头是「中标候选人排序 | 投标人 | 投标报价…」（无"名称"二字），
+    // 原锚点 /中标候选人名称|候选人名称/ 整表跳过 → winner 全空（2026-08-15 岱山实测复现）
+    const hi = rows.findIndex((row) => row.some((c) => /中标候选人名称|候选人名称|中标候选人排序/.test(c)));
+    if (hi < 0) continue;
+    const headers = rows[hi];
+    const winnerI = tableColumn(headers, [/中标候选人名称/, /候选人名称/, /投标人名称/, /投标人/]); // 光杆"投标人"=浙江列头
+    const priceI = tableColumn(headers, [/投标.*报价/, /中标价/, /报价/]);
+    const durationI = tableColumn(headers, [/工期/, /交货期/, /服务期/]);
+    const scoreI = tableColumn(headers, [/评标结果/, /综合得分/, /评审得分/, /得分/]);
+    const rankI = tableColumn(headers, [/排序/, /排名/, /名次/, /序号/]);
+    const managerI = tableColumn(headers, [/项目负责人名称/, /项目经理/, /项目负责人/]);
+    const row = rows.slice(hi + 1).find((r) => {
+      const rank = rankI >= 0 ? r[rankI] : r[0];
+      return /^(?:1|第一|一)$/.test(String(rank || "").trim()) && winnerI >= 0 && r[winnerI];
+    });
+    if (!row) continue;
+    if (managerI >= 0 && row[managerI]) manager = row[managerI].trim();
+    if (!basic.winner && (priceI >= 0 || durationI >= 0 || scoreI >= 0)) {
+      basic = {
+        rank: rankI >= 0 ? row[rankI] : "1",
+        winner: cleanWinnerRaw(row[winnerI]),
+        winPrice: priceI >= 0 ? tableMoneyWan(row[priceI], headers[priceI]) : "",
+        duration: durationI >= 0 ? row[durationI] : "",
+        winScore: scoreI >= 0 ? (String(row[scoreI]).match(/\d+(?:\.\d+)?/) || [""])[0] : "",
+      };
+    }
+  }
+  return { ...basic, winManager: manager };
+}
+
+// 合同主体行常见「采购人(甲方)：××」「供应商(乙方)：××」——角色括号后缀插在标签与值之间，
+// 通用 grab 的标签→值间隙匹配会失败（海南合同公示 2026-08-15 实测：乙方整条丢失、甲方带"(甲方)："残leak）。
+// 专用通道按角色词定位，值再走 org 完形/校验；失败回退通用路径。
+function grabPartyByRole(text, roleWord) {
+  const re = new RegExp("[（(]" + roleWord + "[）)]\\s*[:：]?\\s*([^\\n，。;；]{4,60})", "");
+  const m = String(text || "").match(re);
+  if (!m) return "";
+  let v = m[1].trim();
+  // 值区用空格分隔无标点（海南合同公示实测），在下一段字段词（地址：/联系方式：/法定代表人：…）处截断
+  v = v.split(/\s+(?=(?:地址|联系方式|法定代表人|电话|联系人|传真|邮编|开户行|账号|户名|乙方|甲方|名称)[（(]?[^\s：]{0,8}[）)]?\s*[:：])/)[0];
+  return completeOrgName(v, text);
+}
+
 function extractWinDetail(ad, html, item, pdfText) {
   if (ad && ad.winDetail && typeof ad.winDetail === "function") return ad.winDetail(html, item, pdfText);
   const text = pdfText ? (htmlToText(html) + "\n" + pdfText) : htmlToText(html);
   const flat = flatten(text);
   const winPrice = grabMoneyWan(text, WIN_PRICE_LABELS) || grabMoneyWan(flat, WIN_PRICE_LABELS);
-  return {
-    winner: grabWinner(text, flat),
-    winPrice,
-    winManager: grabManager(text, flat),
-    duration: grabDuration(text, flat),
-    winScore: grabScore(text, flat),
-    rank: grabRank(text),
-    contractAmount: grabMoneyWan(text, ["合同金额", "合同价", "合同总价", "签约合同价", "合同估算价"]) || grabMoneyWan(flat, ["合同金额", "合同价", "合同总价", "签约合同价"]),
-    partyA: completeOrgName(grabBoth(text, flat, PARTY_A_LABELS), flat),
-    partyB: grabWinner(text, flat),
+  const stage = (ad && ad.stageKey) || (item && item.stage) || "";
+  const table = stage === "candidate" ? extractCandidateTables(html) : {};
+  const winner = table.winner || grabWinner(text, flat);
+  const out = {
+    winner,
+    winPrice: table.winPrice || winPrice,
+    winManager: table.winManager || grabManager(text, flat),
+    duration: table.duration || grabDuration(text, flat),
+    winScore: table.winScore || grabScore(text, flat),
+    rank: table.rank || grabRank(text),
+    contractAmount: stage === "contract" ? (grabMoneyWan(text, ["合同金额", "合同价", "合同总价", "签约合同价", "合同估算价"]) || grabMoneyWan(flat, ["合同金额", "合同价", "合同总价", "签约合同价"])) : "",
+    partyA: grabPartyByRole(text, "甲方") || completeOrgName(grabBoth(text, flat, PARTY_A_LABELS), flat),
+    partyB: (stage === "contract" ? grabPartyByRole(text, "乙方") : "") || winner,
+    projectCode: grabProjectCode(text, flat),
   };
+  return Object.fromEntries(Object.entries(out).map(([k, v]) => [k, cleanOutputCell(v)]));
 }
 
 function toAbs(href, base) {
@@ -1945,10 +2156,12 @@ async function sntbaList(ad, page, args) {
 // 详情为 SPA hash 路由（含 bidSectionId），collectProvince 仅列表层使用，详情层非必须。
 function hnNoticeType2Stage(t) {
   if (!t) return "招标公告";
+  if (/ZHONGBIAOHXR/.test(t)) return "中标候选人公示";
+  if (/ZHONGBIAO/.test(t)) return "中标结果公示";
   if (/ZHAOBIAO/.test(t)) return "招标公告";
   if (/ZIGE|SHENCHA|QUALIF/.test(t)) return "资格审查";
   if (/BIANGENG|CHANGE/.test(t)) return "变更公告";
-  if (/ZHONGBIAO|RESULT/.test(t)) return "中标公告";
+  if (/RESULT/.test(t)) return "中标公告";
   return "招标公告";
 }
 
@@ -2756,7 +2969,8 @@ function mapYgpRow(rr) {
   };
   return {
     projectCode: g("projectCode", "tenderProjectCode", "projCode", "项目编号", "noticeProjectCode"),
-    owner:       g("tendererName", "ownerName", "招标人", "tenderName", "bidderName"),
+    owner:       g("projectOwner", "tendererName", "ownerName", "招标人", "tenderName", "bidderName"),
+    partyA:      g("projectOwner", "tendererName", "招标人", "ownerName"),
     agency:     g("tenderAgencyName", "agencyName", "招标代理", "agentName"),
     controlPrice: g("controlPrice", "tenderControlPrice", "controlprice", "招标控制价", "maxPrice"),
     budget:     g("budget", "totalInvest", "概算", "估算", "investAmount"),
@@ -2772,12 +2986,46 @@ function mapYgpRow(rr) {
   };
 }
 
-async function ygpFetchPage(siteCode, secondType, keyword, pn) {
+// ---- 河南真公告接口（2026-08-15 修正）：原 epointList 走档案库索引(cnum=001 返回文件名)，不适用真公告 ----
+// 真公告数据源：POST /EpointWebBuilder/rest/frontAppCustomAction/getPageInfoListNewYzm
+// 参数(form)：siteGuid(固定) / categoryNum(栏目码, stage 覆盖) / xiaqucode(4100=全省) / pageIndex / pageSize
+// 响应：custom.infodata[].{title, infourl, infodate}
+async function henanNoticeList(ad, page, args) {
+  const pageSize = ad.rn || 8;
+  const categoryNum = ad.categoryNum || "002001001";
+  const body = new URLSearchParams({
+    siteGuid: ad.siteGuid || "7eb5f7f1-9041-43ad-8e13-8fcb82ea831a",
+    categoryNum,
+    xiaqucode: ad.xiaqucode || "4100",
+    pageIndex: String(page - 1),
+    pageSize: String(pageSize),
+  });
+  const r = await fetch(ad.base + "/EpointWebBuilder/rest/frontAppCustomAction/getPageInfoListNewYzm", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8", "User-Agent": UA_STR, "Referer": ad.referer || (ad.base + "/") },
+    body: body.toString(),
+  });
+  if (!r.ok) throw new Error("henan notice HTTP " + r.status);
+  const j = JSON.parse(await r.text());
+  const arr = (j && j.custom && Array.isArray(j.custom.infodata)) ? j.custom.infodata : [];
+  return arr.map(it => {
+    const raw = String(it.infodate || "");
+    const m = raw.match(/(\d{4}-\d{2}-\d{2})/);
+    const url = it.infourl ? toAbs(it.infourl, ad.base) : "";
+    return {
+      url,
+      title: String(it.title || "").replace(/<\/?em[^>]*>/gi, "").trim(),
+      date: m ? m[1] : "",
+    };
+  }).filter(x => x.title);
+}
+
+async function ygpFetchPage(siteCode, secondType, keyword, pn, tradingProcess) {
   const body = {
     type: "trading-type", openConvert: false,
     keyword: keyword || "",
     siteCode, secondType,
-    tradingProcess: "", thirdType: "[]", projectType: "",
+    tradingProcess: tradingProcess || "", thirdType: "[]", projectType: "",
     publishStartTime: "", publishEndTime: "",
     pageNo: pn, pageSize: 50,
   };
@@ -2820,7 +3068,7 @@ async function ygpList(ad, page, args) {
   const all = [];
   for (const sc of cities) {
     for (let pn = 1; pn <= 20; pn++) {
-      const rows = await ygpFetchPage(sc, ad.category || "A", args.keyword || "", pn);
+      const rows = await ygpFetchPage(sc, ad.category || "A", args.keyword || "", pn, ad.tradingProcess || "");
       if (!rows.length) break;
       for (const rr of rows) {
         const d = String(rr.publishDate || "");
@@ -3049,7 +3297,7 @@ async function enrichFromAttachment(rec, args) {
     }
     // 只记录「真实补到的字段」，不夸大（此前用 need=补抽前为空的字段列表，会写成未补到的字段）
     const filled = [];
-    if (!rec.controlPrice) { const v = grabMoneyWan(text, ["招标控制价", "控制价", "最高投标限价", "最高限价", "预算金额", "预算价"]); if (v) { rec.controlPrice = v; filled.push("controlPrice"); } }
+    if (!rec.controlPrice) { const v = grabMoneyWan(text, ["招标控制价", "控制价", "最高投标限价", "最高限价", "预算金额", "预算价", "合同估算价"]); if (v) { rec.controlPrice = v; filled.push("controlPrice"); } }
     if (!rec.budget) { const v = grabBudgetWan(flatten(text)); if (v) { rec.budget = v; filled.push("budget"); } }
     if (!rec.bond) { const v = grabMoneyWan(text, ["投标保证金", "保证金"]); if (v) { rec.bond = v; filled.push("bond"); } }
     if (filled.length) {
@@ -3113,24 +3361,36 @@ function crc32(buf) {
 function colLetter(n) { let s = ""; n++; while (n > 0) { s = String.fromCharCode(65 + (n - 1) % 26) + s; n = Math.floor((n - 1) / 26); } return s; }
 function xmlEsc(s) { return String(s).replace(/[<>&'"]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" }[c])); }
 
+function xlsxColumnWidths(count) {
+  const full29 = [6, 12, 18, 40, 14, 16, 34, 34, 14, 14, 20, 10, 12, 14, 28, 28, 18, 12, 30, 28, 24, 30, 14, 14, 12, 8, 14, 26, 26];
+  const compact16 = [6, 12, 18, 40, 14, 16, 34, 34, 14, 14, 20, 10, 12, 30, 28, 24];
+  return (count === 16 ? compact16 : full29.slice(0, count));
+}
+
 function writeXlsx(path, sheets) {
   // sheets: [{name, rows:[[...]]}]
   const esc = xmlEsc;
   const sheetXml = sheets.map((sh, i) => {
+    const widthXml = xlsxColumnWidths((sh.rows[0] || []).length).map((width, ci) => `<col min="${ci + 1}" max="${ci + 1}" width="${width}" customWidth="1"/>`).join("");
     const rows = sh.rows.map((row, ri) => {
       const cells = row.map((val, ci) => {
         const ref = colLetter(ci) + (ri + 1);
         const v = val == null ? "" : String(val);
-        return `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${esc(v)}</t></is></c>`;
+        return `<c r="${ref}" s="${ri === 0 ? 1 : 2}" t="inlineStr"><is><t xml:space="preserve">${esc(v)}</t></is></c>`;
       }).join("");
-      return `<row r="${ri + 1}">${cells}</row>`;
+      return `<row r="${ri + 1}" ht="${ri === 0 ? 30 : 42}" customHeight="1">${cells}</row>`;
     }).join("");
+    const lastCol = colLetter(Math.max(0, (sh.rows[0] || []).length - 1));
+    const lastRow = Math.max(1, sh.rows.length);
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${rows}</sheetData></worksheet>`;
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:${lastCol}${lastRow}"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${widthXml}</cols><sheetData>${rows}</sheetData><autoFilter ref="A1:${lastCol}${lastRow}"/></worksheet>`;
   });
+  const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="10"/><name val="Microsoft YaHei"/></font><font><b/><color rgb="FFFFFFFF"/><sz val="10"/><name val="Microsoft YaHei"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF1F4E78"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFD9E2F3"/></left><right style="thin"><color rgb="FFD9E2F3"/></right><top style="thin"><color rgb="FFD9E2F3"/></top><bottom style="thin"><color rgb="FFD9E2F3"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
   const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>` +
     `<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>` +
+    `<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>` +
     sheetXml.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("") + `</Types>`;
   const rootRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`;
@@ -3139,7 +3399,8 @@ function writeXlsx(path, sheets) {
     sheets.map((sh, i) => `<sheet name="${esc(sh.name).slice(0, 31)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("") + `</sheets></workbook>`;
   const wbRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
-    sheetXml.map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("") + `</Relationships>`;
+    sheetXml.map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("") +
+    `<Relationship Id="rId${sheetXml.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`;
 
   // 打包 store-zip
   const files = [
@@ -3147,6 +3408,7 @@ function writeXlsx(path, sheets) {
     ["_rels/.rels", rootRels],
     ["xl/workbook.xml", workbook],
     ["xl/_rels/workbook.xml.rels", wbRels],
+    ["xl/styles.xml", styles],
     ...sheetXml.map((x, i) => [`xl/worksheets/sheet${i + 1}.xml`, x]),
   ];
   const parts = [];
@@ -3181,17 +3443,19 @@ function writeXlsx(path, sheets) {
 
 // ---- 参数解析 ----
 function parseArgs(argv) {
-  const a = { keyword: "", province: "", days: 30, delay: 500, limit: 0, csv: false, xlsx: true, out: "", cat: "", detail: true, attach: false, probe: false, verify: false, dumpText: false, stage: "zb" };
+  const a = { keyword: "", province: "", city: "", days: 30, delay: 500, limit: 0, csv: false, xlsx: true, xlsxLayout: "full29", out: "", cat: "", detail: true, attach: false, probe: false, verify: false, dumpText: false, stage: "zb" };
   for (let i = 0; i < argv.length; i++) {
     const x = argv[i];
     if (x === "-p" || x === "--province") a.province = argv[++i];
     else if (x === "-k" || x === "--keyword") a.keyword = argv[++i];
+    else if (x === "-c" || x === "--city") a.city = argv[++i] || "";
     else if (x === "-d" || x === "--days") a.days = parseInt(argv[++i], 10);
     else if (x === "--delay") a.delay = parseInt(argv[++i], 10);
     else if (x === "--limit") a.limit = parseInt(argv[++i], 10);
     else if (x === "--csv") a.csv = true;
     else if (x === "--xlsx") a.xlsx = true;
     else if (x === "--no-xlsx") a.xlsx = false;
+    else if (x === "--xlsx-layout") a.xlsxLayout = argv[++i] || "full29";
     else if (x === "--no-detail") a.detail = false;
     else if (x === "--attach") a.attach = true;
     else if (x === "--probe") a.probe = true;
@@ -3202,7 +3466,27 @@ function parseArgs(argv) {
     else if (x === "--stage") a.stage = argv[++i] || "zb";
     else if (x === "--dump-text") a.dumpText = true;
   }
+  if (!["full29", "biaobiaotong16"].includes(a.xlsxLayout)) throw new Error(`--xlsx-layout 仅支持 full29 或 biaobiaotong16，收到: ${a.xlsxLayout}`);
   return a;
+}
+
+// 标的类型（量纲标记）：控制价列在「施工/EPC 标的价」与「监理/设计等服务费」两种量纲间混列
+// （马鞍山例：EPC 控制价 12780万 vs 监理标控制价 166.15万 = 概算 12424.65万 × 1.34% 标准监理费率），
+// 不标记类型就会错用口径（服务费当标的价）。标题无信号时诚实留空，不猜。
+// 概算按费用类别的拆分（监理费份额）公告层普遍不披露，无法直接抽取——本列即替代解法。
+function inferTenderType(title) {
+  const t = String(title || "");
+  // 监理须在 EPC 之前：EPC 项目的监理标（「…EPC（监理）」）是服务费量纲，判成 EPC总承包会当标的价错用
+  if (/监理/.test(t)) return "监理";
+  if (/EPC|工程总承包|设计采购施工|交钥匙/i.test(t)) return "EPC总承包";
+  if (/全过程咨询/.test(t)) return "全过程咨询";
+  if (/造价咨询|招标代理/.test(t)) return "造价咨询";
+  if (/勘察设计/.test(t)) return "勘察设计";
+  if (/设计(?!.*施工)/.test(t)) return "设计";
+  if (/检测|监测/.test(t)) return "检测监测";
+  if (/采购|设备|货物/.test(t)) return "货物采购";
+  if (/施工|修缮|改造|修复|治理|新建|扩建/.test(t)) return "施工";
+  return "";
 }
 
 function inferType(title) {
@@ -3232,6 +3516,22 @@ function extractCity(title) {
   const m = title.match(/^([\u4e00-\u9fa5]{2,6}?(?:自治县|自治州|地区|市|县|区|旗|盟))/);
   if (m && !TYPE_WORD.test(m[1]) && !NOT_A_PLACE.test(m[1])) return m[1];
   return "";
+}
+
+function normalizeArea(value) {
+  return String(value || "").replace(/\s+/g, "").replace(/(?:省|市|自治州|地区|盟|自治县|县|区|旗)$/u, "");
+}
+
+// 城市筛选是客户端 OR 过滤：不同平台的行政区字段不一致，故同时使用列表地区、标题和提取值。
+// 不以“未命中”推断为不属于任何城市，只在用户明确给出 --city 时排除不匹配的记录。
+function matchesCityFilter(cityArg, candidates) {
+  const filters = String(cityArg || "").split(/[,，、]/).map((s) => s.trim()).filter((s) => s && s !== "全省");
+  if (!filters.length) return true;
+  const fields = (candidates || []).map((value) => String(value || "").replace(/\s+/g, "")).filter(Boolean);
+  return filters.some((filter) => {
+    const normalizedFilter = normalizeArea(filter);
+    return fields.some((field) => field.includes(filter) || (normalizedFilter && normalizeArea(field).includes(normalizedFilter)));
+  });
 }
 
 // 按项目性质分 sheet（对标标标通：房建市政/水利/公路/其他）
@@ -3271,6 +3571,7 @@ async function collectProvince(prov0, args) {
       process.exit(2);
     }
     ad = Object.assign({}, ad, ad.stages[args.stage]);
+    ad.stageKey = args.stage;
     ad.defaultType = (ad.stages[args.stage] && ad.stages[args.stage].type) || ad.defaultType;
     // makeBody 经 Object.assign 复制引用，调用时 this=ad，故 this.unionCondition 取 stage 覆盖值（兰州等依赖此）
     if (typeof ad.makeBody === "function") ad.makeBody = ad.makeBody.bind(ad);
@@ -3291,7 +3592,7 @@ async function collectProvince(prov0, args) {
   for (const cats of catRounds) {
     if (catRounds.length > 1) console.error("[round] 栏目", cats.join(","));
     await crawlRound(ad, args, cats, cutoff, result, seen);
-    if (args.limit && result.length >= args.limit) break;
+    if (hasReachedLimit(result.length, args.limit)) break;
   }
   return { ad, result };
 }
@@ -3335,6 +3636,8 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
       items = await lnList(ad, page, args);
     } else if (ad.kind === "gs") {
       items = await gsList(ad, page, args);
+    } else if (ad.kind === "henanNotice") {
+      items = await henanNoticeList(ad, page, args);
     } else {
       const html = await requestWithRetry(ad.listUrl(page), args.delay);
       items = ad.parse(html);
@@ -3357,6 +3660,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
       if (args.keyword && ((ad.kind !== "epoint" && ad.kind !== "epointX") || ad.keywordClient) && !item.title.includes(args.keyword)) continue;
       // 省级名(cityWeak)排在标题提取之后：标题里的"昌江县/屯昌县"比"海南省"有用得多
       const city = item.cityHint || extractCity(item.title) || item.cityWeak || "";
+      if (!matchesCityFilter(args.city, [city, item.cityHint, item.cityWeak, item.title])) continue;
       // 归一化标题：去掉【】标注与发布渠道前缀（海南全省公告标题都带"（机器管招投标）"，
       // 那是发布通道标记不是项目名，留着会污染项目名列与去重比对）。原文仍可经 url 溯源。
       const cleanTitle = item.title
@@ -3366,6 +3670,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
       const rec = {
         // adapter 已按栏目/categorynum 锁定公告类型时直接采用，避免靠标题猜（江苏多数标题不含"招标公告"字样）
         date: item.date, city, type: item.stageHint || ad.defaultType || inferType(item.title),
+        tenderType: inferTenderType(item.title),
         title: cleanTitle, url: item.url, owner: "", projectCode: "", method: "", scale: "", scope: "", approval: "", manager: "", _attachNote: "",
         projectSite: "", bidOpen: "", funding: "", duration: "",
         qualification: "", performance: "", controlPrice: "", budget: "", bond: "",
@@ -3445,12 +3750,25 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
             for (const [k, v] of Object.entries(df)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
             // 详情页为未渲染 mustache SPA 时，docLink 会被写成 {{downloadurl}}（或 URL 编码 %7B%7Bdownloadurl%7D%7D）脏值，务必清掉
             if (rec.docLink && /downloadurl|%7[Bb]|%7[Dd]|[\{\}]/i.test(rec.docLink)) rec.docLink = "";
-            // 缺口一：HTML 未载控制价/概算/保证金时，从招标文件附件补抽
-            await enrichFromAttachment(rec, args);
             if (!rec.city && df.projectSite) rec.city = df.projectSite;
             rec.url = normUrl(df.detailUrl || item.url, ad);
           }
+          // 列表标题可能被平台截断（例如安徽以省级列表返回省略号），详情正文标题优先；
+          // 标题修正后同步重算标的类型和标标通 sheet，避免业务表保留截断标题。
+          if (rec.title) {
+            rec.tenderType = inferTenderType(rec.title) || rec.tenderType;
+            rec.sheet = classifySheet(rec.title);
+          }
+          // 量纲兜底：标题不含"监理"但资质要求是监理资质的（如「含山县…项目EPC」实为其监理标，
+          // 2026-08-15 实测：控制价 180万 vs 同项目 EPC 施工标 12780万，错判量纲会当标的价误用），
+          // 以资质字段纠偏——监理综合资质/监理资质出现即必为监理标
+          if (rec.tenderType !== "监理" && /监理(?:综合)?资质/.test(rec.qualification || "")) rec.tenderType = "监理";
+          // 缺口一（统一出口）：HTML 未载控制价/概算/保证金时，从招标文件附件补抽。
+          // 原先仅通用 HTML 分支调用；bespoke 详情分支（ah/xz/hn/yn/hb/gz/nmg/gs）的片段同样可能带附件，
+          // 统一放在 try 尾部后全路径同享（--attach 门禁不变，docLink 为空/已解析过则安全 no-op）
+          await enrichFromAttachment(rec, args);
         } catch (e) {
+          if (args._run) args._run.errors.push({ code: "DETAIL_FETCH_OR_PARSE", url: item.url, message: String(e && e.message || e) });
           console.error("[detail] FAIL", item.url.slice(0, 60), e.message);
         }
       }
@@ -3469,6 +3787,7 @@ function buildMarkdown(prov, ad, result, args) {
   lines.push("");
   lines.push(`- 省份：${prov}`);
   lines.push(`- 关键词：${args.keyword || "（不限）"}`);
+  lines.push(`- 城市/区县：${args.city || "全省"}`);
   lines.push(`- 时间：近 ${args.days} 天  ｜  输出 ${result.length} 条  ｜  厚字段：${args.detail ? "是" : "否"}`);
   lines.push(`- 数据源：${ad.name}`);
   lines.push("");
@@ -3480,11 +3799,10 @@ function buildMarkdown(prov, ad, result, args) {
   return lines.join("\n");
 }
 
-// 标标通对标 XLSX 表头（29 列）。此常量是 XLSX schema 的唯一代码真相源。
+// full29 保留采集器全部业务字段；biaobiaotong16 严格兼容参考工作簿的 16 列顺序。
 const XLSX_HEADER = ["序号", "项目地点", "开标时间", "项目名称", "资金来源", "工期", "资质要求", "业绩要求", "控制价万元", "保证金万元", "评标办法", "联合体", "满分标准", "招标方式", "建设规模", "招标范围", "项目编号", "项目经理", "链接", "招标文件", "附件说明", "中标人", "中标价万元", "项目负责人", "中标得分", "排名", "合同金额万元", "招标人", "承包人"];
-
-// CSV 保留更多采集/溯源字段（36 列），与 XLSX schema 分开维护。
-const CSV_HEADER = ["date", "city", "type", "title", "url", "projectCode", "method", "scale", "scope", "approval", "manager", "owner", "agency", "bidOpen", "duration", "controlPrice", "budget", "bond", "funding", "qualification", "performance", "evaluation", "consortium", "fullScore", "contact", "phone", "docLink", "_attachNote", "winner", "winPrice", "winManager", "winScore", "rank", "contractAmount", "partyA", "partyB"];
+const BIAOBIAOTONG_HEADER = ["序号", "项目地点", "开标时间", "项目名称", "资金来源", "工期", "资质要求", "业绩要求", "控制价万元", "保证金万元", "评标办法", "联合体", "满分标准", "链接", "招标文件", "备注"];
+const CSV_HEADER = ["date", "city", "type", "tenderType", "title", "url", "projectCode", "method", "scale", "scope", "approval", "manager", "owner", "agency", "bidOpen", "duration", "controlPrice", "budget", "bond", "funding", "qualification", "performance", "evaluation", "consortium", "fullScore", "contact", "phone", "docLink", "_attachNote", "winner", "winPrice", "winManager", "winScore", "rank", "contractAmount", "partyA", "partyB"];
 
 function cleanOutputCell(value) {
   if (value == null) return "";
@@ -3500,7 +3818,9 @@ function hasReachedLimit(count, limit) {
   return n > 0 && count >= n;
 }
 
-function buildXlsxSheets(result) {
+function buildXlsxSheets(result, options) {
+  const layout = (options && options.layout) || "full29";
+  if (!["full29", "biaobiaotong16"].includes(layout)) throw new Error(`未知 XLSX layout: ${layout}`);
   const groups = { "房建市政": [], "水利": [], "公路": [], "其他项目": [] };
   for (const r of result) {
     const key = groups[r.sheet] ? r.sheet : "其他项目";
@@ -3509,28 +3829,100 @@ function buildXlsxSheets(result) {
   const sheets = [];
   for (const name of ["房建市政", "水利", "公路", "其他项目"]) {
     const rows = groups[name];
-    if (!rows.length) continue;
-    const data = rows.map((r, i) => [
+    if (!rows.length && layout !== "biaobiaotong16") continue;
+    const header = layout === "biaobiaotong16" ? BIAOBIAOTONG_HEADER : XLSX_HEADER;
+    const data = rows.map((r, i) => (layout === "biaobiaotong16" ? [
+      i + 1, r.city || r.projectSite || "", r.bidOpen || "", r.title, r.funding || "",
+      r.duration || "", r.qualification || "", r.performance || "", r.controlPrice || "",
+      r.bond || "", r.evaluation || "", r.consortium || "", r.fullScore || "", r.url,
+      r.docLink || "", r._attachNote || "",
+    ] : [
       i + 1, r.city || r.projectSite || "", r.bidOpen || "", r.title, r.funding || "",
       r.duration || "", r.qualification || "", r.performance || "", r.controlPrice || "",
       r.bond || "", r.evaluation || "", r.consortium || "", r.fullScore || "",
       r.method || "", r.scale || "", r.scope || "", r.projectCode || "", r.manager || "", r.url, r.docLink || "", r._attachNote || "",
       r.winner || "", r.winPrice || "", r.winManager || "", r.winScore || "", r.rank || "", r.contractAmount || "", r.partyA || "", r.partyB || "",
-    ].map(cleanOutputCell));
-    sheets.push({ name, rows: [XLSX_HEADER, ...data] });
+    ]).map(cleanOutputCell));
+    sheets.push({ name, rows: [header, ...data] });
   }
-  if (!sheets.length) sheets.push({ name: "其他项目", rows: [XLSX_HEADER] });
+  if (!sheets.length) sheets.push({ name: "其他项目", rows: [layout === "biaobiaotong16" ? BIAOBIAOTONG_HEADER : XLSX_HEADER] });
   return sheets;
 }
 
 function csvCell(s) { return `"${String(cleanOutputCell(s)).replace(/"/g, '""')}"`; }
 
+function ensureParentDir(filePath) {
+  const parent = path.dirname(path.resolve(filePath));
+  fs.mkdirSync(parent, { recursive: true });
+  return parent;
+}
+
+// 机器侧运行回执：不污染业务 XLSX/CSV，明确区分真实记录、空窗口和程序失败。
+// 交通/解析函数中部分历史分支会把单页异常降级为空数组，因此 errors 只记录本次调用已显式观测到的错误；
+// 空结果仍不得冒充 FAILED，报告会保留 status_reason 供后续逐省复核。
+function classifyRunStatus(result, errors = [], signals = {}) {
+  const real = (result || []).filter((r) => r && r.title && r.date && r.url);
+  if (real.length) return "VERIFIED_RECORD";
+  if ((signals.auth_walls || []).length) return "BROWSER_REQUIRED";
+  if (errors.length || (signals.rate_limits || []).length || (signals.transport_errors || []).length) return "FAILED";
+  return "CONNECTED_NO_RECENT_DATA";
+}
+
+function buildRunReport(prov, ad, result, args, meta = {}) {
+  const rows = Array.isArray(result) ? result : [];
+  const errors = Array.isArray(meta.errors) ? meta.errors : [];
+  const signals = meta.signals || {};
+  const real = rows.filter((r) => r && r.title && r.date && r.url);
+  const status = classifyRunStatus(rows, errors, signals);
+  return {
+    schema_version: "bid-collect.run-report.v1",
+    snapshot_at: new Date().toISOString(),
+    status,
+    status_reason: status === "VERIFIED_RECORD"
+      ? "至少一条记录同时具备标题、日期和官方详情链接"
+      : status === "CONNECTED_NO_RECENT_DATA"
+        ? "本次窗口未形成可核对的标题+日期+链接记录；空结果不等同于采集失败"
+        : status === "BROWSER_REQUIRED"
+          ? "官方端点返回鉴权/登录限制，静态方式不可用，需人工浏览器处理"
+          : "采集过程观测到程序错误或外部限流/传输异常，详见 errors 与 signals",
+    province: prov,
+    adapter: Object.keys(ADAPTERS).find((k) => ADAPTERS[k] === ad) || prov,
+    source: { name: ad && ad.name || "", base: ad && ad.base || "" },
+    args: {
+      province: args.province,
+      city: args.city || "",
+      keyword: args.keyword || "",
+      days: args.days,
+      stage: args.stage || "zb",
+      detail: !!args.detail,
+      limit: args.limit || 0,
+      xlsx_layout: args.xlsxLayout || "full29",
+    },
+    counts: { total: rows.length, verified_records: real.length },
+    output: meta.output || null,
+    code_commit: process.env.BID_COLLECT_COMMIT || null,
+    signals,
+    errors,
+  };
+}
+
+function writeRunReport(outputPath, report) {
+  if (!outputPath) return null;
+  const abs = path.resolve(outputPath);
+  const sidecar = abs.replace(/\.(?:xlsx|md|csv)$/i, "") + ".run-report.json";
+  ensureParentDir(sidecar);
+  fs.writeFileSync(sidecar, JSON.stringify(report, null, 2) + "\n", "utf8");
+  return sidecar;
+}
+
 // 仅作为 CLI 直接运行时执行；被 require 时只导出函数，便于离线单测提取器
  if (require.main === module) (async () => {
  try {
   const args = parseArgs(process.argv.slice(2));
+  args._run = { errors: [], auth_walls: [], rate_limits: [], transport_errors: [] };
+  global.__RUN_REPORT = args._run;
   global.__RESEARCH = !!args.dumpText;
-  if (!args.province && !args.probeAll) { console.error("用法: node province-collect.cjs -p <省份> -k <关键词> -d <天数> [--stage zb|candidate|result|contract] [--delay 800] [--csv] [--xlsx|--no-xlsx] [--no-detail] [--out 文件] [--limit N] [--probe] [--probe-all] [--verify]"); process.exit(1); }
+  if (!args.province && !args.probeAll) { console.error("用法: node province-collect.cjs -p <省份> [-c 城市/区县[,城市]] -k <关键词> -d <天数> [--stage zb|candidate|result|contract] [--delay 800] [--csv] [--xlsx|--no-xlsx] [--xlsx-layout full29|biaobiaotong16] [--no-detail] [--out 文件] [--limit N] [--probe] [--probe-all] [--verify]"); process.exit(1); }
   // R2 探测模式：自动试 cnum 001-004 + TPBidder/EpointWebBuilder 子上下文 + http 兜底，定位 EPoint 端点
   if (args.probeAll) {
     const summary = await probeAllEvidence(args.keyword || "管网");
@@ -3562,30 +3954,38 @@ function csvCell(s) { return `"${String(cleanOutputCell(s)).replace(/"/g, '""')}
     let mdPath = args.out, xlsxPath = null, csvPath = null;
     if (args.out.toLowerCase().endsWith(".xlsx")) { xlsxPath = args.out; mdPath = args.out.replace(/\.xlsx$/i, ".md"); }
     else { xlsxPath = args.out.replace(/\.md$/i, ".xlsx"); }
+    ensureParentDir(mdPath);
     fs.writeFileSync(mdPath, md);
     if (args.xlsx && xlsxPath) {
-      writeXlsx(xlsxPath, buildXlsxSheets(result));
+      writeXlsx(xlsxPath, buildXlsxSheets(result, { layout: args.xlsxLayout }));
       console.error("XLSX:", xlsxPath);
     }
     if (args.csv) {
       csvPath = mdPath.replace(/\.md$/i, ".csv");
-      // CSV 是本工具自有格式（36 列），比对标 XLSX（29 列）保留更多采集/溯源字段。
+      // CSV 是本工具自有格式，比标标通 16 列兼容版更全：额外带招标人/代理机构/联系人/电话/项目编号等
       // budget（工程概算/投资估算）独立成列：它与 controlPrice 是两个不同事实，
-      // 合并即造假。budget 只落在 CSV，不进 XLSX。
+      // 合并即造假。标标通 16 列无此项，故只落在 CSV，不进兼容版 XLSX。
       const rows = result.map(r => CSV_HEADER.map(h => csvCell(r[h])).join(","));
       fs.writeFileSync(csvPath, "﻿" + [CSV_HEADER.join(","), ...rows].join("\n"));
       console.error("CSV:", csvPath);
     }
+    const reportPath = writeRunReport(xlsxPath || mdPath, buildRunReport(args.province, ad, result, args, {
+      errors: args._run.errors,
+      signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors },
+      output: { markdown: mdPath, xlsx: xlsxPath, csv: csvPath },
+    }));
+    if (reportPath) console.error("运行报告:", reportPath);
     console.error("报告:", mdPath);
   } else {
     console.log(md);
   }
  } catch (e) {
+  if (typeof args !== "undefined" && args && args._run) args._run.errors.push({ code: "FATAL", message: String(e && e.message || e) });
   console.error("FATAL:", e && (e.stack || e.message) || e);
   process.exit(1);
  }
 })();
 
 
-module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, CSV_HEADER, cleanOutputCell, hasReachedLimit, extractDetail, extractWinDetail, grabWinner, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote,
+module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, inferTenderType, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, extractNoticeTitle, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, buildRunReport, writeRunReport, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, cqList, tjList, nmgList, lnList, gsList };
