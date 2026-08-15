@@ -3776,6 +3776,7 @@ function classifyRunStatus(result, errors = [], signals = {}) {
   if (real.length) return "VERIFIED_RECORD";
   if ((signals.auth_walls || []).length) return "BROWSER_REQUIRED";
   if (errors.length || (signals.rate_limits || []).length || (signals.transport_errors || []).length) return "FAILED";
+  if ((result || []).length) return "FAILED";
   return "CONNECTED_NO_RECENT_DATA";
 }
 
@@ -3795,7 +3796,7 @@ function buildRunReport(prov, ad, result, args, meta = {}) {
         ? "本次窗口未形成可核对的标题+日期+链接记录；空结果不等同于采集失败"
         : status === "BROWSER_REQUIRED"
           ? "官方端点返回鉴权/登录限制，静态方式不可用，需人工浏览器处理"
-          : "采集过程观测到程序错误或外部限流/传输异常，详见 errors 与 signals",
+          : "返回记录但硬字段不完整，或观测到程序错误/外部限流/传输异常，详见 counts、errors 与 signals",
     province: prov,
     adapter: Object.keys(ADAPTERS).find((k) => ADAPTERS[k] === ad) || prov,
     source: { name: ad && ad.name || "", base: ad && ad.base || "" },

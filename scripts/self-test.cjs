@@ -172,6 +172,7 @@ test("运行报告区分真实记录、空窗口与失败", () => {
   assert.equal(M.classifyRunStatus([]), "CONNECTED_NO_RECENT_DATA");
   assert.equal(M.classifyRunStatus([], [{ code: "HTTP", message: "timeout" }]), "FAILED");
   assert.equal(M.classifyRunStatus([], [], { auth_walls: [{ status: 403 }] }), "BROWSER_REQUIRED");
+  assert.equal(M.classifyRunStatus([{ title: "公告", date: "2026-08-15", url: "" }]), "FAILED");
   const report = M.buildRunReport("anhui", M.ADAPTERS.anhui, [], { province: "anhui", city: "", keyword: "", days: 30, stage: "zb", detail: false, limit: 1, xlsxLayout: "biaobiaotong16" });
   assert.equal(report.schema_version, "bid-collect.run-report.v1");
   assert.equal(report.status, "CONNECTED_NO_RECENT_DATA");
