@@ -684,7 +684,7 @@ const ADAPTERS = {
     base: "https://ggzy.yn.gov.cn",
     rn: 10,
     clientFilterOnly: true, // 列表接口无关键词参数，采集时按标题客户端过滤
-    allowNoUrl: true, // 列表仅返回 guid，详情需 POST findZbggByGuid，列表层诚实不伪造详情 URL（B 阶段详情端点各异，未接线）
+    allowNoUrl: true, // B 阶段端点字段仍可能没有详情 URL；zb 阶段由 guid 构造官方 findZbggByGuid 链接
     defaultType: "招标公告",
     // B 阶段（2026-08-14 真机枚举 app.js gcjs/*List + 记录结构验证）：
     //   candidate=getZbwjygsList(tenderProjectName/publishTime)、result=getZbJgGgList(bulletinname/bulletinissuetime)、contract=getContractList(contractName/gongshiTime)
@@ -2642,11 +2642,16 @@ async function ynList(ad, page, args) {
   const titleField = ad.titleField || "bulletinname";
   const dateField = ad.dateField || "bulletinissuetime";
   return arr.map(it => {
-    // B 阶段详情端点各异且 winner/合同抽取未接线，列表层诚实不伪造详情 URL（allowNoUrl）
+    // 招标公告阶段的列表记录明确给出 guid，可由官方 findZbggByGuid 详情接口形成可回源链接；
+    // B 阶段仍沿用各自端点/字段，未确认时保持 allowNoUrl 的诚实边界。
+    const guid = String(it.guid || it.jyGuid || "").trim();
+    const url2 = endpoint === "getZbggList" && guid
+      ? `${ad.base}/ynggfwpt-home-api/jyzyCenter/jyInfo/gcjs/findZbggByGuid?guid=${encodeURIComponent(guid)}`
+      : "";
     const title = String(it[titleField] || "").replace(/\s+/g, " ").trim();
     const date = String(it[dateField] || "").slice(0, 10);
     const cityHint = it.areaName || it.region || "";
-    return { url: "", guid: "", cityHint, title, date };
+    return { url: url2, guid, cityHint, title, date };
   }).filter(x => x.title);
 }
 
@@ -3443,7 +3448,7 @@ function writeXlsx(path, sheets) {
 
 // ---- 参数解析 ----
 function parseArgs(argv) {
-  const a = { keyword: "", province: "", city: "", days: 30, delay: 500, limit: 0, csv: false, xlsx: true, xlsxLayout: "full29", out: "", cat: "", detail: true, attach: false, probe: false, verify: false, dumpText: false, stage: "zb" };
+  const a = { keyword: "", province: "", city: "", days: 30, delay: 500, limit: 0, csv: false, xlsx: true, xlsxLayout: "biaobiaotong16", out: "", cat: "", detail: true, attach: false, probe: false, verify: false, dumpText: false, stage: "zb" };
   for (let i = 0; i < argv.length; i++) {
     const x = argv[i];
     if (x === "-p" || x === "--province") a.province = argv[++i];
@@ -3455,7 +3460,7 @@ function parseArgs(argv) {
     else if (x === "--csv") a.csv = true;
     else if (x === "--xlsx") a.xlsx = true;
     else if (x === "--no-xlsx") a.xlsx = false;
-    else if (x === "--xlsx-layout") a.xlsxLayout = argv[++i] || "full29";
+    else if (x === "--xlsx-layout") a.xlsxLayout = argv[++i] || "biaobiaotong16";
     else if (x === "--no-detail") a.detail = false;
     else if (x === "--attach") a.attach = true;
     else if (x === "--probe") a.probe = true;
@@ -3865,6 +3870,7 @@ function classifyRunStatus(result, errors = [], signals = {}) {
   if (real.length) return "VERIFIED_RECORD";
   if ((signals.auth_walls || []).length) return "BROWSER_REQUIRED";
   if (errors.length || (signals.rate_limits || []).length || (signals.transport_errors || []).length) return "FAILED";
+  if ((result || []).length) return "FAILED";
   return "CONNECTED_NO_RECENT_DATA";
 }
 
@@ -3884,7 +3890,7 @@ function buildRunReport(prov, ad, result, args, meta = {}) {
         ? "本次窗口未形成可核对的标题+日期+链接记录；空结果不等同于采集失败"
         : status === "BROWSER_REQUIRED"
           ? "官方端点返回鉴权/登录限制，静态方式不可用，需人工浏览器处理"
-          : "采集过程观测到程序错误或外部限流/传输异常，详见 errors 与 signals",
+          : "返回记录但硬字段不完整，或观测到程序错误/外部限流/传输异常，详见 counts、errors 与 signals",
     province: prov,
     adapter: Object.keys(ADAPTERS).find((k) => ADAPTERS[k] === ad) || prov,
     source: { name: ad && ad.name || "", base: ad && ad.base || "" },
@@ -3896,7 +3902,7 @@ function buildRunReport(prov, ad, result, args, meta = {}) {
       stage: args.stage || "zb",
       detail: !!args.detail,
       limit: args.limit || 0,
-      xlsx_layout: args.xlsxLayout || "full29",
+      xlsx_layout: args.xlsxLayout || "biaobiaotong16",
     },
     counts: { total: rows.length, verified_records: real.length },
     output: meta.output || null,
@@ -3987,5 +3993,5 @@ function writeRunReport(outputPath, report) {
 })();
 
 
-module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, inferTenderType, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, extractNoticeTitle, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, buildRunReport, writeRunReport, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote,
+module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, parseArgs, inferTenderType, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, extractNoticeTitle, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, buildRunReport, writeRunReport, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, cqList, tjList, nmgList, lnList, gsList };

@@ -28,8 +28,49 @@ test("中文省名覆盖全部 adapter", () => {
   assert.deepEqual(missing, []);
 });
 
+test("32 个 adapter 均有可执行的官方 reference", () => {
+  for (const adapter of Object.keys(M.ADAPTERS)) {
+    const file = path.join(__dirname, "..", "reference", `${adapter}.md`);
+    assert.ok(fs.existsSync(file), `${adapter} 缺少 reference`);
+    const text = fs.readFileSync(file, "utf8");
+    assert.match(text, /^## 机制\s*$/m, `${adapter} 缺少机制说明`);
+    assert.match(text, /验证状态：/, `${adapter} 缺少验证状态`);
+    assert.match(text, /https?:\/\//, `${adapter} 缺少官方 URL 证据`);
+    assert.match(text, /^## 可重复采集命令\s*$/m, `${adapter} 缺少复采命令`);
+  }
+});
+
+test("招标公告实时状态总账覆盖全部32个 adapter", () => {
+  const file = path.join(__dirname, "..", "reference", "ZB_LIVE_STATUS_2026-08-15.md");
+  assert.ok(fs.existsSync(file), "缺少招标公告实时状态总账");
+  const text = fs.readFileSync(file, "utf8");
+  const rows = [...text.matchAll(/^\| ([a-z][a-z0-9]+) \|/gm)].map((m) => m[1]).filter((adapter) => M.ADAPTERS[adapter]);
+  assert.equal(new Set(rows).size, 32);
+  assert.deepEqual([...new Set(rows)].sort(), Object.keys(M.ADAPTERS).sort());
+  assert.match(text, /`VERIFIED_RECORD`：26 个/);
+  assert.match(text, /`CONNECTED_NO_RECENT_DATA`：5 个/);
+  assert.match(text, /`FAILED`：1 个/);
+});
+
+test("参数默认 zb 与标标通16列，并保留已配置阶段", () => {
+  const args = M.parseArgs(["-p", "anhui"]);
+  assert.equal(args.stage, "zb");
+  assert.equal(args.xlsxLayout, "biaobiaotong16");
+  assert.equal(M.parseArgs(["-p", "anhui", "--stage", "candidate"]).stage, "candidate");
+});
+
+test("公开文档保留阶段选择并明确本 PR 只验收 zb", () => {
+  const root = path.join(__dirname, "..");
+  const skill = fs.readFileSync(path.join(root, "SKILL.md"), "utf8");
+  const family = fs.readFileSync(path.join(root, "reference", "FAMILY_INDEX.md"), "utf8");
+  assert.match(skill, /--stage candidate/);
+  assert.match(skill, /全国状态总账与分层验收只覆盖 `zb`/);
+  assert.match(family, /B 阶段/);
+  assert.match(family, /--stage contract/);
+});
+
 test("已配置阶段都有类型和可执行路由", () => {
-  const routeKeys = ["cats", "listUrl", "noticeType", "gcjsEndpoint", "jsgcEndpoint", "GGTYPE", "channelId", "unionCondition", "iType", "iTypes", "noticeTypeName", "searchword"]; // TRS 族客户端路由（jilin/nmg/liaoning 2026-08-15 B 阶段）
+  const routeKeys = ["cats", "listUrl", "noticeType", "gcjsEndpoint", "jsgcEndpoint", "GGTYPE", "channelId", "unionCondition", "iType", "iTypes", "noticeTypeName", "searchword", "tradingProcess", "categoryNum", "notice"]; // 含 TRS、粤公平、河南与湖南 B 阶段客户端路由
   for (const [adapterName, adapter] of Object.entries(M.ADAPTERS)) {
     for (const [stageName, stage] of Object.entries(adapter.stages || {})) {
       assert.ok(["candidate", "result", "contract"].includes(stageName), `${adapterName}.${stageName} 非法`);
@@ -165,6 +206,24 @@ test("XLSX 与 CSV schema 由代码常量锁定", () => {
   assert.equal(M.CSV_HEADER.length, 37); // 2026-08-15 +tenderType（标的量纲标记）
   assert.equal(new Set(M.XLSX_HEADER).size, M.XLSX_HEADER.length);
   assert.equal(new Set(M.CSV_HEADER).size, M.CSV_HEADER.length);
+});
+
+test("运行报告区分真实记录、空窗口与失败", () => {
+  assert.equal(M.classifyRunStatus([{ title: "公告", date: "2026-08-15", url: "https://example.invalid/1" }]), "VERIFIED_RECORD");
+  assert.equal(M.classifyRunStatus([]), "CONNECTED_NO_RECENT_DATA");
+  assert.equal(M.classifyRunStatus([], [{ code: "HTTP", message: "timeout" }]), "FAILED");
+  assert.equal(M.classifyRunStatus([], [], { auth_walls: [{ status: 403 }] }), "BROWSER_REQUIRED");
+  assert.equal(M.classifyRunStatus([{ title: "公告", date: "2026-08-15", url: "" }]), "FAILED");
+  const report = M.buildRunReport("anhui", M.ADAPTERS.anhui, [], { province: "anhui", city: "", keyword: "", days: 30, stage: "zb", detail: false, limit: 1, xlsxLayout: "biaobiaotong16" });
+  assert.equal(report.schema_version, "bid-collect.run-report.v1");
+  assert.equal(report.status, "CONNECTED_NO_RECENT_DATA");
+  assert.equal(report.counts.total, 0);
+  assert.match(report.status_reason, /空结果/);
+});
+
+test("详情标题覆盖列表层截断值", () => {
+  assert.equal(M.extractNoticeTitle('<p class="article-title">长江沿线无为市镇区污水管网提升改造项目二标段(姚沟镇)招标公告</p>', "项目..."), "长江沿线无为市镇区污水管网提升改造项目二标段(姚沟镇)招标公告");
+  assert.equal(M.extractNoticeTitle('<title>招标公告</title>', "项目..."), "项目...");
 });
 
 test("XLSX 行宽与 schema 一致且脏哨兵不出现在单元格", () => {
