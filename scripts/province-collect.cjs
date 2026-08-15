@@ -684,7 +684,7 @@ const ADAPTERS = {
     base: "https://ggzy.yn.gov.cn",
     rn: 10,
     clientFilterOnly: true, // 列表接口无关键词参数，采集时按标题客户端过滤
-    allowNoUrl: true, // 列表仅返回 guid，详情需 POST findZbggByGuid，列表层诚实不伪造详情 URL（B 阶段详情端点各异，未接线）
+    allowNoUrl: true, // B 阶段端点字段仍可能没有详情 URL；zb 阶段由 guid 构造官方 findZbggByGuid 链接
     defaultType: "招标公告",
     // B 阶段（2026-08-14 真机枚举 app.js gcjs/*List + 记录结构验证）：
     //   candidate=getZbwjygsList(tenderProjectName/publishTime)、result=getZbJgGgList(bulletinname/bulletinissuetime)、contract=getContractList(contractName/gongshiTime)
@@ -2642,11 +2642,16 @@ async function ynList(ad, page, args) {
   const titleField = ad.titleField || "bulletinname";
   const dateField = ad.dateField || "bulletinissuetime";
   return arr.map(it => {
-    // B 阶段详情端点各异且 winner/合同抽取未接线，列表层诚实不伪造详情 URL（allowNoUrl）
+    // 招标公告阶段的列表记录明确给出 guid，可由官方 findZbggByGuid 详情接口形成可回源链接；
+    // B 阶段仍沿用各自端点/字段，未确认时保持 allowNoUrl 的诚实边界。
+    const guid = String(it.guid || it.jyGuid || "").trim();
+    const url2 = endpoint === "getZbggList" && guid
+      ? `${ad.base}/ynggfwpt-home-api/jyzyCenter/jyInfo/gcjs/findZbggByGuid?guid=${encodeURIComponent(guid)}`
+      : "";
     const title = String(it[titleField] || "").replace(/\s+/g, " ").trim();
     const date = String(it[dateField] || "").slice(0, 10);
     const cityHint = it.areaName || it.region || "";
-    return { url: "", guid: "", cityHint, title, date };
+    return { url: url2, guid, cityHint, title, date };
   }).filter(x => x.title);
 }
 
