@@ -1,8 +1,10 @@
 ---
 name: collect-bid-notices
-version: 1.2.0
-description: 采集招标/中标/采购公告。①广东省用粤公平（ygp.gdzwfw.gov.cn，全省 21 地市，100% JSON）；②跨省用省级公共资源交易中心采集器（province-collect.cjs，零依赖 node fetch + HTML/JSON 解析，按省注册 adapter，已支持 31 省，见正文"已支持省份"表；重庆 adapter 已建但沙箱出口被 Cloudflare 521 拦（ENV_LIMIT，待他网复测））。两类都支持关键词/排除词/时间窗口/MD+CSV 输出/监控。适用于"帮我采集/监控管网、污水、排水等招标信息（广东或其他省）"。
-author: 大古 (WorkBuddy 生成)
+description: 采集招标/中标/采购公告。广东使用粤公平结构化 JSON，跨省使用按省注册的公共资源交易中心 adapter；当前注册 32 个省市级平台，支持关键词、时间窗口、详情厚字段、MD/CSV/XLSX、B 阶段和监控。适用于采集或监控管网、污水、排水、市政、水利等公开招投标信息。
+license: MIT
+metadata:
+  version: "1.3.0"
+  author: "大古"
 ---
 
 # 粤公平招标采集器 (collect-bid-notices)
@@ -134,6 +136,7 @@ node scripts/province-collect.cjs -p 西藏 -k 管网
 | `--delay` | 请求前延迟毫秒（限流防护） | 500 |
 | `-o, --out` | 输出 Markdown 路径（不给则打印到控制台） | 控制台 |
 | `--csv` | 连同 CSV 输出（`<out 去后缀>.csv`，带 BOM） | 关 |
+| `--xlsx-layout` | `full29` 保留完整字段；`biaobiaotong16` 严格输出标标通 16 列、4 个分类 sheet | `full29` |
 
 ### 翻页与去重保护（已内置）
 
@@ -207,7 +210,9 @@ const ADAPTERS = {
 
 ## 字段说明（输出 JSON/CSV 每条）
 
-**实际输出字段（以代码为准，CSV 21 列 / XLSX 标标通 15 列）**：CSV 含 `date/city/type/title/url/projectCode/owner/agency/bidOpen/duration/controlPrice/budget/bond/funding/qualification/performance/evaluation/consortium/contact/phone/docLink`；XLSX 为标标通 15 列（项目地点/开标时间/项目名称/资金来源/工期/资质要求/业绩要求/控制价万元/保证金万元/评标办法/联合体/满分标准/链接/招标文件/附件说明）。
+**实际输出字段（以代码为准）**：CSV 保留 36 个采集与溯源字段；XLSX 默认 `full29`，也可用 `--xlsx-layout biaobiaotong16` 输出与参考工作簿完全一致的 16 列顺序和 4 个分类 sheet（房建市政/水利/公路/其他项目）。兼容版字段为：序号/项目地点/开标时间/项目名称/资金来源/工期/资质要求/业绩要求/控制价万元/保证金万元/评标办法/联合体/满分标准/链接/招标文件/备注。
+
+> `biaobiaotong16` 用于 A 阶段招标公告对标；B 阶段的中标人、中标价、得分、排名、合同金额等扩展字段只在默认 `full29` 和 CSV 中保留。
 
 - **厚字段（owner/控制价/代理/项目编号/开标时间/资质/工期/评标办法/资金来源等）仅在「接口返回这些字段」时非空**:粤公平(ygp) 100% JSON 自带;跨省模式加 `--detail` 触发详情抓取——标准 epoint 族(江苏/浙江/海南/四川/兵团)与湖南(`hn`)经 `--detail` 即拿全厚字段(实测 20/20 命中 owner/控制价/开标/资质/docLink);HTML 族部分省份详情页为 SPA 或需 http,效果因站而异(见各 `reference/<省>.md`);河南为文件索引无详情链接(仅列表层);黑龙江 legacy 端点索引陈旧(最新 2025-07)近期公告需重探站点当前后端。其余拿不到的字段诚实留空（非伪造）。
 - `owner` = 业主/采购单位（粤公平及已逆向详情接口的省份如湖南可拿全；纯列表层省份为空）

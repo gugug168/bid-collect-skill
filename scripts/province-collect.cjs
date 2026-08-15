@@ -3,7 +3,7 @@
 // 与粤公平 ygp-collect.cjs 共享：限流防护 + 输出格式；差异：省级平台是服务端渲染 HTML，需正则提取公告链接。
 // 升级 v2 (Goal v1)：进详情页抓厚字段（对标标标通）+ 输出标标通 xlsx（房建市政/水利/公路/其他 分 sheet）。
 // 用法:
-//   node province-collect.cjs -p shandong -k 管网 -d 30 --delay 800 [--csv] [--xlsx] [--out file] [--limit N]
+//   node province-collect.cjs -p shandong -k 管网 -d 30 --stage zb --delay 800 [--csv] [--xlsx] [--out file] [--limit N]
 //   node province-collect.cjs -p shandong -d 30 --out shandong-all.xlsx   # 自动出 xlsx+md+csv
 //   node province-collect.cjs -p shandong -d 30 --no-detail                # 只抓列表层，不进详情页
 require("dns").setDefaultResultOrder("ipv4first");
@@ -1001,10 +1001,24 @@ function grabDateTime(text, labels) {
 
 // 评标办法：优先识别标准办法名词，避免抓到"5.1、评标入围"这类章节残片
 function grabEvaluation(text) {
-  // "评定分离"为浙江特色定标机制，也属评标办法口径
-  const m = text.match(/(综合评估法|经评审的最低投标价法|最低投标价法|合理低价法|合理低价中标法|性价比法|综合评分法|评定分离|双信封|抽签|票决|直接摇号)/);
-  if (m) return m[1];
-  return grab(text, ["评标办法", "评标方法", "评审办法"], 6);
+  const methods = [
+    "智能筛查合理价格法", "经评审的最低投标价法", "合理低价中标法", "综合评估法",
+    "最低投标价法", "合理低价法", "综合评分法", "性价比法", "双信封", "评定分离",
+    "抽签", "票决", "直接摇号",
+  ];
+  const methodRe = methods.map(labRe).join("|");
+  // 先看“评标办法/方法/评审办法”的标签邻域。安徽公告可能先写“评定分离”的定标机制，
+  // 后写真正的“评标办法采用智能筛查合理价格法”；全篇取首个术语会把两件事混为一谈。
+  const labeled = text.match(new RegExp("(?:评标办法|评标方法|评审办法)[\\s\\S]{0,40}?(" + methodRe + ")"));
+  if (labeled) return labeled[1].replace(/\s+/g, "");
+  const raw = grab(text, ["评标办法", "评标方法", "评审办法"], 4);
+  if (raw) {
+    const hit = methods.find((name) => raw.replace(/\s+/g, "").includes(name));
+    if (hit) return hit;
+    return raw;
+  }
+  // 无标签时按“评标方法优先、定标机制靠后”的语义顺序找，而不是按正文出现顺序找。
+  return methods.find((name) => text.replace(/\s+/g, "").includes(name)) || "";
 }
 
 // 联合体：标标通该列只关心"接受/不接受"，规范化为二值，识别不到才留空
@@ -1117,8 +1131,34 @@ function grabMoneyWan(text, labels) {
       if (wan <= 0 || wan > 1e8) continue; // 明显异常值丢弃
       return String(Math.round(wan * 10000) / 10000);
     }
+    // 中文大写金额兜底：公告常写“投标保证金人民币叁万元整”。数字通道必须先跑，
+    // 这里仅在同一标签的近邻中识别标准中文数字，避免把远处其他金额误配过来。
+    const cnRe = new RegExp(lab + "[\\s\\S]{0,40}?([零〇一二两三四五六七八九十百千万亿壹贰叁肆伍陆柒捌玖拾佰仟萬億]+)\\s*(万元|万|元)", "i");
+    const cm = text.match(cnRe);
+    if (cm) {
+      const num = chineseNumberToNumber(cm[1]);
+      if (Number.isFinite(num) && num > 0) {
+        const wan = cm[2] === "元" ? num / 10000 : num;
+        if (wan > 0 && wan <= 1e8) return String(Math.round(wan * 10000) / 10000);
+      }
+    }
   }
   return "";
+}
+
+function chineseNumberToNumber(raw) {
+  const digits = { 零: 0, 〇: 0, 一: 1, 壹: 1, 二: 2, 两: 2, 贰: 2, 三: 3, 叁: 3, 四: 4, 肆: 4, 五: 5, 伍: 5, 六: 6, 陆: 6, 七: 7, 柒: 7, 八: 8, 捌: 8, 九: 9, 玖: 9 };
+  const units = { 十: 10, 拾: 10, 百: 100, 佰: 100, 千: 1000, 仟: 1000, 万: 10000, 萬: 10000, 亿: 100000000, 億: 100000000 };
+  let total = 0, section = 0, number = 0;
+  for (const ch of String(raw || "")) {
+    if (Object.prototype.hasOwnProperty.call(digits, ch)) { number = digits[ch]; continue; }
+    const unit = units[ch];
+    if (!unit) return Number.NaN;
+    if (unit < 10000) section += (number || 1) * unit;
+    else { section += number; total += (section || 1) * unit; section = 0; }
+    number = 0;
+  }
+  return total + section + number;
 }
 
 /**
@@ -1489,6 +1529,10 @@ function grabApprovalNo(text) {
 // 项目编号：必须是"像编号"的串（字母+数字+少数分隔符，长度≥5），否则可能是正文里的随机句子
 const CODE_OK = /^[A-Za-z0-9][A-Za-z0-9\-_／/.]{4,}$/;
 function grabProjectCode(text, flat) {
+  // 公示标题常写成“（招标编号：X460...）”。先走紧邻标签的编号专用通道，
+  // 避免通用 grab 被括号或后续正文截断后判成非编号。
+  const direct = text.match(/(?:招标项目编号|招标编号|项目编号|交易项目编号|采购项目编号)\s*[:：]\s*([A-Za-z0-9][A-Za-z0-9\-_／/.]{4,})/);
+  if (direct && CODE_OK.test(direct[1])) return direct[1].slice(0, 60);
   let v = grabBoth(text, flat, CODE_LABELS, 4);
   if (!v) return "";
   // 去标签前缀 + 首尾括号/空白（山西写"（招标项目编号： E14…001 ）"，尾括号会废掉 CODE_OK）
@@ -1606,7 +1650,7 @@ const PARTY_A_LABELS = ["招标人", "发包人", "甲方", "采购人", "建设
 //   中标候选人公示常把 winner 放在「第N名」后的单元格，表头是"中标候选人名称"而非"中标人"，标签邻域法抓不到。
 // 兜底 B（句式型，如江西「确定中国建筑第八工程局有限公司&…（联合体）为中标人」）：
 //   "中标人"作句末谓语（「…为中标人」），标签在前值在后，标签邻域法也抓不到。
-const ORG_TAIL = "公司|局|院|所|政府|集团|中心|委员会|大学|学校|医院|有限|合伙|企业|研究院|事务所|队|站|（联合体）";
+const ORG_TAIL = "有限公司|股份公司|公司|研究院|事务所|委员会|政府|集团|中心|大学|学校|医院|企业|合伙|局|院|所|队|站|（联合体）";
 function grabWinnerTable(text) {
   const m = text.match(new RegExp("第\\s*[一二三四五六七八九十\\d]+\\s*名\\s*([一-龥·&（(][^/\\n，,。；）)]{2,40}?(?:" + ORG_TAIL + "))"));
   return m ? m[1].trim() : "";
@@ -1646,22 +1690,89 @@ function grabRank(text) {
   const m = text.match(/(?:第\s*)([一二三四五六七八九十\d]+)(?:\s*名|中标候选人)/);
   return m ? m[1] : "";
 }
+function tableRows(html) {
+  const tables = [];
+  const tableRe = /<table\b[^>]*>([\s\S]*?)<\/table>/gi;
+  let tm;
+  while ((tm = tableRe.exec(html || ""))) {
+    const rows = [];
+    const rowRe = /<tr\b[^>]*>([\s\S]*?)<\/tr>/gi;
+    let rm;
+    while ((rm = rowRe.exec(tm[1]))) {
+      const cells = [];
+      const cellRe = /<(?:th|td)\b[^>]*>([\s\S]*?)<\/(?:th|td)>/gi;
+      let cm;
+      while ((cm = cellRe.exec(rm[1]))) cells.push(htmlToText(cm[1]).replace(/\s+/g, " ").trim());
+      if (cells.length) rows.push(cells);
+    }
+    if (rows.length) tables.push(rows);
+  }
+  return tables;
+}
+
+function tableColumn(headers, patterns) {
+  return headers.findIndex((h) => patterns.some((p) => p.test(h)));
+}
+
+function tableMoneyWan(value, header) {
+  const n = parseFloat(String(value || "").replace(/[,，\s]/g, ""));
+  if (!Number.isFinite(n) || n <= 0) return "";
+  const wan = /万元|\b万\b/.test(header || "") ? n : n / 10000;
+  return String(Math.round(wan * 10000) / 10000);
+}
+
+function extractCandidateTables(html) {
+  let basic = {}, manager = "";
+  for (const rows of tableRows(html)) {
+    const hi = rows.findIndex((row) => row.some((c) => /中标候选人名称|候选人名称/.test(c)));
+    if (hi < 0) continue;
+    const headers = rows[hi];
+    const winnerI = tableColumn(headers, [/中标候选人名称/, /候选人名称/, /投标人名称/]);
+    const priceI = tableColumn(headers, [/投标.*报价/, /中标价/, /报价/]);
+    const durationI = tableColumn(headers, [/工期/, /交货期/, /服务期/]);
+    const scoreI = tableColumn(headers, [/评标结果/, /综合得分/, /评审得分/, /得分/]);
+    const rankI = tableColumn(headers, [/排序/, /排名/, /名次/, /序号/]);
+    const managerI = tableColumn(headers, [/项目负责人名称/, /项目经理/, /项目负责人/]);
+    const row = rows.slice(hi + 1).find((r) => {
+      const rank = rankI >= 0 ? r[rankI] : r[0];
+      return /^(?:1|第一|一)$/.test(String(rank || "").trim()) && winnerI >= 0 && r[winnerI];
+    });
+    if (!row) continue;
+    if (managerI >= 0 && row[managerI]) manager = row[managerI].trim();
+    if (!basic.winner && (priceI >= 0 || durationI >= 0 || scoreI >= 0)) {
+      basic = {
+        rank: rankI >= 0 ? row[rankI] : "1",
+        winner: cleanWinnerRaw(row[winnerI]),
+        winPrice: priceI >= 0 ? tableMoneyWan(row[priceI], headers[priceI]) : "",
+        duration: durationI >= 0 ? row[durationI] : "",
+        winScore: scoreI >= 0 ? (String(row[scoreI]).match(/\d+(?:\.\d+)?/) || [""])[0] : "",
+      };
+    }
+  }
+  return { ...basic, winManager: manager };
+}
+
 function extractWinDetail(ad, html, item, pdfText) {
   if (ad && ad.winDetail && typeof ad.winDetail === "function") return ad.winDetail(html, item, pdfText);
   const text = pdfText ? (htmlToText(html) + "\n" + pdfText) : htmlToText(html);
   const flat = flatten(text);
   const winPrice = grabMoneyWan(text, WIN_PRICE_LABELS) || grabMoneyWan(flat, WIN_PRICE_LABELS);
-  return {
-    winner: grabWinner(text, flat),
-    winPrice,
-    winManager: grabManager(text, flat),
-    duration: grabDuration(text, flat),
-    winScore: grabScore(text, flat),
-    rank: grabRank(text),
-    contractAmount: grabMoneyWan(text, ["合同金额", "合同价", "合同总价", "签约合同价", "合同估算价"]) || grabMoneyWan(flat, ["合同金额", "合同价", "合同总价", "签约合同价"]),
+  const stage = (ad && ad.stageKey) || (item && item.stage) || "";
+  const table = stage === "candidate" ? extractCandidateTables(html) : {};
+  const winner = table.winner || grabWinner(text, flat);
+  const out = {
+    winner,
+    winPrice: table.winPrice || winPrice,
+    winManager: table.winManager || grabManager(text, flat),
+    duration: table.duration || grabDuration(text, flat),
+    winScore: table.winScore || grabScore(text, flat),
+    rank: table.rank || grabRank(text),
+    contractAmount: stage === "contract" ? (grabMoneyWan(text, ["合同金额", "合同价", "合同总价", "签约合同价", "合同估算价"]) || grabMoneyWan(flat, ["合同金额", "合同价", "合同总价", "签约合同价"])) : "",
     partyA: completeOrgName(grabBoth(text, flat, PARTY_A_LABELS), flat),
-    partyB: grabWinner(text, flat),
+    partyB: winner,
+    projectCode: grabProjectCode(text, flat),
   };
+  return Object.fromEntries(Object.entries(out).map(([k, v]) => [k, cleanOutputCell(v)]));
 }
 
 function toAbs(href, base) {
@@ -3090,24 +3201,36 @@ function crc32(buf) {
 function colLetter(n) { let s = ""; n++; while (n > 0) { s = String.fromCharCode(65 + (n - 1) % 26) + s; n = Math.floor((n - 1) / 26); } return s; }
 function xmlEsc(s) { return String(s).replace(/[<>&'"]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" }[c])); }
 
+function xlsxColumnWidths(count) {
+  const full29 = [6, 12, 18, 40, 14, 16, 34, 34, 14, 14, 20, 10, 12, 14, 28, 28, 18, 12, 30, 28, 24, 30, 14, 14, 12, 8, 14, 26, 26];
+  const compact16 = [6, 12, 18, 40, 14, 16, 34, 34, 14, 14, 20, 10, 12, 30, 28, 24];
+  return (count === 16 ? compact16 : full29.slice(0, count));
+}
+
 function writeXlsx(path, sheets) {
   // sheets: [{name, rows:[[...]]}]
   const esc = xmlEsc;
   const sheetXml = sheets.map((sh, i) => {
+    const widthXml = xlsxColumnWidths((sh.rows[0] || []).length).map((width, ci) => `<col min="${ci + 1}" max="${ci + 1}" width="${width}" customWidth="1"/>`).join("");
     const rows = sh.rows.map((row, ri) => {
       const cells = row.map((val, ci) => {
         const ref = colLetter(ci) + (ri + 1);
         const v = val == null ? "" : String(val);
-        return `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${esc(v)}</t></is></c>`;
+        return `<c r="${ref}" s="${ri === 0 ? 1 : 2}" t="inlineStr"><is><t xml:space="preserve">${esc(v)}</t></is></c>`;
       }).join("");
-      return `<row r="${ri + 1}">${cells}</row>`;
+      return `<row r="${ri + 1}" ht="${ri === 0 ? 30 : 42}" customHeight="1">${cells}</row>`;
     }).join("");
+    const lastCol = colLetter(Math.max(0, (sh.rows[0] || []).length - 1));
+    const lastRow = Math.max(1, sh.rows.length);
     return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${rows}</sheetData></worksheet>`;
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:${lastCol}${lastRow}"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${widthXml}</cols><sheetData>${rows}</sheetData><autoFilter ref="A1:${lastCol}${lastRow}"/></worksheet>`;
   });
+  const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="10"/><name val="Microsoft YaHei"/></font><font><b/><color rgb="FFFFFFFF"/><sz val="10"/><name val="Microsoft YaHei"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF1F4E78"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFD9E2F3"/></left><right style="thin"><color rgb="FFD9E2F3"/></right><top style="thin"><color rgb="FFD9E2F3"/></top><bottom style="thin"><color rgb="FFD9E2F3"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
   const contentTypes = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>` +
     `<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>` +
+    `<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>` +
     sheetXml.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("") + `</Types>`;
   const rootRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`;
@@ -3116,7 +3239,8 @@ function writeXlsx(path, sheets) {
     sheets.map((sh, i) => `<sheet name="${esc(sh.name).slice(0, 31)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("") + `</sheets></workbook>`;
   const wbRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
-    sheetXml.map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("") + `</Relationships>`;
+    sheetXml.map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("") +
+    `<Relationship Id="rId${sheetXml.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`;
 
   // 打包 store-zip
   const files = [
@@ -3124,6 +3248,7 @@ function writeXlsx(path, sheets) {
     ["_rels/.rels", rootRels],
     ["xl/workbook.xml", workbook],
     ["xl/_rels/workbook.xml.rels", wbRels],
+    ["xl/styles.xml", styles],
     ...sheetXml.map((x, i) => [`xl/worksheets/sheet${i + 1}.xml`, x]),
   ];
   const parts = [];
@@ -3158,7 +3283,7 @@ function writeXlsx(path, sheets) {
 
 // ---- 参数解析 ----
 function parseArgs(argv) {
-  const a = { keyword: "", province: "", days: 30, delay: 500, limit: 0, csv: false, xlsx: true, out: "", cat: "", detail: true, attach: false, probe: false, verify: false, dumpText: false, stage: "zb" };
+  const a = { keyword: "", province: "", days: 30, delay: 500, limit: 0, csv: false, xlsx: true, xlsxLayout: "full29", out: "", cat: "", detail: true, attach: false, probe: false, verify: false, dumpText: false, stage: "zb" };
   for (let i = 0; i < argv.length; i++) {
     const x = argv[i];
     if (x === "-p" || x === "--province") a.province = argv[++i];
@@ -3169,6 +3294,7 @@ function parseArgs(argv) {
     else if (x === "--csv") a.csv = true;
     else if (x === "--xlsx") a.xlsx = true;
     else if (x === "--no-xlsx") a.xlsx = false;
+    else if (x === "--xlsx-layout") a.xlsxLayout = argv[++i] || "full29";
     else if (x === "--no-detail") a.detail = false;
     else if (x === "--attach") a.attach = true;
     else if (x === "--probe") a.probe = true;
@@ -3179,6 +3305,7 @@ function parseArgs(argv) {
     else if (x === "--stage") a.stage = argv[++i] || "zb";
     else if (x === "--dump-text") a.dumpText = true;
   }
+  if (!["full29", "biaobiaotong16"].includes(a.xlsxLayout)) throw new Error(`--xlsx-layout 仅支持 full29 或 biaobiaotong16，收到: ${a.xlsxLayout}`);
   return a;
 }
 
@@ -3222,12 +3349,15 @@ function classifySheet(title) {
 // 中文省名 → adapter 键。命令行里写 -p 浙江 比 -p zhejiang 自然，
 // 且 SKILL 文档、日志、报告里通篇是中文省名，不做映射每次都要人肉翻译一遍。
 const PROV_ALIAS = {
-  山东: "shandong", 江苏: "jiangsu", 浙江: "zhejiang", 海南: "hainan", 安徽: "anhui",
-  河北: "hebei", 内蒙古: "neimenggu", 辽宁: "liaoning", 吉林: "jilin", 福建: "fujian", 江西: "jiangxi",
-  湖南: "hunan", 广东: "guangdong", 四川: "sichuan", 贵州: "guizhou", 云南: "yunnan", 陕西: "shaanxi",
+  北京: "beijing", 天津: "tianjin", 河北: "hebei", 山西: "shanxi", 内蒙古: "neimenggu",
+  辽宁: "liaoning", 吉林: "jilin", 黑龙江: "heilongjiang", 上海: "shanghai", 江苏: "jiangsu",
+  浙江: "zhejiang", 安徽: "anhui", 福建: "fujian", 江西: "jiangxi", 山东: "shandong",
+  河南: "henan", 湖北: "hubei", 湖南: "hunan", 广东: "guangdong", 广西: "guangxi",
+  海南: "hainan", 重庆: "chongqing", 四川: "sichuan", 贵州: "guizhou", 云南: "yunnan",
+  西藏: "xizang", 陕西: "shaanxi", 甘肃: "gansu", 青海: "qinghai", 宁夏: "ningxia",
+  新疆: "xinjiang",
   兵团: "xinjiangbt", 新疆兵团: "xinjiangbt",
-  黑龙江: "heilongjiang", 哈尔滨: "heilongjiang",
-  河南: "henan",
+  哈尔滨: "heilongjiang",
 };
 async function collectProvince(prov0, args) {
   const prov = ADAPTERS[prov0] ? prov0 : (PROV_ALIAS[prov0] || prov0);
@@ -3245,6 +3375,7 @@ async function collectProvince(prov0, args) {
       process.exit(2);
     }
     ad = Object.assign({}, ad, ad.stages[args.stage]);
+    ad.stageKey = args.stage;
     ad.defaultType = (ad.stages[args.stage] && ad.stages[args.stage].type) || ad.defaultType;
     // makeBody 经 Object.assign 复制引用，调用时 this=ad，故 this.unionCondition 取 stage 覆盖值（兰州等依赖此）
     if (typeof ad.makeBody === "function") ad.makeBody = ad.makeBody.bind(ad);
@@ -3265,7 +3396,7 @@ async function collectProvince(prov0, args) {
   for (const cats of catRounds) {
     if (catRounds.length > 1) console.error("[round] 栏目", cats.join(","));
     await crawlRound(ad, args, cats, cutoff, result, seen);
-    if (args.limit && result.length >= args.limit) break;
+    if (hasReachedLimit(result.length, args.limit)) break;
   }
   return { ad, result };
 }
@@ -3317,6 +3448,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
     emptyPages = 0;
     let stop = false, newCount = 0;
     for (const it of items) {
+      if (hasReachedLimit(result.length, args.limit)) { stop = true; break; }
       const item = { ...it, url: normUrl(it.url, ad) };
       const dkey = item.url || item.title; // 粤公平等列表层 url 为空 → 改以标题去重，否则 116 条全被当成同一条
       if (seen.has(dkey)) continue;
@@ -3430,7 +3562,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
       result.push(rec);
     }
     if (stop) break;
-    if (args.limit && result.length >= args.limit) break;
+    if (hasReachedLimit(result.length, args.limit)) break;
     if (newCount === 0 && items.length > 0) break;
     page++;
   }
@@ -3438,7 +3570,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
 
 function buildMarkdown(prov, ad, result, args) {
   const lines = [];
-  lines.push(`# ${ad.name} 招标公告采集报告（厚字段） · ${new Date().toISOString().slice(0, 10)}`);
+  lines.push(`# ${ad.name} ${ad.defaultType || "交易公告"}采集报告（厚字段） · ${new Date().toISOString().slice(0, 10)}`);
   lines.push("");
   lines.push(`- 省份：${prov}`);
   lines.push(`- 关键词：${args.keyword || "（不限）"}`);
@@ -3453,10 +3585,28 @@ function buildMarkdown(prov, ad, result, args) {
   return lines.join("\n");
 }
 
-// 标标通 xlsx 表头（15 列）
+// full29 保留采集器全部业务字段；biaobiaotong16 严格兼容参考工作簿的 16 列顺序。
 const XLSX_HEADER = ["序号", "项目地点", "开标时间", "项目名称", "资金来源", "工期", "资质要求", "业绩要求", "控制价万元", "保证金万元", "评标办法", "联合体", "满分标准", "招标方式", "建设规模", "招标范围", "项目编号", "项目经理", "链接", "招标文件", "附件说明", "中标人", "中标价万元", "项目负责人", "中标得分", "排名", "合同金额万元", "招标人", "承包人"];
+const BIAOBIAOTONG_HEADER = ["序号", "项目地点", "开标时间", "项目名称", "资金来源", "工期", "资质要求", "业绩要求", "控制价万元", "保证金万元", "评标办法", "联合体", "满分标准", "链接", "招标文件", "备注"];
+const CSV_HEADER = ["date", "city", "type", "title", "url", "projectCode", "method", "scale", "scope", "approval", "manager", "owner", "agency", "bidOpen", "duration", "controlPrice", "budget", "bond", "funding", "qualification", "performance", "evaluation", "consortium", "fullScore", "contact", "phone", "docLink", "_attachNote", "winner", "winPrice", "winManager", "winScore", "rank", "contractAmount", "partyA", "partyB"];
 
-function buildXlsxSheets(result) {
+function cleanOutputCell(value) {
+  if (value == null) return "";
+  if (typeof value === "number" && !Number.isFinite(value)) return "";
+  const s = String(value).trim();
+  if (/^(?:undefined|null|nan)$/i.test(s)) return "";
+  if (/downloadurl|%7[Bb]|%7[Dd]|[{}]/i.test(s)) return "";
+  return value;
+}
+
+function hasReachedLimit(count, limit) {
+  const n = Number(limit) || 0;
+  return n > 0 && count >= n;
+}
+
+function buildXlsxSheets(result, options) {
+  const layout = (options && options.layout) || "full29";
+  if (!["full29", "biaobiaotong16"].includes(layout)) throw new Error(`未知 XLSX layout: ${layout}`);
   const groups = { "房建市政": [], "水利": [], "公路": [], "其他项目": [] };
   for (const r of result) {
     const key = groups[r.sheet] ? r.sheet : "其他项目";
@@ -3465,28 +3615,40 @@ function buildXlsxSheets(result) {
   const sheets = [];
   for (const name of ["房建市政", "水利", "公路", "其他项目"]) {
     const rows = groups[name];
-    if (!rows.length) continue;
-    const data = rows.map((r, i) => [
+    if (!rows.length && layout !== "biaobiaotong16") continue;
+    const header = layout === "biaobiaotong16" ? BIAOBIAOTONG_HEADER : XLSX_HEADER;
+    const data = rows.map((r, i) => (layout === "biaobiaotong16" ? [
+      i + 1, r.city || r.projectSite || "", r.bidOpen || "", r.title, r.funding || "",
+      r.duration || "", r.qualification || "", r.performance || "", r.controlPrice || "",
+      r.bond || "", r.evaluation || "", r.consortium || "", r.fullScore || "", r.url,
+      r.docLink || "", r._attachNote || "",
+    ] : [
       i + 1, r.city || r.projectSite || "", r.bidOpen || "", r.title, r.funding || "",
       r.duration || "", r.qualification || "", r.performance || "", r.controlPrice || "",
       r.bond || "", r.evaluation || "", r.consortium || "", r.fullScore || "",
       r.method || "", r.scale || "", r.scope || "", r.projectCode || "", r.manager || "", r.url, r.docLink || "", r._attachNote || "",
       r.winner || "", r.winPrice || "", r.winManager || "", r.winScore || "", r.rank || "", r.contractAmount || "", r.partyA || "", r.partyB || "",
-    ]);
-    sheets.push({ name, rows: [XLSX_HEADER, ...data] });
+    ]).map(cleanOutputCell));
+    sheets.push({ name, rows: [header, ...data] });
   }
-  if (!sheets.length) sheets.push({ name: "其他项目", rows: [XLSX_HEADER] });
+  if (!sheets.length) sheets.push({ name: "其他项目", rows: [layout === "biaobiaotong16" ? BIAOBIAOTONG_HEADER : XLSX_HEADER] });
   return sheets;
 }
 
-function csvCell(s) { return `"${String(s).replace(/"/g, '""')}"`; }
+function csvCell(s) { return `"${String(cleanOutputCell(s)).replace(/"/g, '""')}"`; }
+
+function ensureParentDir(filePath) {
+  const parent = path.dirname(path.resolve(filePath));
+  fs.mkdirSync(parent, { recursive: true });
+  return parent;
+}
 
 // 仅作为 CLI 直接运行时执行；被 require 时只导出函数，便于离线单测提取器
  if (require.main === module) (async () => {
  try {
   const args = parseArgs(process.argv.slice(2));
   global.__RESEARCH = !!args.dumpText;
-  if (!args.province && !args.probeAll) { console.error("用法: node province-collect.cjs -p <省份> -k <关键词> -d <天数> [--delay 800] [--csv] [--no-detail] [--out 文件] [--limit N] [--probe] [--probe-all] [--verify]"); process.exit(1); }
+  if (!args.province && !args.probeAll) { console.error("用法: node province-collect.cjs -p <省份> -k <关键词> -d <天数> [--stage zb|candidate|result|contract] [--delay 800] [--csv] [--xlsx|--no-xlsx] [--xlsx-layout full29|biaobiaotong16] [--no-detail] [--out 文件] [--limit N] [--probe] [--probe-all] [--verify]"); process.exit(1); }
   // R2 探测模式：自动试 cnum 001-004 + TPBidder/EpointWebBuilder 子上下文 + http 兜底，定位 EPoint 端点
   if (args.probeAll) {
     const summary = await probeAllEvidence(args.keyword || "管网");
@@ -3518,19 +3680,19 @@ function csvCell(s) { return `"${String(s).replace(/"/g, '""')}"`; }
     let mdPath = args.out, xlsxPath = null, csvPath = null;
     if (args.out.toLowerCase().endsWith(".xlsx")) { xlsxPath = args.out; mdPath = args.out.replace(/\.xlsx$/i, ".md"); }
     else { xlsxPath = args.out.replace(/\.md$/i, ".xlsx"); }
+    ensureParentDir(mdPath);
     fs.writeFileSync(mdPath, md);
     if (args.xlsx && xlsxPath) {
-      writeXlsx(xlsxPath, buildXlsxSheets(result));
+      writeXlsx(xlsxPath, buildXlsxSheets(result, { layout: args.xlsxLayout }));
       console.error("XLSX:", xlsxPath);
     }
     if (args.csv) {
       csvPath = mdPath.replace(/\.md$/i, ".csv");
-      // CSV 是本工具自有格式，比标标通 15 列更全：额外带招标人/代理机构/联系人/电话/工期/开标时间
+      // CSV 是本工具自有格式，比标标通 16 列兼容版更全：额外带招标人/代理机构/联系人/电话/项目编号等
       // budget（工程概算/投资估算）独立成列：它与 controlPrice 是两个不同事实，
-      // 合并即造假。标标通 15 列无此项，故只落在 CSV，不进 xlsx。
-      const header = ["date", "city", "type", "title", "url", "projectCode", "method", "scale", "scope", "approval", "manager", "owner", "agency", "bidOpen", "duration", "controlPrice", "budget", "bond", "funding", "qualification", "performance", "evaluation", "consortium", "fullScore", "contact", "phone", "docLink", "_attachNote", "winner", "winPrice", "winManager", "winScore", "rank", "contractAmount", "partyA", "partyB"];
-      const rows = result.map(r => header.map(h => csvCell(r[h])).join(","));
-      fs.writeFileSync(csvPath, "﻿" + [header.join(","), ...rows].join("\n"));
+      // 合并即造假。标标通 16 列无此项，故只落在 CSV，不进兼容版 XLSX。
+      const rows = result.map(r => CSV_HEADER.map(h => csvCell(r[h])).join(","));
+      fs.writeFileSync(csvPath, "﻿" + [CSV_HEADER.join(","), ...rows].join("\n"));
       console.error("CSV:", csvPath);
     }
     console.error("报告:", mdPath);
@@ -3544,5 +3706,5 @@ function csvCell(s) { return `"${String(s).replace(/"/g, '""')}"`; }
 })();
 
 
-module.exports = { ADAPTERS, extractDetail, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote,
+module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, cqList, tjList, nmgList, lnList, gsList };
