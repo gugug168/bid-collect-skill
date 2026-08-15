@@ -28,6 +28,18 @@ test("中文省名覆盖全部 adapter", () => {
   assert.deepEqual(missing, []);
 });
 
+test("32 个 adapter 均有可执行的官方 reference", () => {
+  for (const adapter of Object.keys(M.ADAPTERS)) {
+    const file = path.join(__dirname, "..", "reference", `${adapter}.md`);
+    assert.ok(fs.existsSync(file), `${adapter} 缺少 reference`);
+    const text = fs.readFileSync(file, "utf8");
+    assert.match(text, /^## 机制\s*$/m, `${adapter} 缺少机制说明`);
+    assert.match(text, /验证状态：/, `${adapter} 缺少验证状态`);
+    assert.match(text, /https?:\/\//, `${adapter} 缺少官方 URL 证据`);
+    assert.match(text, /^## 可重复采集命令\s*$/m, `${adapter} 缺少复采命令`);
+  }
+});
+
 test("已配置阶段都有类型和可执行路由", () => {
   const routeKeys = ["cats", "listUrl", "noticeType", "gcjsEndpoint", "jsgcEndpoint", "GGTYPE", "channelId", "unionCondition", "iType", "iTypes", "noticeTypeName", "searchword"]; // TRS 族客户端路由（jilin/nmg/liaoning 2026-08-15 B 阶段）
   for (const [adapterName, adapter] of Object.entries(M.ADAPTERS)) {
