@@ -1453,7 +1453,9 @@ const FUND_LABELS = ["资金来源及比例", "建设资金来自", "资金来�
 // ⚠ 但"服务周期"必须排在"工期"**之后**：灌云智慧化项目实测，评分条款里也有这四个字
 //   「…投标人承诺系统运维服务周期和硬件质保在3年基础上增加1年得2分」，
 //   放在"工期"前会抢先命中评分条款，把原本正确的"3年"污染成一整句评分描述（r5 回归实测退化）。
-const DUR_LABELS = ["勘察设计服务期限", "设计服务期限", "服务期限", "计划工期", "建设工期", "工期", "服务周期", "服务期"];
+// 上海等平台用「建设周期/设计周期」而非「工期」（2026-08-15 上海实测：详情页写
+// "设计周期：20日历天 建设周期：240日历天"，原 DUR_LABELS 无此标签 → 工期全空/误抓导航脏值）。
+const DUR_LABELS = ["勘察设计服务期限", "设计服务期限", "服务期限", "计划工期", "建设工期", "建设周期", "设计周期", "工期", "服务周期", "服务期"];
 const OWNER_LABELS = ["采购人名称", "采购人", "采购单位", "招标人为", "招标人", "建设单位", "业主单位"];
 const AGENCY_LABELS = ["招标代理机构", "采购代理机构", "代理机构为", "代理机构", "招标代理"];
 const CONTACT_LABELS = ["联系人", "项目联系人", "联系人员"];
@@ -3755,7 +3757,9 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
             for (const [k, v] of Object.entries(df)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
             // 详情页为未渲染 mustache SPA 时，docLink 会被写成 {{downloadurl}}（或 URL 编码 %7B%7Bdownloadurl%7D%7D）脏值，务必清掉
             if (rec.docLink && /downloadurl|%7[Bb]|%7[Dd]|[\{\}]/i.test(rec.docLink)) rec.docLink = "";
-            if (!rec.city && df.projectSite) rec.city = df.projectSite;
+            // 仅当 projectSite 短且像地名时才回填 city（避免辽宁/上海实测中 projectSite 抓到
+            // "位于鞍山市高新区，工程施工期为540天" 这类长句把 city 污染成项目概况）。
+            if (!rec.city && df.projectSite && df.projectSite.length <= 20 && !/[，,。；;、\n\r]/.test(df.projectSite)) rec.city = df.projectSite;
             rec.url = normUrl(df.detailUrl || item.url, ad);
           }
           // 列表标题可能被平台截断（例如安徽以省级列表返回省略号），详情正文标题优先；
