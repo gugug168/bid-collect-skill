@@ -85,6 +85,20 @@ test("--limit 是页内硬上限", () => {
   assert.equal(M.hasReachedLimit(20, 0), false);
 });
 
+test("城市/区县筛选支持简称、全称和逗号 OR", () => {
+  assert.equal(M.matchesCityFilter("", ["海口市", "海口项目"]), true);
+  assert.equal(M.matchesCityFilter("全省", ["海口市"]), true);
+  assert.equal(M.matchesCityFilter("海口", ["海口市", "项目标题"]), true);
+  assert.equal(M.matchesCityFilter("涡阳", ["涡阳县", "项目标题"]), true);
+  assert.equal(M.matchesCityFilter("三亚,海口", ["海口市", "项目标题"]), true);
+  assert.equal(M.matchesCityFilter("三亚", ["海口市", "项目标题"]), false);
+});
+
+test("标段式资质字段不截断在标签前缀", () => {
+  const text = "3.1 本次招标要求投标人具有：一标段: 资质:市政公用工程施工总承包一级及以上，资格:企业营业执照有效。";
+  assert.equal(M.grabQualification(text, text), "市政公用工程施工总承包一级及以上");
+});
+
 test("中文大写保证金换算成万元", () => {
   assert.equal(M.grabMoneyWan("投标保证金：人民币叁万元整", ["投标保证金"]), "3");
   assert.equal(M.grabMoneyWan("保证金人民币壹拾贰万伍仟元整", ["保证金"]), "12.5");

@@ -36,6 +36,14 @@ node scripts/province-collect.cjs -p anhui -d 30 --limit 20 --detail \
 
 `biaobiaotong16` 固定生成 `房建市政 / 水利 / 公路 / 其他项目` 4 个 sheet，并严格使用参考工作簿的 16 列顺序；工作簿内置表头样式、列宽、自动换行、首行冻结和筛选。中标候选人等 B 阶段的扩展字段请使用默认 `full29` 或 CSV，避免为了兼容 16 列而丢失中标人、得分、排名等信息。
 
+## 城市/区县筛选
+
+```bash
+node scripts/province-collect.cjs -p hainan -c "海口,文昌" -k 管网 -d 30 --detail --out out/hainan-city.xlsx
+```
+
+`-c, --city` 支持城市或区县简称、全称及逗号 OR。由于各省服务端的行政区字段不统一，采集器在客户端对平台地区、标题和提取地点做匹配；留空或传入 `全省` 表示不过滤。
+
 ## 提交前验证
 
 ```bash

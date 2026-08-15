@@ -117,6 +117,9 @@ node scripts/ygp-collect.cjs -k "管网" -c 珠海 -d 7 --state ~/bid-state.json
 # 山东：管网类公告，近 30 天，带 CSV
 node scripts/province-collect.cjs -p shandong -k "管网" -d 30 --delay 500 --out shandong-管网.md --csv
 
+# 城市/区县筛选：客户端按平台地区字段、标题和提取地点匹配；逗号表示 OR
+node scripts/province-collect.cjs -p 海南 -c "海口,文昌" -k 管网 -d 30 --detail --out out/hainan-city.xlsx
+
 # 河南：管网文件索引（近 4000 天，列表层，详情链接诚实留空）
 node scripts/province-collect.cjs -p 河南 -k 管网 -d 4000 --no-detail --limit 60 --delay 500 --out henan-管网.md
 
@@ -130,6 +133,7 @@ node scripts/province-collect.cjs -p 西藏 -k 管网
 | 参数 | 说明 | 默认 |
 |---|---|---|
 | `-p, --province` | 省份 adapter 名（见下方"已支持省份"） | 必填 |
+| `-c, --city` | 城市/区县，逗号分隔（OR）；`全省` 或留空为不过滤。按平台地区、标题和提取地点客户端匹配 | 全省 |
 | `-k, --keyword` | 关键词（标题包含即保留；留空=不限，按时间窗口抓全量） | 空 |
 | `-d, --days` | 近 N 天（按公告日期倒序截断，遇早于 cutoff 的即停止翻页） | 30 |
 | `--limit` | 最多返回条数（达到即停，省去翻完所有历史页） | 0（不限制） |
@@ -142,7 +146,18 @@ node scripts/province-collect.cjs -p 西藏 -k 管网
 
 - 按 adapter 的 `listUrl(page)` 翻页；日期早于 cutoff **或** 达到 `--limit` **或** 连续 2 页无新链接（翻页回环防护）**或** 超过 200 页上限，任一触发即停止。
 - 按公告 URL 去重，避免重复入库。
+- `--city` 不依赖各省不一致的服务端参数：对已获取记录的地区提示、标题和提取地点做 OR 匹配；无法确认城市归属时不伪造城市名。
 - 与粤公平共用：礼貌延迟 + 指数退避 + 429 重试（`requestWithRetry`）。
+
+### 城市/区县筛选实测样本（2026-08-15）
+
+这不是各省完整城市目录；仅记录真实页面验证过的匹配样本，后续可按同一 `-c` 机制继续扩展：
+
+| 省份 | 命令中的筛选词 | 实际返回地区 | 平台类型 |
+|---|---|---|---|
+| 江苏 | `徐州` | 徐州市（2/2） | EPoint |
+| 天津 | `滨海` | 滨海新区（1/1） | JEECMS POST |
+| 贵州 | `仁怀` | 仁怀市（1/1） | REST |
 
 ### 如何新增一个省份 adapter（核心扩展点）
 

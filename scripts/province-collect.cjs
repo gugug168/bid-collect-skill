@@ -1473,6 +1473,13 @@ function countQual(s) {
 }
 
 function grabQualification(text, flat) {
+  // 天津等公告把企业资格写成「本次招标要求投标人具有：一标段: 资质:市政…一级及以上，资格:…」。
+  // 通用标签会在“投标人具有”处过早截断；先取紧邻“资质:”的值，且仍用资质闸门避免把人员资格写入企业资质。
+  const tenderMatch = text.match(/本次招标要求投标人具有[\s\S]{0,120}?(?:资质|资格)\s*[:：]\s*([^\n，,；;]{4,160})/);
+  if (tenderMatch) {
+    const tenderValue = cleanVal(tenderMatch[1]).replace(/\s+/g, " ").trim();
+    if (QUAL_OK.test(tenderValue) && !QUAL_BAD.test(tenderValue)) return tenderValue;
+  }
   let phrase = "";
   // 逐标签取值 + 逐标签校验：不能等 grabBoth 跑完整个标签表，
   // 否则泛标签抓到的假值会直接返回，后面更特异的"设计资质/施工资质"根本没机会上场。
@@ -3283,11 +3290,12 @@ function writeXlsx(path, sheets) {
 
 // ---- 参数解析 ----
 function parseArgs(argv) {
-  const a = { keyword: "", province: "", days: 30, delay: 500, limit: 0, csv: false, xlsx: true, xlsxLayout: "full29", out: "", cat: "", detail: true, attach: false, probe: false, verify: false, dumpText: false, stage: "zb" };
+  const a = { keyword: "", province: "", city: "", days: 30, delay: 500, limit: 0, csv: false, xlsx: true, xlsxLayout: "full29", out: "", cat: "", detail: true, attach: false, probe: false, verify: false, dumpText: false, stage: "zb" };
   for (let i = 0; i < argv.length; i++) {
     const x = argv[i];
     if (x === "-p" || x === "--province") a.province = argv[++i];
     else if (x === "-k" || x === "--keyword") a.keyword = argv[++i];
+    else if (x === "-c" || x === "--city") a.city = argv[++i] || "";
     else if (x === "-d" || x === "--days") a.days = parseInt(argv[++i], 10);
     else if (x === "--delay") a.delay = parseInt(argv[++i], 10);
     else if (x === "--limit") a.limit = parseInt(argv[++i], 10);
@@ -3336,6 +3344,22 @@ function extractCity(title) {
   const m = title.match(/^([\u4e00-\u9fa5]{2,6}?(?:自治县|自治州|地区|市|县|区|旗|盟))/);
   if (m && !TYPE_WORD.test(m[1]) && !NOT_A_PLACE.test(m[1])) return m[1];
   return "";
+}
+
+function normalizeArea(value) {
+  return String(value || "").replace(/\s+/g, "").replace(/(?:省|市|自治州|地区|盟|自治县|县|区|旗)$/u, "");
+}
+
+// 城市筛选是客户端 OR 过滤：不同平台的行政区字段不一致，故同时使用列表地区、标题和提取值。
+// 不以“未命中”推断为不属于任何城市，只在用户明确给出 --city 时排除不匹配的记录。
+function matchesCityFilter(cityArg, candidates) {
+  const filters = String(cityArg || "").split(/[,，]/).map((s) => s.trim()).filter((s) => s && s !== "全省");
+  if (!filters.length) return true;
+  const fields = (candidates || []).map((value) => String(value || "").replace(/\s+/g, "")).filter(Boolean);
+  return filters.some((filter) => {
+    const normalizedFilter = normalizeArea(filter);
+    return fields.some((field) => field.includes(filter) || (normalizedFilter && normalizeArea(field).includes(normalizedFilter)));
+  });
 }
 
 // 按项目性质分 sheet（对标标标通：房建市政/水利/公路/其他）
@@ -3462,6 +3486,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
       if (args.keyword && ((ad.kind !== "epoint" && ad.kind !== "epointX") || ad.keywordClient) && !item.title.includes(args.keyword)) continue;
       // 省级名(cityWeak)排在标题提取之后：标题里的"昌江县/屯昌县"比"海南省"有用得多
       const city = item.cityHint || extractCity(item.title) || item.cityWeak || "";
+      if (!matchesCityFilter(args.city, [city, item.cityHint, item.cityWeak, item.title])) continue;
       // 归一化标题：去掉【】标注与发布渠道前缀（海南全省公告标题都带"（机器管招投标）"，
       // 那是发布通道标记不是项目名，留着会污染项目名列与去重比对）。原文仍可经 url 溯源。
       const cleanTitle = item.title
@@ -3574,6 +3599,7 @@ function buildMarkdown(prov, ad, result, args) {
   lines.push("");
   lines.push(`- 省份：${prov}`);
   lines.push(`- 关键词：${args.keyword || "（不限）"}`);
+  lines.push(`- 城市/区县：${args.city || "全省"}`);
   lines.push(`- 时间：近 ${args.days} 天  ｜  输出 ${result.length} 条  ｜  厚字段：${args.detail ? "是" : "否"}`);
   lines.push(`- 数据源：${ad.name}`);
   lines.push("");
@@ -3648,7 +3674,7 @@ function ensureParentDir(filePath) {
  try {
   const args = parseArgs(process.argv.slice(2));
   global.__RESEARCH = !!args.dumpText;
-  if (!args.province && !args.probeAll) { console.error("用法: node province-collect.cjs -p <省份> -k <关键词> -d <天数> [--stage zb|candidate|result|contract] [--delay 800] [--csv] [--xlsx|--no-xlsx] [--xlsx-layout full29|biaobiaotong16] [--no-detail] [--out 文件] [--limit N] [--probe] [--probe-all] [--verify]"); process.exit(1); }
+  if (!args.province && !args.probeAll) { console.error("用法: node province-collect.cjs -p <省份> [-c 城市/区县[,城市]] -k <关键词> -d <天数> [--stage zb|candidate|result|contract] [--delay 800] [--csv] [--xlsx|--no-xlsx] [--xlsx-layout full29|biaobiaotong16] [--no-detail] [--out 文件] [--limit N] [--probe] [--probe-all] [--verify]"); process.exit(1); }
   // R2 探测模式：自动试 cnum 001-004 + TPBidder/EpointWebBuilder 子上下文 + http 兜底，定位 EPoint 端点
   if (args.probeAll) {
     const summary = await probeAllEvidence(args.keyword || "管网");
@@ -3706,5 +3732,5 @@ function ensureParentDir(filePath) {
 })();
 
 
-module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote,
+module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, cqList, tjList, nmgList, lnList, gsList };

@@ -1,7 +1,7 @@
 # 江苏省 采集参考
 
 > 数据源 adapter：`jiangsu` · kind=`epoint` · 验证状态：**✅ 已打通（厚字段可重复采集）**
-> 最后验证：2026-08-14（全量实测矩阵 + 单省复测）
+> 最后验证：2026-08-15（全量实测矩阵 + 单省复测 + 城市筛选）
 
 ## 机制
 EPoint 标准，cnum=003；日期 infodateformat/infodatepx 多字段回退。
@@ -13,6 +13,9 @@ EPoint 标准，cnum=003；日期 infodateformat/infodatepx 多字段回退。
 ```bash
 HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p jiangsu -k 管网 --detail -d 120 --csv -o out/jiangsu.csv
 ```
+
+## 城市/区县筛选（2026-08-15 实测）
+`-c 徐州 --limit 2 --detail` 返回 2/2 条 `徐州市` 记录（贾汪区老矿片区改造提升项目）；`-c` 在客户端匹配地区、标题和提取地点，不能确认归属时留空而不猜测。
 
 ## 诚实留空字段（源页无则空，绝不伪造）
 performance / fullScore（源页普遍无评分细则/业绩要求，全省一致诚实留空）；projectSite / city / type 依省而异（源页无则空）
