@@ -40,6 +40,18 @@ test("32 个 adapter 均有可执行的官方 reference", () => {
   }
 });
 
+test("招标公告实时状态总账覆盖全部32个 adapter", () => {
+  const file = path.join(__dirname, "..", "reference", "ZB_LIVE_STATUS_2026-08-15.md");
+  assert.ok(fs.existsSync(file), "缺少招标公告实时状态总账");
+  const text = fs.readFileSync(file, "utf8");
+  const rows = [...text.matchAll(/^\| ([a-z][a-z0-9]+) \|/gm)].map((m) => m[1]).filter((adapter) => M.ADAPTERS[adapter]);
+  assert.equal(new Set(rows).size, 32);
+  assert.deepEqual([...new Set(rows)].sort(), Object.keys(M.ADAPTERS).sort());
+  assert.match(text, /`VERIFIED_RECORD`：26 个/);
+  assert.match(text, /`CONNECTED_NO_RECENT_DATA`：5 个/);
+  assert.match(text, /`FAILED`：1 个/);
+});
+
 test("已配置阶段都有类型和可执行路由", () => {
   const routeKeys = ["cats", "listUrl", "noticeType", "gcjsEndpoint", "jsgcEndpoint", "GGTYPE", "channelId", "unionCondition", "iType", "iTypes", "noticeTypeName", "searchword"]; // TRS 族客户端路由（jilin/nmg/liaoning 2026-08-15 B 阶段）
   for (const [adapterName, adapter] of Object.entries(M.ADAPTERS)) {

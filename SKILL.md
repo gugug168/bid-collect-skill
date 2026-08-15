@@ -37,7 +37,7 @@ node scripts/self-test.cjs
 
 必须看到 `SELF_TEST … passed`（以 scripts/self-test.cjs 实际用例数为准）。失败时先修门禁，不开始批量联网。
 
-选定省份后，读取 `reference/<adapter>.md`；城市入口口径见 `reference/CITY_ENTRY_INDEX.md`；新增省份读 `reference/NEW_PROVINCE_TEMPLATE.md`。
+选定省份后，读取 `reference/<adapter>.md`；城市入口口径见 `reference/CITY_ENTRY_INDEX.md`，招标公告实时快照见 `reference/ZB_LIVE_STATUS_2026-08-15.md`；新增省份读 `reference/NEW_PROVINCE_TEMPLATE.md`。
 
 ## 常用命令
 

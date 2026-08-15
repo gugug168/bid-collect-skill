@@ -30,6 +30,7 @@ WorkBuddy 技能：跨省公共资源交易平台招标公告采集器。覆盖 
 - `scripts/ygp-collect.cjs` —— 广东粤公平（ygp）独立 API 采集器。
 - `scripts/domains-31.csv` —— 31 省交易平台权威域名清单。
 - `reference/CITY_ENTRY_INDEX.md` —— 32 省城市/区县入口口径与已实测样本。
+- `reference/ZB_LIVE_STATUS_2026-08-15.md` —— 32 省招标公告实时状态快照（只记录 zb）。
 - `reference/*.md` —— 各省适配注记（前端 JS 逆向结论、栏目码、坑）。
 - `SKILL.md` —— 技能使用说明与调度协议。
 
