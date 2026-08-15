@@ -52,6 +52,13 @@ test("招标公告实时状态总账覆盖全部32个 adapter", () => {
   assert.match(text, /`FAILED`：1 个/);
 });
 
+test("公开参数默认 zb 与标标通16列，并拒绝其它阶段", () => {
+  const args = M.parseArgs(["-p", "anhui"]);
+  assert.equal(args.stage, "zb");
+  assert.equal(args.xlsxLayout, "biaobiaotong16");
+  assert.throws(() => M.parseArgs(["-p", "anhui", "--stage", "candidate"]), /公开契约只支持招标公告阶段/);
+});
+
 test("已配置阶段都有类型和可执行路由", () => {
   const routeKeys = ["cats", "listUrl", "noticeType", "gcjsEndpoint", "jsgcEndpoint", "GGTYPE", "channelId", "unionCondition", "iType", "iTypes", "noticeTypeName", "searchword"]; // TRS 族客户端路由（jilin/nmg/liaoning 2026-08-15 B 阶段）
   for (const [adapterName, adapter] of Object.entries(M.ADAPTERS)) {
