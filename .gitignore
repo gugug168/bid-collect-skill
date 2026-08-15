@@ -1,0 +1,15 @@
+# 备份 / 临时
+*.bak*
+*.bak
+*.tmp
+*.log
+
+# 依赖 / 缓存
+node_modules/
+.cache/
+__pycache__/
+*.pyc
+
+# 系统
+.DS_Store
+Thumbs.db
