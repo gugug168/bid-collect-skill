@@ -663,10 +663,18 @@ const ADAPTERS = {
     kind: "jl",
     base: "https://www.jl.gov.cn/ggzy",
     channelId: 237687,
-    rn: 10,
+    rn: 50, // 混合栏目(66万+条)，招标公告仅占~2.5%；调大每页样本量，crawlRound 跨页累加到 limit（避免连续2页空提前 break）
     clientFilterOnly: true, // 按 iType 过滤招标公告 + 采集时按标题客户端过滤关键词
     allowNoUrl: true, // docpuburl 可能为相对/空，列表层诚实不伪造详情 URL
     defaultType: "招标公告",
+    // B 阶段（2026-08-15 真机枚举 TRS WAS）：全站唯一有效 channelId=237687（巨型混合栏目，66 万+ 条），
+    //   服务端 iType='…' 检索式恒返回 0（不可服务端隔离）→ 改客户端按 iType 字段过滤。
+    //   ZB 基线检索式 iType='招标公告' 原返回 0（已废），jlList 改为拉全量后客户端按 iType 过滤。
+    stages: {
+      candidate: { type: "中标候选人", iType: "中标候选人公示" },
+      result:    { type: "中标结果",   iTypes: ["中标结果公告", "中标公告"] }, // 工程建设用前者、政府采购用后者
+      contract:  { type: "合同公示",   iType: "合同公示" },
+    },
   },
   // 福建：Vue SPA 后端 /FwPortalApi/Trade/TradeInfo，需 MD5 签名 + AES-256-CBC 解密
   fujian: {
@@ -813,6 +821,14 @@ const ADAPTERS = {
     base: "https://ggzyjy.nmg.gov.cn",
     rn: 10,
     defaultType: "招标公告", // 服务端关键词检索（noticeName 参数），无需客户端过滤
+    // B 阶段（2026-08-15 真机枚举 /trssearch/openSearch/searchPublishResource）：noticeTypeName 隔离栏目；
+    //   candidate=中标候选人公示、result=中标结果公告(站点无"中标结果公示"，字面=0)、contract=合同公示。
+    //   注：nmgList 原硬编码 noticeTypeName 为空 → 已改为读 ad.noticeTypeName（stages 覆盖生效）
+    stages: {
+      candidate: { type: "中标候选人", noticeTypeName: "中标候选人公示" },
+      result:    { type: "中标结果",   noticeTypeName: "中标结果公告" },
+      contract:  { type: "合同公示",   noticeTypeName: "合同公示" },
+    },
   },
   // 辽宁：TRS WAS 全文检索 GET /was5/web/search（与吉林同款引擎，但字段/参数/检索式不同，独立 lnList）
   liaoning: {
@@ -826,6 +842,12 @@ const ADAPTERS = {
     clientFilterOnly: true, // 列表接口不支持中文关键词全文检索(recordnum=0)，关键词走客户端过滤
     allowNoUrl: false, // DOCPUBURL 为绝对 URL，已实测 200 可达
     defaultType: "招标公告",
+    // B 阶段（2026-08-15 真机枚举 TRS WAS）：母栏目 channelId=219677 固定，仅 DOCCHANNEL 隔离；
+    //   candidate=149561(中标候选人公示)、result=149562(中标结果公告)；合同=Y164624 走独立 layui 后端非 TRS → 诚实不配 contract
+    stages: {
+      candidate: { type: "中标候选人", searchword: "DOCCHANNEL='149561'" },
+      result:    { type: "中标结果",   searchword: "DOCCHANNEL='149562'" },
+    },
   },
 
   // 甘肃：省本级 ggzyjy.gansu.gov.cn 全路径 WAF 412（AUTH_WALL，curl-only 不可取）；
@@ -2431,7 +2453,7 @@ async function tjList(ad, page, args) {
 // ---- 内蒙古：TRS 全文检索 REST GET /trssearch/openSearch/searchPublishResource ----
 async function nmgList(ad, page, args) {
   const kw = args.keyword ? encodeURIComponent(args.keyword) : "";
-  const url = `${ad.base}/trssearch/openSearch/searchPublishResource?noticeName=${kw}&projectCode=&pageSize=${ad.rn || 10}&pageNum=${page}&noticeTypeName=&platformCode=&regionCode=&startTime=&endTime=&transactionTypeName=&industriesTypeName=`;
+  const url = `${ad.base}/trssearch/openSearch/searchPublishResource?noticeName=${kw}&projectCode=&pageSize=${ad.rn || 10}&pageNum=${page}&noticeTypeName=${encodeURIComponent(ad.noticeTypeName || "")}&platformCode=&regionCode=&startTime=&endTime=&transactionTypeName=&industriesTypeName=`;
   let r;
   try {
     r = await fetch(url, { method: "GET", headers: { "User-Agent": UA_STR, "Accept": "application/json, text/plain, */*", "Referer": ad.base + "/searchapp-iframe-zzq/" } });
@@ -2562,7 +2584,7 @@ async function hbList(ad, page, args) {
 
 // ---- 吉林：TRS WAS 全文检索 JSONP GET ----
 async function jlList(ad, page, args) {
-  const searchword = "modal<>3 and iType='招标公告'";
+  const searchword = "modal<>3 and gtitle<>'' and gtitle<>'null'";
   const url = `https://was.jl.gov.cn/was5/web/search?channelid=${ad.channelId || 237687}&page=${page}&prepage=${ad.rn || 10}&searchword=${encodeURIComponent(searchword)}&callback=result`;
   let r;
   try {
@@ -2574,11 +2596,12 @@ async function jlList(ad, page, args) {
   if (!m) return [];
   let j; try { j = JSON.parse(m[1]); } catch (_) { return []; }
   const arr = (j && Array.isArray(j.datas)) ? j.datas : [];
+  const want = ad.iTypes || [ad.iType || "招标公告"];
   return arr.map(it => {
     const date = String(it.timestamp || "").replace(/\./g, "-").slice(0, 10);
     const url2 = it.docpuburl ? (it.docpuburl.startsWith("http") ? it.docpuburl : "http://www.jl.gov.cn/ggzy" + it.docpuburl) : "";
-    return { url: url2, title: String(it.title || "").replace(/\s+/g, " ").trim(), date };
-  }).filter(x => x.title);
+    return { url: url2, title: String(it.title || "").replace(/\s+/g, " ").trim(), date, iType: String(it.iType || "") };
+  }).filter(x => x.title && want.includes(x.iType));
 }
 
 // ---- 福建：/FwPortalApi/Trade/TradeInfo（MD5 签名 + AES-256-CBC 解密）----
