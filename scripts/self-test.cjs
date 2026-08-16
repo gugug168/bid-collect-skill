@@ -19,7 +19,7 @@ test("SKILL.md frontmatter 只使用 Codex 支持的顶层键", () => {
 });
 
 test("34 个 adapter 均已注册（32 省级 + anyang/dingxi 城市级）", () => {
-  assert.equal(Object.keys(M.ADAPTERS).length, 34);
+  assert.equal(Object.keys(M.ADAPTERS).length, 35);   // 2026-08-16 V5：+changzhou
 });
 
 test("中文省名覆盖全部 adapter", () => {
@@ -45,11 +45,17 @@ test("招标公告实时状态总账覆盖全部 34 个 adapter", () => {
   assert.ok(fs.existsSync(file), "缺少招标公告实时状态总账");
   const text = fs.readFileSync(file, "utf8");
   const rows = [...text.matchAll(/^\| ([a-z][a-z0-9]+) \|/gm)].map((m) => m[1]).filter((adapter) => M.ADAPTERS[adapter]);
-  assert.equal(new Set(rows).size, 34);
+  assert.equal(new Set(rows).size, 35);
   assert.deepEqual([...new Set(rows)].sort(), Object.keys(M.ADAPTERS).sort());
-  assert.match(text, /`VERIFIED_RECORD`：27 个/);
+  assert.match(text, /`VERIFIED_RECORD`：28 个/);
   assert.match(text, /`CONNECTED_NO_RECENT_DATA`：6 个/);
   assert.match(text, /`FAILED`：1 个/);
+});
+
+test("常州城市级 adapter 配置锁定（omitFields 实例差异 + 栏目前缀）", () => {
+  assert.equal(M.ADAPTERS.changzhou.omitFields, true);          // fields 投影参数传入即静默返空（实测二分定位）
+  assert.deepEqual(M.ADAPTERS.changzhou.cats, ["001001001"]);   // 工程建设招标公告大类 contains 前缀
+  assert.equal(M.ADAPTERS.changzhou.sortField, "webdate");
 });
 
 test("参数默认 zb 与标标通16列，并保留已配置阶段", () => {
