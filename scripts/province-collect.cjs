@@ -342,6 +342,54 @@ const ADAPTERS = {
     cats: ["004"], // categorynum 前缀 contains 004 = 交易类，隔离 009 新闻/030 业务动态，仅取标讯
     defaultType: "招标公告",
   },
+  // ===== 常州（城市级 · 2026-08-16 实测新增 · 标准 EPoint · webdate 排序 · LIVE）=====
+  changzhou: {
+    name: "常州市公共资源交易中心（城市级·标准 EPoint·webdate 排序）",
+    verified: true, // 2026-08-16 实测：首页可达、EPoint POST 200、最新 2026-08-15；001001 工程建设 + 001004 政府采购 均带 2026-08-14 活数据；16 列实测平均 12.5/16
+    kind: "epoint",
+    base: "https://ggzy.changzhou.gov.cn",
+    referer: "https://ggzy.changzhou.gov.cn/",
+    sortField: "webdate", // 无 infodatepx，须 webdate 排序（默认 infodatepx 失效）；webdate 实测可得 2026-08-15 最新
+    cats: ["001001", "001004"], // 工程建设 + 政府采购（前缀 001；剔除 001006 出租/001005 产权交易等噪声）
+    defaultType: "招标公告",
+  },
+  // ===== 蚌埠（城市级 · 2026-08-16 实测新增 · 标准 EPoint · webdate 排序 · LIVE）=====
+  bengbu: {
+    name: "蚌埠市公共资源交易中心（城市级·标准 EPoint·webdate 排序）",
+    verified: true, // 2026-08-16 实测：EPoint POST 200、最新 2026-08-14；002001 工程建设 + 002002 政府采购 带活数据；16 列实测 11/16
+    kind: "epoint",
+    base: "https://ggzy.bengbu.gov.cn",
+    referer: "https://ggzy.bengbu.gov.cn/",
+    sortField: "webdate", // 无 infodatepx，须 webdate 排序
+    cats: ["002001", "002002"], // 工程建设 + 政府采购，剔除 001 新闻/013 其他
+    defaultType: "招标公告",
+  },
+  // ===== 新乡（城市级 · 2026-08-16 探测 · 独立门户存在但 legacy EPoint 索引冻结）=====
+  // 注：ggzy.xinxiang.gov.cn 首页可达、EPoint POST 200，但检索索引冻结（最新仅 2024-12，无 2026 数据），
+  // 实时 days 窗口下返回 0 条；暂不可用于实时采集。保留待其切换新检索端点后启用。
+  xinxiang: {
+    name: "新乡市公共资源交易中心（城市级·标准 EPoint·webdate 排序·索引冻结待修复）",
+    verified: false, // 2026-08-16 实测：索引冻结，无 2026 活数据，实时采集返回 0
+    kind: "epoint",
+    base: "https://ggzy.xinxiang.gov.cn",
+    referer: "https://ggzy.xinxiang.gov.cn/",
+    sortField: "webdate",
+    cats: ["100001", "100002"], // 工程建设 + 政府采购（前缀 100；待索引恢复后启用）
+    defaultType: "招标公告",
+  },
+  // ===== 湖州（城市级 · 2026-08-16 探测 · 列表层可用但详情页 404）=====
+  // 注：列表层正常（城市/标题/链接/日期齐全，城市解析为 湖州市·南浔区 等），但详情页 linkurl 在解析主机 404
+  // （疑似详情部署于独立前端或需会话），16 项厚字段暂不可得。保留列表采集能力，待定位详情路径后转正。
+  huzhou: {
+    name: "湖州市公共资源交易中心（城市级·标准 EPoint·webdate 排序·详情路径待定位）",
+    verified: false, // 2026-08-16 实测：列表层可用、详情 404，16 项厚字段暂不可得
+    kind: "epoint",
+    base: "https://ggzy.huzhou.gov.cn",
+    referer: "https://ggzy.huzhou.gov.cn/",
+    sortField: "webdate",
+    cats: ["001002"], // 建设工程（发包公告/中标公示/小额采购合并在此前缀）；政府采购独立前缀无活数据
+    defaultType: "招标公告",
+  },
   // ===== 广东（粤公平 · 2026-08-12 集成 · 独立 API，非 EPoint）=====
   // 数据源: POST https://ygp.gdzwfw.gov.cn/ggzy-portal/search/v2/items （SPA 内部接口）
   // 详情正文/附件需 SPA 内部交易环节码，列表接口不暴露 → 本 adapter 仅列表层（no detail），诚实不抓详情。
@@ -3226,7 +3274,10 @@ async function requestWithRetry(url, delay = 500) {
       // 结果服务端发完 header 再卡住 body 时会永久挂起（浙江实测卡死 16 分钟）。
       const t = setTimeout(() => c.abort(), 30000);
       try {
-        const r = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" }, signal: c.signal });
+        // 2026-08-16 修复：UA 必须用完整浏览器串 UA_STR。实测蚌埠等城市 WAF 对裸 "Mozilla/5.0" 返回 403（与 Referer 无关），
+        // 此前框架详情抓取因 UA 过简被拦，厚字段(16 项)全部抓空；统一用 UA_STR 后 200。Referer 一并补上属更正确且惠及其他 adapter。
+        let _referer; try { _referer = new URL(url).origin + "/"; } catch (_) { _referer = ""; }
+        const r = await fetch(url, { headers: { "User-Agent": UA_STR, "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", ...(_referer ? { "Referer": _referer } : {}) }, signal: c.signal });
         console.error("[req] attempt", attempt, "status", r.status);
         if (r.status === 429) {
           const bodyText = await r.text().catch(() => "");
@@ -3267,7 +3318,7 @@ async function fetchBuffer(url, delay = 500) {
       // 同 requestWithRetry：超时覆盖到 arrayBuffer() 读完为止，避免 body 卡流导致进程挂死
       const t = setTimeout(() => c.abort(), 30000);
       try {
-        const r = await fetch(encodeURI(decodeURI(url)), { headers: { "User-Agent": UA_STR }, signal: c.signal });
+        const r = await fetch(encodeURI(decodeURI(url)), { headers: { "User-Agent": UA_STR, ...(() => { try { return { "Referer": new URL(url).origin + "/" }; } catch (_) { return {}; } })() }, signal: c.signal });
         if (!r.ok) throw new Error("HTTP " + r.status);
         const len = Number(r.headers.get("content-length") || 0);
         if (len > PDF_MAX_BYTES) throw new Error("PDF 过大 " + len);
