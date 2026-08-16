@@ -38,7 +38,7 @@
 | ningxia | `VERIFIED_RECORD` | 3 | — | `ningxia.run-report.json` | EPointX |
 | xinjiang | `VERIFIED_RECORD` | 3 | — | `xinjiang.run-report.json` | EPointX |
 | xinjiangbt | `CONNECTED_NO_RECENT_DATA` | 0 | 90/365 仍 0 | `xinjiangbt.run-report.json`, `xinjiangbt-90d`, `xinjiangbt-365d` | 旧快照需去关键词，当前管网窗口为空 |
-| anyang | `VERIFIED_RECORD` | 5 | — | `city-2026-08-16/anyang/anyang_list.run-report.json` | 城市级 adapter 范本（2026-08-16 接入实测，非省级） |
+| anyang | `VERIFIED_RECORD` | 2 | — | `anyang-zb-30d.run-report.json` | 锁定 `001001002`/`001002002` 后近 30 天复验，2/2 均为招标公告 |
 
 ## 汇总
 

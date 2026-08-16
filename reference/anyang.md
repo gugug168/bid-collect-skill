@@ -1,24 +1,24 @@
 # 安阳市 采集参考（城市级范本）
 
 > 数据源 adapter：`anyang` · kind=`epoint` · 验证状态：**✅ 已打通（2026-08-16 城市级接入实测）**
-> 最后验证：2026-08-16（zb 列表层 5/5 VERIFIED_RECORD + 城市筛选）
+> 最后验证：2026-08-16（zb 近 30 天列表层 2/2 VERIFIED_RECORD）
 
 ## 机制
-城市级独立站点（安阳市公共资源交易中心 https://ggzy.anyang.gov.cn），标准 EPoint `getFullTextDataNew`（与江苏/兰州同构）；无 infodatepx 字段，`sortField: "webdate"`（同浙江/海南）；cats 不锁（PoC 全量 96504 条），类型由 inferType 按标题判（混入的评标结果公示如实标型，不冒充招标公告）。
+城市级独立站点（安阳市公共资源交易中心 https://ggzy.anyang.gov.cn），标准 EPoint `getFullTextDataNew`（与江苏/兰州同构）；无 infodatepx 字段，`sortField: "webdate"`（同浙江/海南）。`zb` 锁定官方栏目 `001001002`（工程建设招标公告）和 `001002002`（政府采购公告），排除 `001001004` 评标结果、`001001005` 中标结果及 `001001001` 招标计划。
 
 ## 验证结论
-✅ 2026-08-16 实测：`-p anyang -k 管网 -d 365 --limit 5` 返回 5/5 条 VERIFIED_RECORD（标题/日期/官方链接齐备，样本：高新区市政管网、西片区雨水管网更新、林州市城区道路综合管网）。证据：`test-logs/city-2026-08-16/anyang/*.run-report.json`。
+✅ 2026-08-16 修复前复现：未锁栏目时，365 天窗口前 5 条仅 1 条招标公告，另含 3 条评标结果和 1 条招标计划，不能作为 `zb` 验证证据。锁定栏目后按 30→90→365 天规则复测，近 30 天已取得 2/2 条真实招标公告并停止扩大：工程建设招标公告 1 条、政府采购公告 1 条，标题/日期/官方链接齐备，状态为 `VERIFIED_RECORD`。机器证据：`anyang-zb-30d.run-report.json`。
 
 ## 城市/区县筛选（2026-08-16 实测）
 `-c` 客户端过滤可用（安阳平台 city 列为 安阳市/林州市/滑县 等区县级粒度）。
 
 ## 可重复采集命令
 ```bash
-HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p anyang -k 管网 -d 365 --limit 20 --csv -o out/anyang.csv
+node scripts/province-collect.cjs -p anyang -k 管网 -d 30 --limit 3 --no-detail --no-xlsx -o out/anyang-zb-30d.md
 ```
 
 ## 诚实留空字段（源页无则空，绝不伪造）
-B 阶段 stages 未枚举（栏目码待逐项真机验证，警惕海南式误锁）；类型不预设 defaultType（cats 全量混型，由标题判）。
+B 阶段 `stages` 尚未配置；已观察到评标/中标栏目码，但本轮只验收 `zb`，不把观察结果提前声明为可用阶段。详情字段仍按源页存在情况提取，源页没有则留空。
 
 ## 中标/合同阶段（B 阶段 · Goal v1）
 

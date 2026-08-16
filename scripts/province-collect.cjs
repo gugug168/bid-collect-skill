@@ -314,11 +314,11 @@ const ADAPTERS = {
     // 安阳记录**无 infodatepx 字段**（同浙江/海南），默认 sort 失效→老记录在前→被 days 截止滤光。
     // 必须按 webdate 排序才能近 N 天正确截断（实测 sort:{webdate:0}=最新在前，{webdate:1}=最旧在前）。
     sortField: "webdate",
-    // 2026-08-16 PR 审查修正：cats 未锁会混入评标结果公示等 B 阶段公告，固定 defaultType 会把它们
-    // 错标为"招标公告"（实测样本"滑县看守所迁建配套管网项目评标结果公示"）——去掉 defaultType，
-    // 类型交 inferType 按标题判，宁可标题判型不错标。
-    // 安阳用默认请求体即返回全量（96504 条），不锁栏目（cats 留空）、不定制 unionCondition。
-    // 后续可按需枚举其 categorynum 细化（警惕海南式「误锁招标计划」陷阱，故 PoC 阶段不锁）。
+    // 2026-08-16 官方接口实测锁定 zb 栏目：001001002=工程建设招标公告，001002002=政府采购公告。
+    // 不能留空：全量搜索会混入 001001004 评标结果、001001005 中标结果和 001001001 招标计划。
+    // collectProvince 会将多栏目拆轮采集，避免 EPoint 同字段多 condition 仅首项生效的静默漏采。
+    cats: ["001001002", "001002002"],
+    defaultType: "招标公告",
   },
   // ===== 定西（城市级 · 2026-08-16 实测新增 · 标准 EPoint · infodate 排序变体）=====
   // 定西市公共资源交易中心 = 独立站点 + 标准 EPoint getFullTextDataNew（端点与 Anyang/兰州同构，kind=epoint 复用 epointList/epointPost，零定制）。
@@ -3549,7 +3549,7 @@ function writeXlsx(path, sheets) {
 
 // ---- 参数解析 ----
 function parseArgs(argv) {
-  const a = { keyword: "", province: "", city: "", allCities: false, days: 30, delay: 500, limit: 0, csv: false, xlsx: true, xlsxLayout: "biaobiaotong16", out: "", cat: "", detail: true, attach: false, probe: false, verify: false, dumpText: false, stage: "zb" };
+  const a = { keyword: "", province: "", city: "", days: 30, delay: 500, limit: 0, csv: false, xlsx: true, xlsxLayout: "biaobiaotong16", out: "", cat: "", detail: true, attach: false, probe: false, verify: false, dumpText: false, stage: "zb" };
   for (let i = 0; i < argv.length; i++) {
     const x = argv[i];
     if (x === "-p" || x === "--province") a.province = argv[++i];
@@ -3571,7 +3571,6 @@ function parseArgs(argv) {
     else if (x === "--cat") a.cat = argv[++i];
     else if (x === "--stage") a.stage = argv[++i] || "zb";
     else if (x === "--dump-text") a.dumpText = true;
-    else if (x === "-A" || x === "--all-cities") a.allCities = true;
   }
   if (!["full29", "biaobiaotong16"].includes(a.xlsxLayout)) throw new Error(`--xlsx-layout 仅支持 full29 或 biaobiaotong16，收到: ${a.xlsxLayout}`);
   return a;
@@ -3629,7 +3628,7 @@ function normalizeArea(value) {
   return String(value || "").replace(/\s+/g, "").replace(/(?:省|市|自治州|地区|盟|自治县|县|区|旗)$/u, "");
 }
 
-// 区/县 → 地级市 归一化种子（城市级深度 · 2026-08-16，全量生成自 province-city-china 数据集）。
+// 区/县 → 地级市 归一化种子（城市级深度 · 2026-08-16，静态待审数据）。
 // 省级平台常只标区县（如“香洲区”），导致 `--city 珠海` 命中不了。此表让地级市↔区县双向归一。
 // 仅做“增量匹配”：未列入的省/市不产生任何误匹配。共覆盖 31 省 + 4 直辖市全部地级市。
 const PREFECTURE_DISTRICTS = {
@@ -4796,6 +4795,19 @@ const PREFECTURE_DISTRICTS = {
   ],
 };
 
+// 同名区县不能在缺少省/地市上下文时猜归属。例如“城区”同时属于阳泉、晋城，
+// “市中区”同时属于乐山、内江等城市。只允许全国唯一归属的区县参与地级市扩展；
+// 重名区县仍可通过标题/地区字段中直接出现的地级市名称命中，避免以召回率换准确率。
+const DISTRICT_PREFECTURE_OWNERS = new Map();
+for (const [prefecture, districts] of Object.entries(PREFECTURE_DISTRICTS)) {
+  for (const district of districts) {
+    const key = normalizeArea(district);
+    if (!key) continue;
+    if (!DISTRICT_PREFECTURE_OWNERS.has(key)) DISTRICT_PREFECTURE_OWNERS.set(key, new Set());
+    DISTRICT_PREFECTURE_OWNERS.get(key).add(prefecture);
+  }
+}
+
 // 城市筛选是客户端 OR 过滤：不同平台的行政区字段不一致，故同时使用列表地区、标题和提取值。
 // 不以“未命中”推断为不属于任何城市，只在用户明确给出 --city 时排除不匹配的记录。
 // 增强（2026-08-16）：支持 地级市↔区县 双向归一——`--city 珠海` 命中其区县；`--city 香洲区` 命中珠海记录。
@@ -4809,7 +4821,10 @@ function matchesCityFilter(cityArg, candidates) {
     // 2026-08-16 PR 审查修正两点：①"市辖区"是 281 个地级市共有的通用词，参与 includes 匹配会把
     // 全省任何"市辖区"记录误判属本市——排除；②原 prefOfFilter 把区县级筛词（如"林州"）反查放大为
     // 整个安阳市放行（实测 -c 林州 返回安阳市本级记录）——删除，筛区县只出区县（直接子串命中）。
-    const targetDistricts = (PREFECTURE_DISTRICTS[nf] || PREFECTURE_DISTRICTS[filter] || []).filter((d) => d !== "市辖区");
+    const targetDistricts = (PREFECTURE_DISTRICTS[nf] || PREFECTURE_DISTRICTS[filter] || []).filter((d) => {
+      const owners = DISTRICT_PREFECTURE_OWNERS.get(normalizeArea(d));
+      return d !== "市辖区" && owners && owners.size === 1;
+    });
     return fields.some((field) => {
       const nfield = normalizeArea(field);
       if (field.includes(filter) || (nf && nfield.includes(nf))) return true;
@@ -4824,13 +4839,11 @@ function matchesCityFilter(cityArg, candidates) {
 // 河南 getPageInfoListNewYzm 仅认 4100(全省)/410000(混合子集)，逐地市 GB 码全部返回 0。
 // 故目前无任何 adapter 声明 cityCodes → 本函数恒返回 null（回落默认全省 + 客户端 --city 过滤）。
 // 本函数是为"未来某省若真支持服务端城市码"预留的通用结构，逻辑已单测；现在保持惰性、零副作用。
-//   --all-cities        → 全部地市（需 adapter 声明 cityCodes 才生效）
 //   --city <本省内地市>  → 仅该地市（需 adapter 声明 cityCodes 才生效）
 //   其余 → 返回 null，走默认单轮全省
 function resolveCityTargets(ad, args) {
   if (!ad.cityCodes || !ad.cityCodes.length) return null;
   if (args.city && normalizeArea(args.city) === "全省") return null;
-  if (args.allCities) return ad.cityCodes;
   if (args.city) {
     const want = normalizeArea(args.city);
     const exact = ad.cityCodes.find((c) => normalizeArea(c.name) === want);
@@ -5093,7 +5106,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
 
 function buildMarkdown(prov, ad, result, args) {
   const lines = [];
-  lines.push(`# ${ad.name} ${ad.defaultType || "交易公告"}采集报告（厚字段） · ${new Date().toISOString().slice(0, 10)}`);
+  lines.push(`# ${ad.name} ${ad.defaultType || "交易公告"}采集报告（${args.detail ? "厚字段" : "列表层"}） · ${new Date().toISOString().slice(0, 10)}`);
   lines.push("");
   lines.push(`- 省份：${prov}`);
   lines.push(`- 关键词：${args.keyword || "（不限）"}`);
@@ -5226,6 +5239,18 @@ function writeRunReport(outputPath, report) {
   return sidecar;
 }
 
+function resolveOutputPaths(args) {
+  let mdPath = args.out;
+  let xlsxPath = null;
+  if (args.out.toLowerCase().endsWith(".xlsx")) {
+    mdPath = args.out.replace(/\.xlsx$/i, ".md");
+    if (args.xlsx) xlsxPath = args.out;
+  } else if (args.xlsx) {
+    xlsxPath = args.out.replace(/\.md$/i, ".xlsx");
+  }
+  return { mdPath, xlsxPath };
+}
+
 // 仅作为 CLI 直接运行时执行；被 require 时只导出函数，便于离线单测提取器
  if (require.main === module) (async () => {
  try {
@@ -5262,9 +5287,8 @@ function writeRunReport(outputPath, report) {
   console.error(`采集 ${result.length} 条`);
   const md = buildMarkdown(args.province, ad, result, args);
   if (args.out) {
-    let mdPath = args.out, xlsxPath = null, csvPath = null;
-    if (args.out.toLowerCase().endsWith(".xlsx")) { xlsxPath = args.out; mdPath = args.out.replace(/\.xlsx$/i, ".md"); }
-    else { xlsxPath = args.out.replace(/\.md$/i, ".xlsx"); }
+    const { mdPath, xlsxPath } = resolveOutputPaths(args);
+    let csvPath = null;
     ensureParentDir(mdPath);
     fs.writeFileSync(mdPath, md);
     if (args.xlsx && xlsxPath) {
@@ -5298,5 +5322,5 @@ function writeRunReport(outputPath, report) {
 })();
 
 
-module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, parseArgs, inferTenderType, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, extractNoticeTitle, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, buildRunReport, writeRunReport, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote,
+module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, parseArgs, inferTenderType, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, extractNoticeTitle, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, cqList, tjList, nmgList, lnList, gsList };
