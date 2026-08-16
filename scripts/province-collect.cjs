@@ -390,6 +390,7 @@ const ADAPTERS = {
     verified: true, // 2026-08-16 侦察验证：招标公告栏目约 5700 条（285 页×20）
     kind: "yueyang",
     base: "https://ggzy.yueyang.gov.cn",
+    gbkDetail: true, // 详情页 charset=gb2312：UTF-8 解码乱码致厚字段全空（实测），走 TextDecoder("gbk")
     clientFilterOnly: true, // 无服务端关键词
     defaultType: "招标公告",
   },
@@ -1329,12 +1330,19 @@ function grab(text, labels, minLen) {
 // v4：PDF 版式里金额常独占一行（「本次招标概算价控制价约\n9598.3458\n万元」），故放宽为 [\s\S]
 function grabMoneyWan(text, labels) {
   for (const lab of labels) {
+    // 2026-08-16 V5（无锡实测）：标签自带括号单位「工程合同估算价（万元）： 298.0」——
+    // 数字通道要求单位紧跟数字而失配；中文兜底更把「（万」当数字"万"+「元」当单位，
+    // 输出 1 万元的错值。先剥掉标签近邻的括号单位并记住量纲，两通道在剥后文本上跑；
+    // 数字通道仍失配时按括号量纲换算标签后首个数字。
+    const unitM = text.match(new RegExp(lab + "[（(]\\s*(百万元|万元|元)\\s*[)）]", "i"));
+    const bracketUnit = unitM ? unitM[1] : "";
+    const moneyText = bracketUnit ? text.replace(new RegExp(lab + "[（(]\\s*(?:百万元|万元|元)\\s*[)）]", "gi"), lab) : text;
     // 数字与单位之间允许杂散点/空格（2026-08-10 海南实测）：
     //   琼海地灾治理公告原文「最高投标限价（或招标控制价): 9313711.85.元」——金额后多打了一个点。
     //   原正则要求 `数字\s*单位`，遇到 "85.元" 直接失配 → 控制价被当成"公告未载"漏掉。
     const re = new RegExp(lab + "[\\s\\S]{0,60}?([0-9][0-9,，]*(?:[.．][0-9]+)?)[\\s.．、]{0,3}(万元|万|元)", "gi");
     let m;
-    while ((m = re.exec(text))) {
+    while ((m = re.exec(moneyText))) {
       const num = parseFloat(m[1].replace(/[,，]/g, ""));
       if (!isFinite(num) || num <= 0) continue;
       const wan = m[2] === "元" ? num / 10000 : num;
@@ -1344,12 +1352,23 @@ function grabMoneyWan(text, labels) {
     // 中文大写金额兜底：公告常写“投标保证金人民币叁万元整”。数字通道必须先跑，
     // 这里仅在同一标签的近邻中识别标准中文数字，避免把远处其他金额误配过来。
     const cnRe = new RegExp(lab + "[\\s\\S]{0,40}?([零〇一二两三四五六七八九十百千万亿壹贰叁肆伍陆柒捌玖拾佰仟萬億]+)\\s*(万元|万|元)", "i");
-    const cm = text.match(cnRe);
+    const cm = moneyText.match(cnRe);
     if (cm) {
       const num = chineseNumberToNumber(cm[1]);
       if (Number.isFinite(num) && num > 0) {
         const wan = cm[2] === "元" ? num / 10000 : num;
         if (wan > 0 && wan <= 1e8) return String(Math.round(wan * 10000) / 10000);
+      }
+    }
+    // 括号量纲兜底：「估算价（万元）： 298.0」剥单位后数字通道无单位跟随 → 按括号量纲换算标签后首个数字
+    if (bracketUnit) {
+      const bm = moneyText.match(new RegExp(lab + "[\\s\\S]{0,30}?([0-9][0-9,，]*(?:[.．][0-9]+)?)", "i"));
+      if (bm) {
+        const num = parseFloat(bm[1].replace(/[,，]/g, ""));
+        if (Number.isFinite(num) && num > 0) {
+          const wan = bracketUnit === "万元" ? num : bracketUnit === "百万元" ? num * 100 : num / 10000;
+          if (wan > 0 && wan <= 1e8) return String(Math.round(wan * 10000) / 10000);
+        }
       }
     }
   }
@@ -5365,7 +5384,12 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
             const dt = await xizangDetail(ad, item);
             for (const [k, v] of Object.entries(dt)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
           } else {
-            const dhtml = await requestWithRetry(item.url, args.delay);
+            // 2026-08-16 V5 批次2：岳阳等静态 CMS 站点详情页为 GBK 编码（charset=gb2312），
+            // requestWithRetry 的 r.text() 按 UTF-8 解码会乱码导致厚字段全空——
+            // gbkDetail 标志走 arrayBuffer + TextDecoder("gbk")（Node full-icu 支持）。
+            const dhtml = ad.gbkDetail
+              ? new TextDecoder("gbk").decode(Buffer.from(await (await fetch(item.url)).arrayBuffer()))
+              : await requestWithRetry(item.url, args.delay);
             // 正文可能在 PDF 附件里（浙江等）；HTML 够厚时此步直接跳过，不产生额外请求
             let pdfText = "";
             if (ad.pdfBody !== false) {
@@ -5383,6 +5407,12 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
             // 仅当 projectSite 短且像地名时才回填 city（避免辽宁/上海实测中 projectSite 抓到
             // "位于鞍山市高新区，工程施工期为540天" 这类长句把 city 污染成项目概况）。
             if (!rec.city && df.projectSite && df.projectSite.length <= 20 && !/[，,。；;、\n\r]/.test(df.projectSite)) rec.city = df.projectSite;
+            // 2026-08-16 V5 批次2（泉州实测）：详情页模板残留会把历史日期当开标时间抓出
+            //（bidOpen=2021-09-10 而发布日期 2026-08-06，相差近 5 年）——开标早于发布日 1 年以上判脏丢弃。
+            if (rec.bidOpen && item.date) {
+              const bd = new Date(rec.bidOpen), pd = new Date(item.date);
+              if (Number.isFinite(bd.getTime()) && Number.isFinite(pd.getTime()) && (pd.getTime() - bd.getTime()) > 366 * 86400000) rec.bidOpen = "";
+            }
             rec.url = normUrl(df.detailUrl || item.url, ad);
           }
           // 列表标题可能被平台截断（例如安徽以省级列表返回省略号），详情正文标题优先；
