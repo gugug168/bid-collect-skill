@@ -40,10 +40,11 @@
 | xinjiangbt | `CONNECTED_NO_RECENT_DATA` | 0 | 90/365 仍 0 | `xinjiangbt.run-report.json`, `xinjiangbt-90d`, `xinjiangbt-365d` | 旧快照需去关键词，当前管网窗口为空 |
 | anyang | `VERIFIED_RECORD` | 2 | — | `anyang-zb-30d.run-report.json` | 锁定 `001001002`/`001002002` 后近 30 天复验，2/2 均为招标公告 |
 | dingxi | `CONNECTED_NO_RECENT_DATA` | 0 | 365 仍 0 | `dingxi-365d.run-report.json` | 城市级（infodate 排序变体）：可达 total=4621 但源站 2023-04 后停更，非近期数据源 |
+| changzhou | `VERIFIED_RECORD` | 3 | — | `changzhou2.run-report.json` | 城市级独立平台（V5 探测接入）：近 30 天 3/3，控制价/招标人厚字段命中 |
 
 ## 汇总
 
-- `VERIFIED_RECORD`：27 个（含 anyang 城市级范本，2026-08-16 接入）
+- `VERIFIED_RECORD`：28 个（含 anyang/changzhou 城市级独立平台）
 - `CONNECTED_NO_RECENT_DATA`：6 个（河北、黑龙江、河南、陕西、兵团、定西）
 - `FAILED`：1 个（广东，官方 429）
 - `BROWSER_REQUIRED`：本轮未新增；Chrome CDP 未连接，不能宣称浏览器路径可用。

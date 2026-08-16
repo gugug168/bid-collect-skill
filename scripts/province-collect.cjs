@@ -320,6 +320,23 @@ const ADAPTERS = {
     cats: ["001001002", "001002002"],
     defaultType: "招标公告",
   },
+  // ===== 常州（城市级 · 2026-08-16 V5 全量测试探测新增 · 标准 EPoint 同构）=====
+  // Goal v5 独立市级平台探测命中：ggzy.changzhou.gov.cn 对标准 getFullTextDataNew 返回 records（total=54479）。
+  // 栏目为 12 位深层级（区别于安阳 9 位）：001001001 前缀 = 工程建设招标公告大类，末 3 位是标的类型
+  // 子码——001 施工(total 1192)/002 监理设计(309)/004 设备采购(95)，均为 zb 范畴；
+  // 锁前缀（contains）全量隔离 001006 产权交易（湖塘镇商铺租赁类）与 005 其他交易。
+  // 真机证据：test-logs/v5-fulltest-2026-08-16/（栏目语义逐码验证 + 30 天窗口 VERIFIED_RECORD）。
+  changzhou: {
+    name: "常州市公共资源交易中心（城市级·标准 EPoint）",
+    verified: true, // 2026-08-16 实测：total=54479；-k 管网 -d 30 真实公告 VERIFIED_RECORD
+    kind: "epoint",
+    base: "https://ggzy.changzhou.gov.cn",
+    referer: "https://ggzy.changzhou.gov.cn/",
+    sortField: "webdate", // 探针实测 webdate 排序最新在前（同安阳）
+    cats: ["001001001"], // contains 前缀：工程建设招标公告全部子类（施工/监理设计/采购）
+    omitFields: true,    // 常州实例对 fields 投影参数敏感：传入即静默返空（2026-08-16 二分定位实测）
+    defaultType: "招标公告",
+  },
   // ===== 定西（城市级 · 2026-08-16 实测新增 · 标准 EPoint · infodate 排序变体）=====
   // 定西市公共资源交易中心 = 独立站点 + 标准 EPoint getFullTextDataNew（端点与 Anyang/兰州同构，kind=epoint 复用 epointList/epointPost，零定制）。
   // 实测（沙箱可达，200）：默认请求体 POST 返回 total=4621 条真实标讯；cats=["004"] 隔离交易类 3875 条（剔除 009 新闻中心/030 业务动态）。
@@ -2153,6 +2170,9 @@ async function epointList(ad, page, args, catsOverride) {
   const cats = catsOverride || ad.cats;
   const body = epointParam(args.keyword, (page - 1) * rn, rn, cats, ad.sortField, ad.cnum);
   if (ad.keywordClient) body.wd = "";   // 该实例 wd 服务端检索失效，改拉全量分类后在 crawlRound 按标题客户端过滤
+  // 2026-08-16 V5（常州实测）：部分 EPoint 实例对 fields 投影参数敏感——传入即静默返空
+  //（total None/records 0，与"无数据"不可区分）；omitFields 开关删除该参数，返回全量字段（解析链不变）。
+  if (ad.omitFields) delete body.fields;
   const j = await epointPost(ad, body, args.delay);
   const recs = (j && j.result && j.result.records) || [];
   return recs.map(r => {
@@ -4926,6 +4946,7 @@ const PROV_ALIAS = {
   哈尔滨: "heilongjiang",
   安阳: "anyang", // 城市级 adapter 范本（河南安阳市平台，非省级）
   定西: "dingxi", // 城市级 adapter（甘肃定西市平台，infodate 排序变体；源站 2023-04 后停更）
+  常州: "changzhou", // 城市级 adapter（江苏常州独立平台，标准 EPoint 同构）
 };
 async function collectProvince(prov0, args) {
   const prov = ADAPTERS[prov0] ? prov0 : (PROV_ALIAS[prov0] || prov0);
