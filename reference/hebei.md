@@ -16,6 +16,9 @@ SSR 列表镜像 `jyxxList.html` 分页正则。
 HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p hebei -k 管网 --detail -d 120 --csv -o out/hebei.csv
 ```
 
+## 城市/区县筛选（2026-08-16 实测）
+`-c 赵县 --limit 1 --no-detail`（无 `-k` 口径）返回 1/1 条记录（中达储能科技（赵县）…项目，标题含筛词）；`-k 管网` 365d 仍 0 条。观察：cityHint 匹配源比输出 city 列丰富（`-c 石家庄` 能正确命中 cityHint 为「河北省石家庄市赵县北王里镇」的记录）。
+
 ## 诚实留空字段（源页无则空，绝不伪造）
 performance / fullScore（源页普遍无评分细则/业绩要求，全省一致诚实留空）；projectSite / city / type 依省而异（源页无则空）
 

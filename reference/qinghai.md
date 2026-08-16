@@ -14,6 +14,9 @@ EPoint 自定义 `/inteligentsearch/rest/inteligentSearch`（方法名非标准�
 HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p qinghai -k 管网 --detail -d 120 --csv -o out/qinghai.csv
 ```
 
+## 城市/区县筛选（2026-08-16 实测）
+`-c 德令哈 --limit 2 --detail` 返回 2/2 条 `海西州·德令哈市` 记录（海西州德令哈市城…项目）；city 列含州·市两级。
+
 ## 诚实留空字段（源页无则空，绝不伪造）
 performance / fullScore（源页普遍无评分细则/业绩要求，全省一致诚实留空）；projectSite / city / type 依省而异（源页无则空）
 

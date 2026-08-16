@@ -278,6 +278,24 @@ test("合同主体(甲方)/(乙方)角色后缀可抽取", () => {
   assert.equal(out.partyB, "中粤建设集团（海南）有限公司");
 });
 
+// 2026-08-16 Goal v3 回源核查补充：EPoint 表格拼接串与平台操作指引拒收（黑龙江/兵团/重庆/海南实测）
+test("工期抽取拒绝表格拼接串且日期不误判为年单位", () => {
+  const out1 = M.extractDetail(M.ADAPTERS.heilongjiang,
+    "<p>2.3 计划工期 （天）监理费上限（万元）SZJL0504G250715001001002 黑龙江省大庆市 2025年08月22日 2026年10月31日 435 37.62</p>",
+    { title: "供水管网改造（监理）", url: "https://example.invalid/a" }, "");
+  assert.equal(out1.duration, "");   // 表格拼接串拒收，诚实留空
+  const out2 = M.extractDetail(M.ADAPTERS.chongqing,
+    "<p>2.5 工期要求： 270 日历天。缺陷责任期要求： 24 个月</p>",
+    { title: "污水厂配套管网", url: "https://example.invalid/b" }, "");
+  assert.equal(out2.duration, "270 日历天");   // "要求："前缀剥离后保留工期值
+});
+test("招标人抽取拒绝平台操作指引文本", () => {
+  const out = M.extractDetail(M.ADAPTERS.heilongjiang,
+    "<p>七、其他说明 招标人/招标代理机构在交易平台点击保证金退回申请。</p>",
+    { title: "供水管网改造", url: "https://example.invalid/c" }, "");
+  assert.equal(out.owner, "");   // 指引文本不是招标人，诚实留空
+});
+
 let passed = 0;
 for (const { name, fn } of tests) {
   try {

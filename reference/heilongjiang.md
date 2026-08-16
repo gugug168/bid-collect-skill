@@ -17,6 +17,9 @@ HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p heilongjiang -k �
 // （用 `-d 400`：建设索引偏旧，-d 120 会全过滤）
 ```
 
+## 城市/区县筛选（2026-08-16 实测）
+`-c 大庆 --limit 2 --detail`（`-d 400` 口径）返回 2/2 条 `黑龙江省大庆市` 记录（黑龙江省大庆市杜尔伯特…项目）；365d 管网窗口仍 0 条（见 ZB_LIVE_STATUS 口径）。
+
 ## 诚实留空字段（源页无则空，绝不伪造）
 performance / fullScore（源页普遍无评分细则/业绩要求，全省一致诚实留空）；projectSite / city / type 依省而异（源页无则空）
 

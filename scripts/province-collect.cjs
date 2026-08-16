@@ -1475,6 +1475,15 @@ const FUND_LABELS = ["资金来源及比例", "建设资金来自", "资金来�
 // "设计周期：20日历天 建设周期：240日历天"，原 DUR_LABELS 无此标签 → 工期全空/误抓导航脏值）。
 const DUR_LABELS = ["勘察设计服务期限", "设计服务期限", "服务期限", "计划工期", "建设工期", "建设周期", "设计周期", "工期", "服务周期", "服务期"];
 const OWNER_LABELS = ["采购人名称", "采购人", "采购单位", "招标人为", "招标人", "建设单位", "业主单位"];
+// 2026-08-16 Goal v3 回源核查新增：平台操作指引不是招标人（黑龙江"/招标代理机构在交易平台点击保证金退回申请"实测）
+const OWNER_GARBAGE = /^[\/／]|点击|退回申请|操作指引|数字证书/;
+function grabOwnerGuarded(text, flat) {
+  for (const lab of OWNER_LABELS) {
+    const o = completeOrgName(grabBoth(text, flat, [lab]), flat);
+    if (o && !OWNER_GARBAGE.test(o)) return o;   // 噪声候选跳过，试下一标签；全噪声则诚实留空
+  }
+  return "";
+}
 const AGENCY_LABELS = ["招标代理机构", "采购代理机构", "代理机构为", "代理机构", "招标代理"];
 const CONTACT_LABELS = ["联系人", "项目联系人", "联系人员"];
 // 工期：监理/服务类公告通篇没有"工期"二字，写成表单勾选式（浙江德清滨海燃气监理实测）：
@@ -1489,23 +1498,31 @@ const CHECKED = /[☑☒✓√■⊠]/;         // 已勾选；□/£/¨ 为未�
 // 2026-08-11 江苏灌云实测：「运维服务周期和硬件质保在3年基础上增加1年得2分」被当成工期。
 // 命中即弃用该标签、继续试下一个更泛但更准的标签（如"工期"）。
 const DUR_SCORE_NOISE = /得\s*\d+(?:\.\d+)?\s*分|得分|加分|扣分|每增加|每延长/;
+// 2026-08-16 Goal v3 回源核查新增：EPoint 表格拼接串（黑龙江"（天）监理费上限（万元）SZJL0504…2026年10月31日43537.62"、
+// 兵团"（天） E6699004… 第四师G218…"）内日期"2026年"会被 DUR_UNIT 误判为"N 年工期"；海南出现"要求：总工期或计划开工日期为"
+// 截断句。拒收特征：以（天）开头 / 含（万元）/ 含字母+长数字编号 / 以"为""："等截断词收尾。
+const DUR_GARBAGE = /^[(（]\s*天[)）]|[（(]\s*万元\s*[)）]|[A-Za-z]\d{6,}|[为：:]\s*$/;
 
 function grabDuration(text, flat) {
+  const durClean = (s) => cleanVal(String(s).replace(/^\s*要求\s*[:：]\s*/, ""));  // 重庆"要求：270日历天"剥前缀
+  // 单位判定前剔除日期串（"2026年10月31日"里的"年"不是工期单位）
+  const durUnitHit = (s) => DUR_UNIT.test(String(s).replace(/(?:19|20)\d{2}\s*年(?:\s*\d{1,2}\s*月(?:\s*\d{1,2}\s*日)?)?/g, ""));
   let v = "";
   for (const lab of DUR_LABELS) {              // 逐标签取值，等价于原 grabBoth(整列表)，但可对单个候选做质检
-    const one = grabBoth(text, flat, [lab]);
-    if (!one) continue;
-    if (DUR_SCORE_NOISE.test(one)) continue;   // 评分条款 → 换下一个标签
+    const raw = grabBoth(text, flat, [lab]);
+    if (!raw) continue;
+    const one = durClean(raw);
+    if (DUR_SCORE_NOISE.test(one) || DUR_GARBAGE.test(one)) continue;   // 评分条款/表格拼接串 → 换下一个标签
     if (!v) v = one;                           // 记住首个非噪声值作为兜底
-    if (DUR_UNIT.test(one)) return one;        // 自带天/月/年数字 → 立即可信
+    if (durUnitHit(one)) return one;           // 自带天/月/年数字 → 立即可信
   }
   const m = flat.match(/(?:计划监理服务期|监理服务期|服务期限|服务期|计划工期|建设工期|工期)\s*[:：]?([\s\S]{0,400})/);
   if (m) {
     for (const seg of m[1].split(/(?=[☑☒✓√■⊠□£¨])/)) {
       if (!CHECKED.test(seg[0] || "")) continue;                 // 跳过未勾选项
-      if (!DUR_UNIT.test(seg)) continue;                          // 跳过勾了但没写天数的
-      const one = cleanVal(seg.replace(/^[☑☒✓√■⊠]\s*/, "").split(/[。；;]/)[0]);
-      if (isMeaningful(one, 4)) return one.slice(0, 60);
+      if (!durUnitHit(seg)) continue;                            // 跳过勾了但没写天数的
+      const one = durClean(seg.replace(/^[☑☒✓√■⊠]\s*/, "").split(/[。；;]/)[0]);
+      if (isMeaningful(one, 4) && !DUR_GARBAGE.test(one)) return one.slice(0, 60);
     }
   }
   return v || "";                                // 主通道虽无数字，也好过留空（如"详见招标文件"）
@@ -1772,7 +1789,7 @@ function extractDetail(ad, html, item, pdfText) {
     scope: grabScope(text, flat),
     approval: grabApprovalNo(text) || grabBoth(text, flat, APPROVAL_LABELS, 2),
     manager: grabManager(text, flat),
-    owner: completeOrgName(grabBoth(text, flat, OWNER_LABELS), flat),
+    owner: grabOwnerGuarded(text, flat),
     // 代理机构：带"招标/采购"前缀的完整标签优先 —— PDF 正文里"委托代理机构为\n嘉兴经投工程咨询\n服务有限公司"
     // 的公司名被换行拆成两段，只有落款处"招标代理机构：…"是整行完整值。
     agency: completeOrgName(grabBoth(text, flat, AGENCY_LABELS), flat),

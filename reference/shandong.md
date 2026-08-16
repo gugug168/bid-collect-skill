@@ -15,6 +15,9 @@ HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p shandong -k 管�
 // （本沙箱不可达，开放网络重试）
 ```
 
+## 城市/区县筛选（2026-08-16 实测）
+`-c 潍坊 --limit 2 --detail` 返回 2/2 条命中记录（山东省潍坊市寿光…管网项目，标题含筛词；city 列偶见源站错字，不影响标题源命中）。本日列表层+详情可达（run-report VERIFIED_RECORD）。
+
 ## 诚实留空字段（源页无则空，绝不伪造）
 （见 verdict；该源无法提供建设类公告厚字段）
 
