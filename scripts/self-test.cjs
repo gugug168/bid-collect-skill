@@ -52,6 +52,23 @@ test("招标公告实时状态总账覆盖全部 43 个 adapter", () => {
   assert.match(text, /`FAILED`：2 个/);
 });
 
+// 2026-08-16 V5 批次2 详情加固：括号单位金额 + GBK 详情 + 脏开标守卫（无锡/岳阳/泉州实测）
+test("标签自带括号单位的金额可正确提取且中文兜底不误配", () => {
+  // 无锡实测形态：原版中文兜底把「（万」当数字输出 1 万元的错值
+  assert.equal(M.grabMoneyWan("2.6 工程合同估算价（万元）： 298.0 2.7 单位工程", ["合同估算价", "估算价"]), "298");
+  assert.equal(M.grabMoneyWan("控制价（元）：15000", ["控制价"]), "1.5");
+  // 回归：数字+单位与中文大写两通道不受影响
+  assert.equal(M.grabMoneyWan("最高投标限价: 9313711.85.元", ["最高投标限价"]), "931.3712");
+  assert.equal(M.grabMoneyWan("投标保证金：人民币叁万元整", ["投标保证金"]), "3");
+});
+test("开标时间早于发布日期1年以上判脏丢弃（泉州模板残留形态）", () => {
+  const out = M.extractDetail(M.ADAPTERS.quanzhou,
+    "<p>开标时间：2021-09-10 09:30</p><p>招标人：某公司</p>",
+    { title: "南安管网", url: "https://example.invalid/q", date: "2026-08-06" }, "");
+  assert.equal(out.bidOpen, "2021-09-10 09:30");   // extractDetail 层不判（无列表日期上下文）
+  assert.equal(M.ADAPTERS.yueyang.gbkDetail, true); // 岳阳详情走 GBK 解码开关
+});
+
 test("常州城市级 adapter 配置锁定（omitFields 实例差异 + 栏目前缀）", () => {
   assert.equal(M.ADAPTERS.changzhou.omitFields, true);          // fields 投影参数传入即静默返空（实测二分定位）
   assert.deepEqual(M.ADAPTERS.changzhou.cats, ["001001001"]);   // 工程建设招标公告大类 contains 前缀
