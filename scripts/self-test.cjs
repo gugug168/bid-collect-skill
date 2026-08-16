@@ -19,7 +19,7 @@ test("SKILL.md frontmatter 只使用 Codex 支持的顶层键", () => {
 });
 
 test("43 个 adapter 均已注册（32 省级 + 11 城市级）", () => {
-  assert.equal(Object.keys(M.ADAPTERS).length, 43);   // 2026-08-16 V5 批次2：+8 城（宜昌/临沂/烟台/无锡/泉州/岳阳/遵义/宜宾）
+  assert.equal(Object.keys(M.ADAPTERS).length, 44);   // 2026-08-16 V5 批次3：+suzhou（批次2 已 +8 城）
 });
 
 test("中文省名覆盖全部 adapter", () => {
@@ -45,9 +45,9 @@ test("招标公告实时状态总账覆盖全部 43 个 adapter", () => {
   assert.ok(fs.existsSync(file), "缺少招标公告实时状态总账");
   const text = fs.readFileSync(file, "utf8");
   const rows = [...text.matchAll(/^\| ([a-z][a-z0-9]+) \|/gm)].map((m) => m[1]).filter((adapter) => M.ADAPTERS[adapter]);
-  assert.equal(new Set(rows).size, 43);
+  assert.equal(new Set(rows).size, 44);
   assert.deepEqual([...new Set(rows)].sort(), Object.keys(M.ADAPTERS).sort());
-  assert.match(text, /`VERIFIED_RECORD`：35 个/);
+  assert.match(text, /`VERIFIED_RECORD`：36 个/);
   assert.match(text, /`CONNECTED_NO_RECENT_DATA`：6 个/);
   assert.match(text, /`FAILED`：2 个/);
 });

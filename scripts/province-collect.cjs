@@ -300,6 +300,36 @@ const ADAPTERS = {
       candidate: { type: "中标候选人", cats: ["003002001002"] },
     },
   },
+  // ===== 苏州（城市级 · 2026-08-16 V5 批次3 接入 · 静态 SSR webBuilder）=====
+  // ggzy.suzhou.gov.cn：webBuilder 4.4 站，列表为 SSR 静态 HTML（页内 {{}} 是 mustache 隐藏模板行，
+  // 真实数据行同在 HTML——勿被模板行误判为 JS 壳，2026-08-16 浏览器 DOM 与 curl 双证）。
+  // 锁 003001001 子栏目（建设工程-招标公告）避开 003001 大类混型（提前公示/定标结果）；
+  // 分页 ?pageIndex=N（1-based）。详情为静态页 /jyxx/003001/003001001/<日期>/<uuid>.html。
+  suzhou: {
+    name: "苏州市公共资源交易平台（城市级·静态 SSR）",
+    verified: true, // 2026-08-16 实测：子栏目 4 条正式公告，标题/日期/静态链接齐
+    base: "https://ggzy.suzhou.gov.cn",
+    clientFilterOnly: true, // 无服务端关键词
+    defaultType: "招标公告",
+    listUrl: (page) => `https://ggzy.suzhou.gov.cn/jyxx/003001/003001001/tradeInfo.html?pageIndex=${page}`,
+    parse(html) {
+      const out = [];
+      const re = /<tr class="ewb-trade-tr">[\s\S]*?<a\s+href="(\/jyxx\/[^"]+)"[^>]*title="([^"]+)"[\s\S]*?<\/tr>/g;
+      let m;
+      while ((m = re.exec(html))) {
+        if (m[1].includes("{{")) continue;                       // mustache 模板行
+        const tds = [];
+        const row = m[0];
+        const tdRe = /<td class="ewb-trade-td">\s*([\s\S]*?)\s*<\/td>/g;
+        let td;
+        while ((td = tdRe.exec(row))) tds.push(td[1].replace(/<[^>]+>/g, "").trim());
+        const date = (tds.find(x => /(?:19|20)\d{2}-\d{2}-\d{2}/.test(x)) || "").match(/(?:19|20)\d{2}-\d{2}-\d{2}/)[0];
+        const city = tds.find(x => x && !/^\d+$/.test(x) && !/(?:19|20)\d{2}-\d{2}-\d{2}/.test(x) && x !== m[2]) || "";
+        out.push({ title: m[2], url: m[1].startsWith("http") ? m[1] : "https://ggzy.suzhou.gov.cn" + m[1], date, cityHint: city.slice(0, 12) });  // href 为站内相对路径，拼绝对
+      }
+      return out;
+    },
+  },
   // ===== 安阳（城市级 · 2026-08-16 实测新增 · 标准 EPoint 范本）=====
   // 安阳市公共资源交易中心 = 独立站点 + 标准 EPoint getFullTextDataNew（与兰州/江苏同构）。
   // 实测：默认请求体 POST 返回 total=96504 条真实标讯（样本「安阳市第六中学改造工程-中标结果公告」）。
@@ -5207,6 +5237,7 @@ const PROV_ALIAS = {
   安阳: "anyang", // 城市级 adapter 范本（河南安阳市平台，非省级）
   定西: "dingxi", // 城市级 adapter（甘肃定西市平台，infodate 排序变体；源站 2023-04 后停更）
   常州: "changzhou", // 城市级 adapter（江苏常州独立平台，标准 EPoint 同构）
+  苏州: "suzhou", // 城市级 adapter（江苏苏州独立平台，静态 SSR webBuilder）
   宜昌: "yichang", 临沂: "linyi", 烟台: "yantai", 无锡: "wuxi", 泉州: "quanzhou",
   岳阳: "yueyang", 遵义: "zunyi", 宜宾: "yibin", // 城市级批次2（Goal v5）
 };
