@@ -106,16 +106,19 @@ node scripts/province-collect.cjs -p 浙江 -k 管网 -d 365 --verify
 - XLSX 与 CSV 不是同一列集。预算 `budget` 与控制价 `controlPrice` 是两个事实，禁止合并。
 - 输出层清理 `undefined`、`null`、`NaN` 和未渲染 `{{downloadurl}}`；合法数值 `0` 不会被当成缺失。
 
-## 32 个 adapter 与家族
+## 33 个 adapter 与家族（32 省级 + anyang 城市级范本）
 
-代码内 `ADAPTERS` 是 adapter 清单真相源，当前 32 个键：
+代码内 `ADAPTERS` 是 adapter 清单真相源，当前 33 个键：
 
 ```text
 beijing tianjin hebei shanxi neimenggu liaoning jilin heilongjiang
 shanghai jiangsu zhejiang anhui fujian jiangxi shandong henan
 hubei hunan guangdong guangxi hainan chongqing sichuan guizhou
 yunnan xizang shaanxi gansu qinghai ningxia xinjiang xinjiangbt
+anyang
 ```
+
+`anyang` 为首个**城市级 adapter 范本**（安阳市公共资源交易中心，标准 EPoint 同构；`-p 安阳` 可用）。城市级接入不改变 32 省语义——总账与逐省 reference 以省级为准，anyang 单独计行。
 
 家族包括 `epoint`、`epointX`、HTML SSR、TRS、粤公平 API 及各省 bespoke REST/POST。具体端点、阶段、限制与复采命令维护在每省 reference 和 `reference/FAMILY_INDEX.md`；城市入口口径见 [`reference/CITY_ENTRY_INDEX.md`](reference/CITY_ENTRY_INDEX.md)。
 

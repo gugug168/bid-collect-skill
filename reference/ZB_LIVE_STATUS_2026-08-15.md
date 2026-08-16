@@ -38,10 +38,11 @@
 | ningxia | `VERIFIED_RECORD` | 3 | — | `ningxia.run-report.json` | EPointX |
 | xinjiang | `VERIFIED_RECORD` | 3 | — | `xinjiang.run-report.json` | EPointX |
 | xinjiangbt | `CONNECTED_NO_RECENT_DATA` | 0 | 90/365 仍 0 | `xinjiangbt.run-report.json`, `xinjiangbt-90d`, `xinjiangbt-365d` | 旧快照需去关键词，当前管网窗口为空 |
+| anyang | `VERIFIED_RECORD` | 5 | — | `city-2026-08-16/anyang/anyang_list.run-report.json` | 城市级 adapter 范本（2026-08-16 接入实测，非省级） |
 
 ## 汇总
 
-- `VERIFIED_RECORD`：26 个
+- `VERIFIED_RECORD`：27 个（含 anyang 城市级范本，2026-08-16 接入）
 - `CONNECTED_NO_RECENT_DATA`：5 个（河北、黑龙江、河南、陕西、兵团）
 - `FAILED`：1 个（广东，官方 429）
 - `BROWSER_REQUIRED`：本轮未新增；Chrome CDP 未连接，不能宣称浏览器路径可用。

@@ -314,7 +314,9 @@ const ADAPTERS = {
     // 安阳记录**无 infodatepx 字段**（同浙江/海南），默认 sort 失效→老记录在前→被 days 截止滤光。
     // 必须按 webdate 排序才能近 N 天正确截断（实测 sort:{webdate:0}=最新在前，{webdate:1}=最旧在前）。
     sortField: "webdate",
-    defaultType: "招标公告",
+    // 2026-08-16 PR 审查修正：cats 未锁会混入评标结果公示等 B 阶段公告，固定 defaultType 会把它们
+    // 错标为"招标公告"（实测样本"滑县看守所迁建配套管网项目评标结果公示"）——去掉 defaultType，
+    // 类型交 inferType 按标题判，宁可标题判型不错标。
     // 安阳用默认请求体即返回全量（96504 条），不锁栏目（cats 留空）、不定制 unionCondition。
     // 后续可按需枚举其 categorynum 细化（警惕海南式「误锁招标计划」陷阱，故 PoC 阶段不锁）。
   },
@@ -3060,12 +3062,14 @@ async function henanNoticeList(ad, page, args) {
   const all = [];
   for (const t of targets) {
     for (let pg = 0; pg < 30; pg++) {
+      if (pg) await sleep(args.delay || 500);   // 循环模式页间节流（PR 审查补：原版无页间等待，激活前必须补，防连打）
       const recs = await henanFetchPage(ad, t.code, pg, args);
       if (!recs.length) break;
       all.push(...recs);
       if (recs.length < (ad.rn || 8)) break;
     }
     if (hasReachedLimit(all.length, args)) break;
+    await sleep(args.delay || 500);             // 城市间节流
   }
   return all;
 }
@@ -4779,16 +4783,15 @@ function matchesCityFilter(cityArg, candidates) {
   const fields = (candidates || []).map((value) => String(value || "").replace(/\s+/g, "")).filter(Boolean);
   return filters.some((filter) => {
     const nf = normalizeArea(filter);
-    const targetDistricts = PREFECTURE_DISTRICTS[nf] || PREFECTURE_DISTRICTS[filter] || [];
-    // 目标若是区县，反查其所属地级市（仅当其不是某个地级市的关键时才查）
-    const prefOfFilter = targetDistricts.length
-      ? null
-      : Object.keys(PREFECTURE_DISTRICTS).find((p) => (PREFECTURE_DISTRICTS[p] || []).some((d) => normalizeArea(d) === nf || d === filter));
+    // 筛地级市（如"安阳"）→ 顺带命中其区县（林州市/滑县…）。
+    // 2026-08-16 PR 审查修正两点：①"市辖区"是 281 个地级市共有的通用词，参与 includes 匹配会把
+    // 全省任何"市辖区"记录误判属本市——排除；②原 prefOfFilter 把区县级筛词（如"林州"）反查放大为
+    // 整个安阳市放行（实测 -c 林州 返回安阳市本级记录）——删除，筛区县只出区县（直接子串命中）。
+    const targetDistricts = (PREFECTURE_DISTRICTS[nf] || PREFECTURE_DISTRICTS[filter] || []).filter((d) => d !== "市辖区");
     return fields.some((field) => {
       const nfield = normalizeArea(field);
       if (field.includes(filter) || (nf && nfield.includes(nf))) return true;
       if (targetDistricts.some((d) => normalizeArea(d) === nfield || field.includes(d))) return true;
-      if (prefOfFilter && (nfield === normalizeArea(prefOfFilter) || field.includes(prefOfFilter))) return true;
       return false;
     });
   });
@@ -4836,6 +4839,7 @@ const PROV_ALIAS = {
   新疆: "xinjiang",
   兵团: "xinjiangbt", 新疆兵团: "xinjiangbt",
   哈尔滨: "heilongjiang",
+  安阳: "anyang", // 城市级 adapter 范本（河南安阳市平台，非省级）
 };
 async function collectProvince(prov0, args) {
   const prov = ADAPTERS[prov0] ? prov0 : (PROV_ALIAS[prov0] || prov0);
