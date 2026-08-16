@@ -1903,7 +1903,11 @@ function tableColumn(headers, patterns) {
 function tableMoneyWan(value, header) {
   const n = parseFloat(String(value || "").replace(/[,，\s]/g, ""));
   if (!Number.isFinite(n) || n <= 0) return "";
-  const wan = /万元|\b万\b/.test(header || "") ? n : n / 10000;
+  // 2026-08-16 V4A：\b万\b 在中文/全角括号旁失效（表头「投标报价(万)」被判为元 ÷1e4，
+  // 中标价缩小 10000 倍——实测 950 → "0.095"）。表头语境「万」即单位（无"万分"类表头），
+  // 直接判万元；换算后 <0.01 万（百元级"中标价"）视为单位误判嫌疑，留空不造假。
+  const wan = /万元|万/.test(header || "") ? n : n / 10000;
+  if (wan < 0.01) return "";
   return String(Math.round(wan * 10000) / 10000);
 }
 
@@ -1921,12 +1925,20 @@ function extractCandidateTables(html) {
     const scoreI = tableColumn(headers, [/评标结果/, /综合得分/, /评审得分/, /得分/]);
     const rankI = tableColumn(headers, [/排序/, /排名/, /名次/, /序号/]);
     const managerI = tableColumn(headers, [/项目负责人名称/, /项目经理/, /项目负责人/]);
-    const row = rows.slice(hi + 1).find((r) => {
+    const dataRows = rows.slice(hi + 1).filter((r) => r.some((c) => String(c || "").trim()));
+    // 2026-08-16 V4A 兜底：无排序列的候选表（表头「中标候选人名称|投标报价(万)」）原谓词要求
+    // 首列=1/第一/一，而第 0 列是候选人名称永不命中 → 整表静默跳过降级文本启发。单数据行表无排序歧义，直接采纳。
+    const row = dataRows.find((r) => {
       const rank = rankI >= 0 ? r[rankI] : r[0];
       return /^(?:1|第一|一)$/.test(String(rank || "").trim()) && winnerI >= 0 && r[winnerI];
-    });
+    }) || (rankI < 0 && dataRows.length === 1 && winnerI >= 0 && dataRows[0][winnerI] ? dataRows[0] : undefined);
     if (!row) continue;
-    if (managerI >= 0 && row[managerI]) manager = row[managerI].trim();
+    // 2026-08-16 V4A：manager 跨表守卫——多标段页（管网项目高发）第二张**带价格列**的候选表会覆盖
+    // 第一张表的中标人配套经理，拼出「中标人A标段+经理B标段」假数据（实测复现）。
+    // 放行**纯补充表**（无价格/工期/得分列，且 winner 与已采一致——浙江「排序表+项目经理表」两表结构）。
+    if (managerI >= 0 && row[managerI] && (!basic.winner || (!(priceI >= 0 || durationI >= 0 || scoreI >= 0) && cleanWinnerRaw(row[winnerI]) === basic.winner))) {
+      manager = row[managerI].trim();
+    }
     if (!basic.winner && (priceI >= 0 || durationI >= 0 || scoreI >= 0)) {
       basic = {
         rank: rankI >= 0 ? row[rankI] : "1",
@@ -2093,7 +2105,14 @@ async function epointPost(ad, body, delay = 500) {
         },
         body: JSON.stringify(body), redirect: "follow",
       });
-      if (r.status === 429 || r.status >= 500) throw new Error("HTTP " + r.status);
+      if (r.status === 429) {
+        // 2026-08-16 V4A：429 进全局节流闸门（原版仅本函数退避封顶 8s，不与 requestWithRetry 的
+        // 全局闸门联动，EPoint 族 adapter 的 429 处理是最弱一环）。Retry-After 优先。
+        const ra = parseRetryAfterMs(r, "") || 0;
+        bumpThrottle(Math.max(ra, wait * 2));
+        throw new Error("HTTP 429" + (ra ? " (Retry-After " + ra + "ms)" : ""));
+      }
+      if (r.status >= 500) throw new Error("HTTP " + r.status);
       const txt = Buffer.from(await r.arrayBuffer()).toString("utf8");
       return JSON.parse(txt);
     } catch (e) {
@@ -2173,7 +2192,13 @@ async function epointXPost(ad, body, delay = 500) {
         },
         body: JSON.stringify(body), redirect: "follow",
       });
-      if (r.status === 429 || r.status >= 500) throw new Error("HTTP " + r.status);
+      if (r.status === 429) {
+        // 2026-08-16 V4A：同 epointPost——429 进全局节流闸门，Retry-After 优先
+        const ra = parseRetryAfterMs(r, "") || 0;
+        bumpThrottle(Math.max(ra, wait * 2));
+        throw new Error("HTTP 429" + (ra ? " (Retry-After " + ra + "ms)" : ""));
+      }
+      if (r.status >= 500) throw new Error("HTTP " + r.status);
       const txt = Buffer.from(await r.arrayBuffer()).toString("utf8");
       return JSON.parse(txt);
     } catch (e) {
@@ -2823,7 +2848,12 @@ async function fjList(ad, page, args) {
   if (!r || r.status === 0 || r.status === 429 || r.status >= 500) return [];
   let j; try { j = await r.json(); } catch (_) { return []; }
   if (!j || j.State !== "200") return [];
-  let plain; try { plain = fjCrypto.decrypt(j.Data); } catch (_) { return []; }
+  // 2026-08-16 V4A：解密/解析失败≠无数据——密钥轮换时原版静默 []，输出与"该省无标讯"不可区分
+  //（违背诚实纪律）。显式记 run-report errors，空窗口可归因。
+  let plain; try { plain = fjCrypto.decrypt(j.Data); } catch (_) {
+    if (global.__RUN_REPORT) global.__RUN_REPORT.errors.push({ code: "FJ_DECRYPT_FAIL", message: "福建门户解密失败——签名/密钥疑似轮换，需从前端 JS 重取（见 FAMILY_INDEX fj 条目）" });
+    return [];
+  }
   let obj; try { obj = JSON.parse(plain); } catch (_) { return []; }
   const arr = (obj && Array.isArray(obj.Table)) ? obj.Table : [];
   return arr.map(it => {
@@ -3271,7 +3301,11 @@ async function fetchBuffer(url, delay = 500) {
         if (!r.ok) throw new Error("HTTP " + r.status);
         const len = Number(r.headers.get("content-length") || 0);
         if (len > PDF_MAX_BYTES) throw new Error("PDF 过大 " + len);
-        return Buffer.from(await r.arrayBuffer());
+        // 2026-08-16 V4A：content-length 预检对 curl 兜底路径（headers 恒空）与 chunked 响应失效——
+        // 读出后按实际大小兜底判定，防 512MB maxBuffer 全量入内存。
+        const buf = Buffer.from(await r.arrayBuffer());
+        if (buf.length > PDF_MAX_BYTES) throw new Error("PDF 过大(实际) " + buf.length);
+        return buf;
       } finally { clearTimeout(t); }
     } catch (e) {
       if (attempt === 2) throw e;
@@ -3308,7 +3342,8 @@ function readZipEntries(buf) {
 
 function inflateEntry(e) {
   if (e.method === 0) return e.data;
-  try { return zlib.inflateSync(e.data); } catch { return null; }
+  // 2026-08-16 V4A：解压输出上限 64MB——zip 炸弹/异常 docx 可把几 KB 压缩流膨胀到 GB 级 OOM
+  try { return zlib.inflateSync(e.data, { maxOutputLength: 64 * 1024 * 1024 }); } catch { return null; }
 }
 
 function extractFromZip(buf) {
@@ -3329,8 +3364,9 @@ function extractFromZip(buf) {
   return { text: "", note: "Zip 内无可用文档（docx/pdf）" };
 }
 
-function parseAttachmentBuffer(buf) {
+function parseAttachmentBuffer(buf, depth = 0) {
   if (!buf || !buf.length) return { text: "", note: "空附件" };
+  if (depth > 3) return { text: "", note: "嵌套压缩超 3 层，停止解包" }; // 2026-08-16 V4A：递归深度上限
   const magic = buf.slice(0, 4).toString("latin1");
   if (magic === "%PDF") {
     const r = pdfToText(buf);
@@ -3340,7 +3376,7 @@ function parseAttachmentBuffer(buf) {
     return extractFromZip(buf);
   }
   if (buf.slice(0, 2).toString("latin1") === "\x1f\x8b") {
-    try { return parseAttachmentBuffer(zlib.gunzipSync(buf)); } catch { }
+    try { return parseAttachmentBuffer(zlib.gunzipSync(buf, { maxOutputLength: 64 * 1024 * 1024 }), depth + 1); } catch { }
   }
   return { text: "", note: "不支持的附件类型（非 PDF/Word/Zip），按诚实政策留空" };
 }
@@ -3573,6 +3609,10 @@ function parseArgs(argv) {
     else if (x === "--dump-text") a.dumpText = true;
   }
   if (!["full29", "biaobiaotong16"].includes(a.xlsxLayout)) throw new Error(`--xlsx-layout 仅支持 full29 或 biaobiaotong16，收到: ${a.xlsxLayout}`);
+  // 2026-08-16 V4A：NaN 静默穿透防护——days=NaN 使日期截断失效翻满 200 页收 2018 年老公告；
+  // delay=NaN 使 setTimeout(0) 礼貌延迟归零全速连打（hasReachedLimit 已有同款防御，此处补齐）。
+  if (!Number.isFinite(a.days) || a.days <= 0) throw new Error(`--days 需为正整数，收到: ${a.days}`);
+  if (!Number.isFinite(a.delay) || a.delay < 0) a.delay = 500;
   return a;
 }
 
@@ -4807,6 +4847,16 @@ for (const [prefecture, districts] of Object.entries(PREFECTURE_DISTRICTS)) {
     DISTRICT_PREFECTURE_OWNERS.get(key).add(prefecture);
   }
 }
+// 2026-08-16 V4A：自治州/地区全名别名索引——表键是短名（大理/红河/临夏…），用户按官方全名
+//（如"大理白族自治州"）筛选时 normalizeArea 剥"自治州"后缀得"大理白族"，查表 miss
+//（实测大理/红河/文山/德宏/怒江/迪庆/临夏 7 州失配，云南甘肃按全名筛静默 0 条）。
+// 每键 districts[0]（州/市全名）剥后缀后作为附加键指向同一张表。
+// ⚠ 必须放在 DISTRICT_PREFECTURE_OWNERS 构建之后：别名键若先入表，其区县会被 OWNERS 二次注册
+//（owner 集={原市,别名} size=2），被下方唯一归属过滤整体误清（调试实测）。
+for (const _p of Object.keys(PREFECTURE_DISTRICTS)) {
+  const _full = normalizeArea((PREFECTURE_DISTRICTS[_p] || [])[0] || "");
+  if (_full && _full !== _p && !PREFECTURE_DISTRICTS[_full]) PREFECTURE_DISTRICTS[_full] = PREFECTURE_DISTRICTS[_p];
+}
 
 // 城市筛选是客户端 OR 过滤：不同平台的行政区字段不一致，故同时使用列表地区、标题和提取值。
 // 不以“未命中”推断为不属于任何城市，只在用户明确给出 --city 时排除不匹配的记录。
@@ -4898,6 +4948,13 @@ async function collectProvince(prov0, args) {
     // makeBody 经 Object.assign 复制引用，调用时 this=ad，故 this.unionCondition 取 stage 覆盖值（兰州等依赖此）
     if (typeof ad.makeBody === "function") ad.makeBody = ad.makeBody.bind(ad);
   }
+  // 2026-08-16 V4A：-c 传本省省名（如 -p hainan --city 海南）时，省名 token 会撞 PREFECTURE_DISTRICTS
+  // 里青海"海南州"等地级市键（实测 -c 海南 把海南省记录滤成 0 条且不报错）——丢弃等于当前省名的 token。
+  if (args.city) {
+    const selfNames = Object.entries(PROV_ALIAS).filter(([, v]) => v === prov).map(([k]) => normalizeArea(k));
+    const kept = args.city.split(/[,，、]/).map((s) => s.trim()).filter((t) => t && t !== "全省" && !selfNames.includes(normalizeArea(t)));
+    args.city = kept.length ? kept.join(",") : "";
+  }
   const cutoff = new Date(Date.now() - args.days * 86400000);
   const result = [];
   const seen = new Set();
@@ -4928,6 +4985,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
     await sleep(args.delay);
     // 两种 adapter：epoint = JSON 接口分页；默认 = HTML 列表页正则解析
     let items;
+    try {
     if (ad.kind === "epoint") {
       items = await epointList(ad, page, args, cats);
     } else if (ad.kind === "epointX") {
@@ -4963,6 +5021,14 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
     } else {
       const html = await requestWithRetry(ad.listUrl(page), args.delay);
       items = ad.parse(html);
+    }
+    } catch (e) {
+      // 2026-08-16 V4A 兜底：epoint/epointX/ygp/henanNotice/HTML 默认路径的 list 是 throw 语义
+      //（对照 jl/fj/tj/nmg/ln/gz/yn/hb/sntba/cq 十省 try-catch 返 []），原版一次网络故障会上抛
+      // main FATAL exit(1)——整省已采结果全丢且 run-report 恰不落盘。现记错误停止翻页，
+      // 保留已采记录（跨 catRounds 继续下一栏目），让输出与 run-report 正常落盘。
+      if (args._run) args._run.errors.push({ code: "LIST_FETCH_FAIL", page, message: String(e && e.message || e).slice(0, 200) });
+      break;
     }
     if (!items.length) { if (++emptyPages >= 2) break; page++; continue; }
     emptyPages = 0;
@@ -5255,6 +5321,7 @@ function resolveOutputPaths(args) {
 // 仅作为 CLI 直接运行时执行；被 require 时只导出函数，便于离线单测提取器
  if (require.main === module) (async () => {
  try {
+  let ad, result; // 2026-08-16 V4A：提升到 try 外——FATAL 补写需要（原版 catch 访问不到已采结果）
   const args = parseArgs(process.argv.slice(2));
   args._run = { errors: [], auth_walls: [], rate_limits: [], transport_errors: [] };
   global.__RUN_REPORT = args._run;
@@ -5284,7 +5351,7 @@ function resolveOutputPaths(args) {
     process.exit(v.passed ? 0 : 2);
   }
   console.error(`=== ${args.province} ${args.keyword || "(不限)"} 近${args.days}天 ${args.detail ? "(厚字段)" : "(列表层)"} ===`);
-  const { ad, result } = await collectProvince(args.province, args);
+  ({ ad, result } = await collectProvince(args.province, args));
   console.error(`采集 ${result.length} 条`);
   const md = buildMarkdown(args.province, ad, result, args);
   if (args.out) {
@@ -5317,6 +5384,21 @@ function resolveOutputPaths(args) {
   }
  } catch (e) {
   if (typeof args !== "undefined" && args && args._run) args._run.errors.push({ code: "FATAL", message: String(e && e.message || e) });
+  // 2026-08-16 V4A 补写：原版 FATAL 直接 exit(1)——恰在最需要机器回执的时刻 run-report 不落盘、
+  // 已采结果全丢。现在尽力保全：有已采结果且指定了 --out 时，补写 markdown 与 run-report（FAILED）。
+  try {
+    if (typeof args !== "undefined" && args && args.out && typeof result !== "undefined" && result && result.length && ad) {
+      const { mdPath } = resolveOutputPaths(args);
+      ensureParentDir(mdPath);
+      fs.writeFileSync(mdPath, buildMarkdown(args.province, ad, result, args));
+      writeRunReport(mdPath, buildRunReport(args.province, ad, result, args, {
+        errors: args._run.errors,
+        signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors },
+        output: { markdown: mdPath, xlsx: null, csv: null },
+      }));
+      console.error("FATAL 补写: 已采 " + result.length + " 条与 run-report 保全至", mdPath);
+    }
+  } catch (_) { /* 补写失败不掩盖原始错误 */ }
   console.error("FATAL:", e && (e.stack || e.message) || e);
   process.exit(1);
  }

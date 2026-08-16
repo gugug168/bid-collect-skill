@@ -335,6 +335,47 @@ test("招标人抽取拒绝平台操作指引文本", () => {
   assert.equal(out.owner, "");   // 指引文本不是招标人，诚实留空
 });
 
+// 2026-08-16 Goal V4A 数据正确性修复固化（审计实测复现，见 _THICK_FIELD_AUDIT / 优化路线图）
+test("中标价表头(万)不再缩小万倍且百元级留空", () => {
+  const html = `<table>
+    <tr><th>中标候选人名称</th><th>投标报价(万)</th><th>排序</th></tr>
+    <tr><td>某某建设工程有限公司</td><td>950</td><td>1</td></tr></table>`;
+  const out = M.extractWinDetail({ stageKey: "candidate" }, html, { url: "https://example.invalid/v4a1" }, "");
+  assert.equal(out.winPrice, "950");   // 原版 \b万\b 失效 → "0.095"（缩小 10000 倍）
+  const html2 = `<table>
+    <tr><th>中标候选人名称</th><th>投标报价（元）</th><th>排序</th></tr>
+    <tr><td>某某建设工程有限公司</td><td>28973241.64</td><td>1</td></tr></table>`;
+  assert.equal(M.extractWinDetail({ stageKey: "candidate" }, html2, { url: "https://example.invalid/v4a2" }, "").winPrice, "2897.3242");
+});
+test("多标段页项目经理不被第二张带价表覆盖", () => {
+  const html = `<table>
+    <tr><th>中标候选人名称</th><th>投标报价(万元)</th><th>项目负责人</th><th>排序</th></tr>
+    <tr><td>一标段甲公司</td><td>1200</td><td>张三</td><td>1</td></tr></table>
+    <table>
+    <tr><th>中标候选人名称</th><th>投标报价(万元)</th><th>项目负责人</th><th>排序</th></tr>
+    <tr><td>二标段乙公司</td><td>800</td><td>李四</td><td>1</td></tr></table>`;
+  const out = M.extractWinDetail({ stageKey: "candidate" }, html, { url: "https://example.invalid/v4a3" }, "");
+  assert.equal(out.winner, "一标段甲公司");
+  assert.equal(out.winManager, "张三");   // 原版被第二张表覆盖为"李四"（跨标段错配）
+});
+test("无排序列的单行候选表直接采纳", () => {
+  const html = `<table>
+    <tr><th>中标候选人名称</th><th>投标报价(万元)</th></tr>
+    <tr><td>某某建设有限公司</td><td>950</td></tr></table>`;
+  const out = M.extractWinDetail({ stageKey: "candidate" }, html, { url: "https://example.invalid/v4a4" }, "");
+  assert.equal(out.winner, "某某建设有限公司");   // 原版整表跳过静默降级
+  assert.equal(out.winPrice, "950");
+});
+test("自治州官方全名可筛到下辖市", () => {
+  assert.equal(M.matchesCityFilter("大理白族自治州", ["大理市某管网项目"]), true);   // 原版 7 州全失配
+  assert.equal(M.matchesCityFilter("红河哈尼族彝族自治州", ["个旧市供水工程"]), true);
+  assert.equal(M.matchesCityFilter("临夏回族自治州", ["临夏市污水管网"]), true);
+});
+test("--days 非数字显式报错而非静默翻满 200 页", () => {
+  assert.throws(() => M.parseArgs(["-p", "anhui", "-d", "abc"]), /--days/);   // parseInt("abc")=NaN → 原版静默穿透
+  assert.equal(M.parseArgs(["-p", "anhui", "--delay", "abc"]).delay, 500);    // delay NaN 回落默认，礼貌延迟不失守
+});
+
 let passed = 0;
 for (const { name, fn } of tests) {
   try {
