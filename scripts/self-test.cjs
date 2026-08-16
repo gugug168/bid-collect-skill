@@ -18,8 +18,8 @@ test("SKILL.md frontmatter 只使用 Codex 支持的顶层键", () => {
   assert.deepEqual(keys.filter((key) => !allowed.has(key)), []);
 });
 
-test("34 个 adapter 均已注册（32 省级 + anyang/dingxi 城市级）", () => {
-  assert.equal(Object.keys(M.ADAPTERS).length, 35);   // 2026-08-16 V5：+changzhou
+test("43 个 adapter 均已注册（32 省级 + 11 城市级）", () => {
+  assert.equal(Object.keys(M.ADAPTERS).length, 43);   // 2026-08-16 V5 批次2：+8 城（宜昌/临沂/烟台/无锡/泉州/岳阳/遵义/宜宾）
 });
 
 test("中文省名覆盖全部 adapter", () => {
@@ -40,16 +40,16 @@ test("32 个 adapter 均有可执行的官方 reference", () => {
   }
 });
 
-test("招标公告实时状态总账覆盖全部 34 个 adapter", () => {
+test("招标公告实时状态总账覆盖全部 43 个 adapter", () => {
   const file = path.join(__dirname, "..", "reference", "ZB_LIVE_STATUS_2026-08-15.md");
   assert.ok(fs.existsSync(file), "缺少招标公告实时状态总账");
   const text = fs.readFileSync(file, "utf8");
   const rows = [...text.matchAll(/^\| ([a-z][a-z0-9]+) \|/gm)].map((m) => m[1]).filter((adapter) => M.ADAPTERS[adapter]);
-  assert.equal(new Set(rows).size, 35);
+  assert.equal(new Set(rows).size, 43);
   assert.deepEqual([...new Set(rows)].sort(), Object.keys(M.ADAPTERS).sort());
-  assert.match(text, /`VERIFIED_RECORD`：28 个/);
+  assert.match(text, /`VERIFIED_RECORD`：35 个/);
   assert.match(text, /`CONNECTED_NO_RECENT_DATA`：6 个/);
-  assert.match(text, /`FAILED`：1 个/);
+  assert.match(text, /`FAILED`：2 个/);
 });
 
 test("常州城市级 adapter 配置锁定（omitFields 实例差异 + 栏目前缀）", () => {

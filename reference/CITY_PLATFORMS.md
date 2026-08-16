@@ -11,23 +11,23 @@
 | 兰州（=gansu） | lzggzyjy.lanzhou.gov.cn | gs（双分支） | 省级 WAF 不可达走兰州市级门户 | ✅ VERIFIED（以 gansu 名义） |
 | 常州 changzhou | ggzy.changzhou.gov.cn | 标准 EPoint | **fields 投影参数传入即静默返空**（omitFields 开关）；12 位栏目锁 001001001 前缀 | ✅ VERIFIED（2026-08-16 V5） |
 | 定西 dingxi | ggzy.dingxi.gov.cn | 标准 EPoint·infodate 变体 | 第 4 种 sortField；源站 2023-04 停更 | 🟡 技术样本 |
+| 宜昌 yichang | ggzy.sc.yichang.gov.cn | EpointWebBuilder 变体 | getSecInfoListYzm（与河南同族）；20 页起验证码 | ✅ VERIFIED（V5 批次2） |
+| 临沂 linyi | ggzyjy.linyi.gov.cn | EPoint 双层包装 | {code,content:"JSON"} 二次 parse；total 15.3 万 | ✅ VERIFIED（V5 批次2） |
+| 烟台 yantai | ggzyjy.yantai.gov.cn | EPoint 双层包装 | 与临沂同款 sdwrap kind；total 21.8 万 | ✅ VERIFIED（V5 批次2） |
+| 无锡 wuxi | ggzyjy.wuxi.gov.cn | webBuilder AJAX | /info_open JSON；无服务端关键词 clientFilterOnly | ✅ VERIFIED（V5 批次2） |
+| 泉州 quanzhou | ggzyjy.quanzhou.gov.cn | Java .do | 全站 http keepScheme；projName 过滤无效 clientFilterOnly | ✅ VERIFIED（V5 批次2） |
+| 岳阳 yueyang | ggzy.yueyang.gov.cn | 静态 CMS·GBK | TextDecoder("gbk")；JSP pager.offset 分页 | ✅ VERIFIED（V5 批次2） |
+| 遵义 zunyi | ggzy.guizhou.gov.cn | 贵州省平台视角 | docSourceName=遵义市 过滤；announcement 滤 B 阶段 | ✅ VERIFIED（V5 批次2） |
+| 宜宾 yibin | ggzy.yibin.gov.cn | 筑龙 SPA 网关 | action RPC；SPA hash 无直链 allowNoUrl（同陕西形态） | 🟡 FAILED=无直链诚实判定 |
 
-## 已识别未接入（域名活，非标准 EPoint 路径——需逐城逆向，下一步专项）
+## 已识别未接入
 
-| 城市 | 域名 | 探测结果 |
+| 城市 | 域名 | 状态 |
 |---|---|---|
-| 苏州 | ggzy.suzhou.gov.cn | 活(200)，标准路径与 3 个 epointX 变体均未命中 |
-| 无锡 | ggzyjy.wuxi.gov.cn | 同上 |
-| 泉州 | ggzyjy.quanzhou.gov.cn | 同上 |
-| 临沂 | ggzyjy.linyi.gov.cn | 同上 |
-| 烟台 | ggzyjy.yantai.gov.cn | 同上 |
-| 岳阳 | ggzy.yueyang.gov.cn | 同上 |
-| 九江 | ggzyjy.jiujiang.gov.cn | 同上 |
-| 遵义 | ggzyjy.zunyi.gov.cn | 同上 |
-| 宜昌 | ggzyjy.yichang.gov.cn | 活(301) |
-| 宜宾 | ggzy.yibin.gov.cn | 活(403，疑似风控) |
+| 苏州 | ggzy.suzhou.gov.cn | 活(200) 自研 SSR（webBuilder 栏目树 jyxx/003XXX/tradeInfo.html 表格，侦察已拿到样本与解析正则）；**分页 URL 模式未验证**，接入留批次3（html kind，成本 ~20 行） |
+| 九江 | ggzyjy.jiujiang.gov.cn | **已下线**（2026-02 官方公告：全市平台并入江西省平台 ggzy.jiangxi.gov.cn；旧域名反代空壳）——采集九江走江西省平台按地区过滤（本仓库 jiangxi adapter 已覆盖省级源） |
 
-接入路径参考：打开首页判系统（EPoint 需找对路径变体；金润/广联达/易招标等其他系需 bespoke 逆向，参照 hunan/guizhou 先例）；同构则按 anyang/changzhou 范本零定制。
+其余原"域名活非 EPoint"8 城已全部在 V5 批次2 接入（见上表）。18 个变体未中城市的域名模式扩充探测（6 变体 × HEAD+GET 双重复核）已于 2026-08-16 完成：仅绵阳 ggzy.mianyang.cn 命中但 503（后端停服或拒代理出口，改日重试），其余 17 城无独立域名（大概率用省平台聚合，已由省级 adapter 覆盖）。
 
 ## 变体未命中（域名变体不中，不代表无平台——域名模式待扩充）
 
