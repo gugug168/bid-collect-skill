@@ -1,0 +1,72 @@
+# 逐城市循环（①）机制审计 · 2026-08-15
+
+> 目标：调研"逐城市循环"从广东（GD_CITIES 21 地市）扩展到其他省份的可行性，设计通用结构。
+> 结论：**原方案（靠 EPoint 族 `xiaqucode` 行政区码做服务端过滤）经实测不成立**。城市入口能力已由 `--city` 客户端过滤在 32 省全量交付。
+
+## 一、代码中的三类城市循环机制（源码审计）
+
+| 机制 | 位置 | 是否服务端过滤 | 状态 |
+|---|---|---|---|
+| 广东 ygp 逐地市 `siteCode` 循环 | `ygpList` L3069 / `ygpFetchPage` L3028 | ✅ 是（`siteCode` 入请求体，省级 440000 返回 0，必须逐 21 地市取全省） | 已完成 |
+| 河南 bespoke `xiaqucode` | `henanNoticeList` L2998，体 `xiaqucode: ad.xiaqucode \|\| "4100"` | ✅ 是（`4100`=全省，换地市码即过滤） | 仅全省，未逐地市循环 |
+| 标准 EPoint `epointParam` | L1985 | ❌ **否**（见下，实测忽略） | — |
+| 其他 bespoke/HTML（hn/gz/yn/hb/jl/fj/cq/tj/nmg/ln/gs/sntba） | 各自 `xList` | 各异，均未做逐城市 | — |
+
+`--city` 客户端 OR 过滤（`matchesCityFilter` L3532，调用点 L3670）对 32 省全可用，按 `cityHint/title` 过滤——**已交付（任务 #12，验证 `-c 芜湖` 6/8 命中）**。
+
+## 二、关键实测：标准 EPoint 是否认 `xiaqucode`？
+
+**实测对象**：hainan（`kind:epoint`，可达，曾出 `hainan_test.csv`）。
+**方法**：同一 `epointParam` 请求，分别「无 xiaqucode」与「`xiaqucode=460100`(海口)」对比。
+
+```
+基线(无xiaqucode)        recs=20  district 分布 11 类（含 海口市/三亚/定安县…）
+注入 xiaqucode=460100    recs=20  district 分布 11 类（逐字一致）
+→ ❌ xiaqucode 被忽略：标准 EPoint 不接受该过滤参数
+```
+
+补充：hainan 响应 `xiaquname` 有值（海口市/三亚…）但 `xiaqucode` 字段为 `-`（空）。
+**含义**：标准 EPoint 全文检索接口 `getFullTextDataNew` 不暴露行政区过滤参数；城市只能从响应 `xiaquname` 取，只能靠客户端 `--city` 过滤。
+
+## 三、河南 xiaqucode 复核（真机 curl 实测，2026-08-15）
+
+本机 Node fetch 对河南握手报 TLS `bad ecpoint`，改用 curl 复测（绕开该限制）：
+
+```
+xiaqucode=4100    -> count 5096   （全省，正常）
+xiaqucode=410000  -> count 1974   （混合子集：首条含 郑州/信阳 等多市标题，非单一城市）
+xiaqucode=410100  -> count 0      （郑州市 GB 6 位码）
+xiaqucode=4101/4102/4103/410200/410300/410400…419001 -> 全部 0
+xiaqucode=郑州市/郑州 -> 请求未正常回传（curl 中文未编码，结论待定但代码路径无效）
+```
+
+**结论（第二个经实测证伪的假设）**：河南 `getPageInfoListNewYzm` 的 `xiaqucode` **只认 `4100`(全省) 与 `410000`(混合非城市子集)**，
+逐地市的标准行政区码 / 4 位码 / 城市名 **全部返回 0**。即河南同样**不支持服务端逐城市过滤**。
+（与标准 EPoint 忽略 xiaqucode 互为印证：新点系这两类端点都不开放按城市的服务端检索。）
+
+→ 因此原定"以河南为第二省落地逐地市循环"不可行：若填入 GB 码，`--city 郑州` 会静默返回 0（回归），
+而 `4100` + 既有客户端 `--city` 过滤本可正确返回郑州记录。故**不落地河南 cityCodes**，保留通用机制为惰性扩展点。
+
+## 四、对 ① 的范围判定（诚实口径）
+
+1. **服务端逐城市循环真正"必需"的只有广东**（省级返回 0，不循环拿不到数据）→ 已完成。
+2. **EPoint 族 ~15 省服务端城市过滤不可行**（实测 `xiaqucode` 被忽略）→ 城市入口只能走 `--city` 客户端过滤（已全量交付）。
+3. **河南**可选择性加逐地市循环（xiaqucode 生效），但价值有限（全省已全量，`-c 郑州` 客户端过滤已覆盖）。
+4. 其余 bespoke 省（hn/gz/yn…）各需独立逆向，工作量不确定、边际收益低。
+
+## 五、建议方向（结论更新）
+
+大古初选 B（实现河南逐地市循环），但实测证伪：河南 xiaqucode 与标准 EPoint 一样不开放逐城市过滤。
+故 **B 不可行**，建议：
+
+- **A（推荐，现结论）**：认定 ① 实质完成——城市入口 = `--city` 客户端过滤（32 省已验证，#12）；服务端逐城市循环仅广东 ygp 必需（已完成）。转向其他工作。
+- **B'（如仍要"第二个服务端循环省"）**：需先找到**真正支持服务端城市码**的端点（目前 EPoint 族、河南均已证伪），再据其实测码表落地；当前无候选。
+- **C**：深挖 hn/gz/yn 等 bespoke 省是否各有服务端城市过滤（工作量大、收益不确定，且大概率同样不支持）。
+
+## 六、本次已落地代码（惰性、零回归）
+
+- `resolveCityTargets(ad, args)`：通用城市循环目标解析（已单测；当前无任何 adapter 声明 `cityCodes`，恒返回 null）。
+- `henanNoticeList` 重构出 `henanFetchPage`（单页抓取），默认行为不变（仍 4100 全省 + crawlRound 翻页）。
+- 新增 `--all-cities`/`-A` 参数（需 adapter 声明 cityCodes 才生效，当前惰性）。
+- 以上均为**行为守恒**修改：Henan 默认采集与原先完全一致，客户端 `--city` 过滤继续有效。
+- 验证：因本 checkout 缺 `reference/*.md`，完整 `self-test.cjs` 无法跑；已用 `node --check` + `resolveCityTargets` 单测覆盖（18 地市/单市/非本省/全省 各分支正确）。

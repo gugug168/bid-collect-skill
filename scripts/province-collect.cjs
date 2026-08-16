@@ -3016,13 +3016,33 @@ function mapYgpRow(rr) {
 // 参数(form)：siteGuid(固定) / categoryNum(栏目码, stage 覆盖) / xiaqucode(4100=全省) / pageIndex / pageSize
 // 响应：custom.infodata[].{title, infourl, infodate}
 async function henanNoticeList(ad, page, args) {
+  const targets = resolveCityTargets(ad, args);
+  if (!targets) {
+    // 默认全省：单页，crawlRound 负责翻页（保持 MAX_PAGE=200 能力）
+    return henanFetchPage(ad, ad.xiaqucode || "4100", page - 1, args);
+  }
+  if (page > 1) return []; // 循环模式已在 page1 聚合完毕，避免 crawlRound 重复取
+  const all = [];
+  for (const t of targets) {
+    for (let pg = 0; pg < 30; pg++) {
+      const recs = await henanFetchPage(ad, t.code, pg, args);
+      if (!recs.length) break;
+      all.push(...recs);
+      if (recs.length < (ad.rn || 8)) break;
+    }
+    if (hasReachedLimit(all.length, args)) break;
+  }
+  return all;
+}
+
+async function henanFetchPage(ad, xiaqucode, pageIndex, args) {
   const pageSize = ad.rn || 8;
   const categoryNum = ad.categoryNum || "002001001";
   const body = new URLSearchParams({
     siteGuid: ad.siteGuid || "7eb5f7f1-9041-43ad-8e13-8fcb82ea831a",
     categoryNum,
-    xiaqucode: ad.xiaqucode || "4100",
-    pageIndex: String(page - 1),
+    xiaqucode: String(xiaqucode),
+    pageIndex: String(pageIndex),
     pageSize: String(pageSize),
   });
   const r = await fetch(ad.base + "/EpointWebBuilder/rest/frontAppCustomAction/getPageInfoListNewYzm", {
@@ -3468,7 +3488,7 @@ function writeXlsx(path, sheets) {
 
 // ---- 参数解析 ----
 function parseArgs(argv) {
-  const a = { keyword: "", province: "", city: "", days: 30, delay: 500, limit: 0, csv: false, xlsx: true, xlsxLayout: "biaobiaotong16", out: "", cat: "", detail: true, attach: false, probe: false, verify: false, dumpText: false, stage: "zb" };
+  const a = { keyword: "", province: "", city: "", allCities: false, days: 30, delay: 500, limit: 0, csv: false, xlsx: true, xlsxLayout: "biaobiaotong16", out: "", cat: "", detail: true, attach: false, probe: false, verify: false, dumpText: false, stage: "zb" };
   for (let i = 0; i < argv.length; i++) {
     const x = argv[i];
     if (x === "-p" || x === "--province") a.province = argv[++i];
@@ -3490,6 +3510,7 @@ function parseArgs(argv) {
     else if (x === "--cat") a.cat = argv[++i];
     else if (x === "--stage") a.stage = argv[++i] || "zb";
     else if (x === "--dump-text") a.dumpText = true;
+    else if (x === "-A" || x === "--all-cities") a.allCities = true;
   }
   if (!["full29", "biaobiaotong16"].includes(a.xlsxLayout)) throw new Error(`--xlsx-layout 仅支持 full29 或 biaobiaotong16，收到: ${a.xlsxLayout}`);
   return a;
@@ -3557,6 +3578,28 @@ function matchesCityFilter(cityArg, candidates) {
     const normalizedFilter = normalizeArea(filter);
     return fields.some((field) => field.includes(filter) || (normalizedFilter && normalizeArea(field).includes(normalizedFilter)));
   });
+}
+
+// 服务端逐城市循环的目标解析（扩展① · 2026-08-15）：
+// 现状（已真机实测，见 CITY_LOOP_AUDIT.md）：标准 EPoint(getFullTextDataNew) 忽略 xiaqucode；
+// 河南 getPageInfoListNewYzm 仅认 4100(全省)/410000(混合子集)，逐地市 GB 码全部返回 0。
+// 故目前无任何 adapter 声明 cityCodes → 本函数恒返回 null（回落默认全省 + 客户端 --city 过滤）。
+// 本函数是为"未来某省若真支持服务端城市码"预留的通用结构，逻辑已单测；现在保持惰性、零副作用。
+//   --all-cities        → 全部地市（需 adapter 声明 cityCodes 才生效）
+//   --city <本省内地市>  → 仅该地市（需 adapter 声明 cityCodes 才生效）
+//   其余 → 返回 null，走默认单轮全省
+function resolveCityTargets(ad, args) {
+  if (!ad.cityCodes || !ad.cityCodes.length) return null;
+  if (args.city && normalizeArea(args.city) === "全省") return null;
+  if (args.allCities) return ad.cityCodes;
+  if (args.city) {
+    const want = normalizeArea(args.city);
+    const exact = ad.cityCodes.find((c) => normalizeArea(c.name) === want);
+    if (exact) return [exact];
+    const part = ad.cityCodes.find((c) => c.name.includes(args.city) || args.city.includes(normalizeArea(c.name)));
+    if (part) return [part];
+  }
+  return null;
 }
 
 // 按项目性质分 sheet（对标标标通：房建市政/水利/公路/其他）
@@ -4015,5 +4058,5 @@ function writeRunReport(outputPath, report) {
 })();
 
 
-module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, parseArgs, inferTenderType, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, extractNoticeTitle, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, buildRunReport, writeRunReport, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote,
+module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, parseArgs, inferTenderType, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, extractNoticeTitle, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, buildRunReport, writeRunReport, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, cqList, tjList, nmgList, lnList, gsList };
