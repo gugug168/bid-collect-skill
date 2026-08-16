@@ -41,12 +41,21 @@
 | anyang | `VERIFIED_RECORD` | 2 | — | `anyang-zb-30d.run-report.json` | 锁定 `001001002`/`001002002` 后近 30 天复验，2/2 均为招标公告 |
 | dingxi | `CONNECTED_NO_RECENT_DATA` | 0 | 365 仍 0 | `dingxi-365d.run-report.json` | 城市级（infodate 排序变体）：可达 total=4621 但源站 2023-04 后停更，非近期数据源 |
 | changzhou | `VERIFIED_RECORD` | 3 | — | `changzhou2.run-report.json` | 城市级独立平台（V5 探测接入）：近 30 天 3/3，控制价/招标人厚字段命中 |
+| yichang | `VERIFIED_RECORD` | 3 | — | `b2_yichang.run-report.json` | 城市级（EpointWebBuilder 变体）（V5 批次2 侦察接入） |
+| linyi | `VERIFIED_RECORD` | 3 | — | `b2_linyi.run-report.json` | 城市级（EPoint 双层包装）（V5 批次2 侦察接入） |
+| yantai | `VERIFIED_RECORD` | 3 | — | `b2_yantai.run-report.json` | 城市级（EPoint 双层包装）（V5 批次2 侦察接入） |
+| wuxi | `VERIFIED_RECORD` | 3 | — | `b2_wuxi.run-report.json` | 城市级（webBuilder AJAX）（V5 批次2 侦察接入） |
+| quanzhou | `VERIFIED_RECORD` | 3 | — | `b2_quanzhou.run-report.json` | 城市级（Java .do·http）（V5 批次2 侦察接入） |
+| yueyang | `VERIFIED_RECORD` | 2 | — | `b2_yueyang.run-report.json` | 城市级（静态 CMS·GBK）（V5 批次2 侦察接入） |
+| zunyi | `VERIFIED_RECORD` | 3 | — | `b2_zunyi.run-report.json` | 城市级（贵州省平台视角过滤）（V5 批次2 侦察接入） |
+| yibin | `FAILED` | 3 | — | `b2_yibin.run-report.json` | 城市级（筑龙 SPA）：3 条真实记录无详情直链，FAILED 系 allowNoUrl 诚实判定非采集失败（V5 批次2 侦察接入） |
+
 
 ## 汇总
 
-- `VERIFIED_RECORD`：28 个（含 anyang/changzhou 城市级独立平台）
+- `VERIFIED_RECORD`：35 个（含城市级 anyang/changzhou/yichang/linyi/yantai/wuxi/quanzhou/yueyang/zunyi）
 - `CONNECTED_NO_RECENT_DATA`：6 个（河北、黑龙江、河南、陕西、兵团、定西）
-- `FAILED`：1 个（广东，官方 429）
+- `FAILED`：2 个（广东官方 429；宜宾 allowNoUrl 无直链形态）
 - `BROWSER_REQUIRED`：本轮未新增；Chrome CDP 未连接，不能宣称浏览器路径可用。
 
 外部完整人读报告与逐次 XLSX/CSV/sidecar 位于 GOAL evidence 目录；本表不复制业务数据，也不把空结果写成 0 条历史事实。

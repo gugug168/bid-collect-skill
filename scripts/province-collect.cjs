@@ -337,6 +337,77 @@ const ADAPTERS = {
     omitFields: true,    // 常州实例对 fields 投影参数敏感：传入即静默返空（2026-08-16 二分定位实测）
     defaultType: "招标公告",
   },
+  // ===== Goal v5 批次2：8 个城市级 adapter（2026-08-16 侦察真机验证接入；端点证据见各 reference 页）=====
+  yichang: {
+    name: "宜昌公共资源交易电子服务系统（城市级·EpointWebBuilder 变体）",
+    verified: true, // 2026-08-16 侦察验证：getSecInfoListYzm total=4348，-k 管网 3 条真实公告
+    kind: "yichang",
+    base: "https://ggzy.sc.yichang.gov.cn",
+    referer: "https://ggzy.sc.yichang.gov.cn/jyxx/003001/003001002/trade_info.html",
+    siteGuid: "7eb5f7f1-9041-43ad-8e13-8fcb82ea831a",
+    categoryNum: "003001002", // 工程建设-招标公告（003001004 中标候选人/003001005 中标结果）
+    rn: 20,
+    defaultType: "招标公告",
+  },
+  linyi: {
+    name: "临沂市公共资源交易中心（城市级·EPoint 双层包装）",
+    verified: true, // 2026-08-16 侦察验证：wd=管网 total=153339
+    kind: "sdwrap",
+    base: "https://ggzyjy.linyi.gov.cn",
+    referer: "https://ggzyjy.linyi.gov.cn/jyxx/trade_info.html",
+    defaultType: "招标公告",
+  },
+  yantai: {
+    name: "烟台市公共资源交易中心（城市级·EPoint 双层包装）",
+    verified: true, // 2026-08-16 侦察验证：wd=管网 total=217958
+    kind: "sdwrap",
+    base: "https://ggzyjy.yantai.gov.cn",
+    referer: "https://ggzyjy.yantai.gov.cn/",
+    defaultType: "招标公告",
+  },
+  wuxi: {
+    name: "无锡市公共资源交易中心（城市级·webBuilder AJAX）",
+    verified: true, // 2026-08-16 侦察验证：chanId=53051 total=7180
+    kind: "wuxi",
+    base: "https://ggzyjy.wuxi.gov.cn",
+    referer: "https://ggzyjy.wuxi.gov.cn/wxsggzyjyzxzl/jyxx/jsgc/zbgg/gcl/index.shtml",
+    chanId: "53051", // 建设工程-招标公告-工程类栏目
+    clientFilterOnly: true, // 无服务端关键词参数
+    defaultType: "招标公告",
+  },
+  quanzhou: {
+    name: "泉州市公共资源交易中心（城市级·Java .do）",
+    verified: true, // 2026-08-16 侦察验证：total=8982；全站搜索"管网"命中 2684
+    kind: "quanzhou",
+    base: "http://ggzyjy.quanzhou.gov.cn", // 全站 http（内部链接均 http）
+    referer: "http://ggzyjy.quanzhou.gov.cn/project/projectList.do?centerId=-1",
+    keepScheme: true, // 保 http（normUrl 默认强制 https）
+    clientFilterOnly: true, // projName 服务端过滤实测无效
+    defaultType: "招标公告",
+  },
+  yueyang: {
+    name: "岳阳市公共资源交易中心（城市级·静态 CMS·GBK）",
+    verified: true, // 2026-08-16 侦察验证：招标公告栏目约 5700 条（285 页×20）
+    kind: "yueyang",
+    base: "https://ggzy.yueyang.gov.cn",
+    clientFilterOnly: true, // 无服务端关键词
+    defaultType: "招标公告",
+  },
+  zunyi: {
+    name: "遵义市公共资源交易（城市级·贵州省平台视角过滤）",
+    verified: true, // 2026-08-16 侦察验证：docSourceName=遵义市+管网 total=1982
+    kind: "zunyi",
+    base: "https://ggzy.guizhou.gov.cn", // 数据源=省平台（市站本体为 TRS SSR 通知栏）
+    defaultType: "招标公告",
+  },
+  yibin: {
+    name: "宜宾市公共资源交易中心（城市级·筑龙 SPA 网关）",
+    verified: true, // 2026-08-16 侦察验证：xinXi_LeiXing=102 total=7952，管网命中 266
+    kind: "yibin",
+    base: "https://ggzy.yibin.gov.cn",
+    allowNoUrl: true, // 详情为 SPA hash 路由无直链（部分记录带 gongGao_URL 外链则用之），列表层诚实不伪造
+    defaultType: "招标公告",
+  },
   // ===== 定西（城市级 · 2026-08-16 实测新增 · 标准 EPoint · infodate 排序变体）=====
   // 定西市公共资源交易中心 = 独立站点 + 标准 EPoint getFullTextDataNew（端点与 Anyang/兰州同构，kind=epoint 复用 epointList/epointPost，零定制）。
   // 实测（沙箱可达，200）：默认请求体 POST 返回 total=4621 条真实标讯；cats=["004"] 隔离交易类 3875 条（剔除 009 新闻中心/030 业务动态）。
@@ -3176,6 +3247,140 @@ async function henanFetchPage(ad, xiaqucode, pageIndex, args) {
   }).filter(x => x.title);
 }
 
+
+// ===== Goal v5 城市级批次2（2026-08-16 侦察接入：宜昌/临沂/烟台/无锡/泉州/岳阳/遵义/宜宾）=====
+// 端点情报来自四路侦察 agent 真机验证（CITY_PLATFORMS.md）；九江市级平台已下线（归江西省平台）不接。
+
+// 宜昌：EpointWebBuilder 变体（secaction/getSecInfoListYzm，与河南 frontAppCustomAction 同族不同端点；content=服务端关键词）
+async function yichangList(ad, page, args) {
+  const body = new URLSearchParams({
+    siteGuid: ad.siteGuid, categoryNum: ad.categoryNum, content: args.keyword || "",
+    pageindex: String(page), pagesize: String(ad.rn || 20), YZM: "", ImgGuid: "", startdate: "", enddate: "", xiqucode: "", projectjiaoyitypeex: "",
+  });
+  const r = await fetch(ad.base + "/EpointWebBuilder/rest/secaction/getSecInfoListYzm", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8", "User-Agent": UA_STR, "Referer": ad.referer || (ad.base + "/"), "X-Requested-With": "XMLHttpRequest" },
+    body: body.toString(),
+  });
+  if (!r.ok) throw new Error("yichang HTTP " + r.status);
+  const j = JSON.parse(await r.text());
+  const arr = (j && j.custom && Array.isArray(j.custom.infodata)) ? j.custom.infodata : [];
+  return arr.map(it => {
+    const m = String(it.infodate || "").match(/(\d{4}-\d{2}-\d{2})/);
+    return { url: it.infourl ? toAbs(String(it.infourl), ad.base) : "", title: String(it.title || "").trim(), date: m ? m[1] : "" };
+  }).filter(x => x.title);
+}
+
+// 临沂/烟台共用：山东系 SSR 壳 + 标准 EPoint 后端，响应为 {code, content:"JSON字符串"} 双层包装（须二次 JSON.parse）
+async function sdWrapList(ad, page, args) {
+  const rn = ad.rn || 20;
+  const body = { token: "", pn: (page - 1) * rn, rn: String(rn), wd: args.keyword || "", cl: 200, sort: JSON.stringify({ webdate: "0", id: "0" }) };
+  const r = await fetch(ad.base + EPOINT_API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json;charset=utf-8", "User-Agent": UA_STR, "Referer": ad.referer || (ad.base + "/") },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error("sdwrap HTTP " + r.status);
+  const j = JSON.parse(await r.text());
+  const inner = (typeof j.content === "string") ? JSON.parse(j.content) : j;   // 双层包装剥壳
+  const recs = (inner && inner.result && inner.result.records) || [];
+  return recs.map(it => {
+    const m = String(it.webdate || "").match(/(\d{4}-\d{2}-\d{2})/);
+    return { url: it.linkurl ? toAbs(String(it.linkurl), ad.base) : "", title: String(it.titlenew || it.title || "").trim(), date: m ? m[1] : "" };
+  }).filter(x => x.title);
+}
+
+// 无锡：webBuilder 壳 + /info_open JSON（无服务端关键词 → clientFilterOnly）
+async function wuxiList(ad, page, args) {
+  const body = new URLSearchParams({ chanId: ad.chanId || "53051", jyly: "", pageIndex: String(page), pageSize: "20" });
+  const r = await fetch(ad.base + "/info_open/searchPublicResource", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8", "User-Agent": UA_STR, "Referer": ad.referer || (ad.base + "/"), "X-Requested-With": "XMLHttpRequest" },
+    body: body.toString(),
+  });
+  if (!r.ok) throw new Error("wuxi HTTP " + r.status);
+  const j = JSON.parse(await r.text());
+  const arr = (j && j.data && Array.isArray(j.data.data)) ? j.data.data : [];
+  return arr.map(it => {
+    const m = String(it.writeTime || "").match(/(\d{4}-\d{2}-\d{2})/);
+    return { url: String(it.url || "").replace(/^http:/, "https:"), title: String(it.title || "").trim(), date: m ? m[1] : "" };
+  }).filter(x => x.title);
+}
+
+// 泉州：Java .do（全站 http 协议；projName 服务端过滤实测无效 → clientFilterOnly；keepScheme 保 http）
+async function quanzhouList(ad, page, args) {
+  const r = await fetch(ad.base + "/project/getProjPage_project.do", {
+    method: "POST",
+    headers: { "Content-Type": "application/json;charset=UTF-8", "User-Agent": UA_STR, "Referer": ad.referer || (ad.base + "/"), "X-Requested-With": "XMLHttpRequest" },
+    body: JSON.stringify({ pageIndex: page, pageSize: 10, classId: 0, centerId: 0, projNo: "", projName: "", ownerDeptName: "" }),
+  });
+  if (!r.ok) throw new Error("quanzhou HTTP " + r.status);
+  const j = JSON.parse(await r.text());
+  const arr = (j && j.data && Array.isArray(j.data.dataList)) ? j.data.dataList : [];
+  return arr.map(it => {
+    const m = String(it.auditDate || "").match(/(\d{4}-\d{2}-\d{2})/);
+    return { url: it.projId ? (ad.base + "/project/projectInfo.do?projId=" + it.projId) : "", title: String(it.projName || "").trim(), date: m ? m[1] : "" };
+  }).filter(x => x.title);
+}
+
+// 岳阳：静态发布 CMS（GBK 编码；JSP pager.offset 分页；无服务端关键词 → clientFilterOnly）
+async function yueyangList(ad, page, args) {
+  const url = (page === 1)
+    ? "https://ggzy.yueyang.gov.cn/56114/56125/56126/index.htm"
+    : "https://ggzy.yueyang.gov.cn/ggzy/56114/56125/56126/index.jsp?pager.offset=" + ((page - 1) * 20) + "&pager.desc=false";
+  const r = await fetch(url);
+  if (!r.ok) throw new Error("yueyang HTTP " + r.status);
+  const buf = Buffer.from(await r.arrayBuffer());
+  const html = new TextDecoder("gbk").decode(buf);   // 岳阳全站 GBK（Node full-icu 支持）
+  const items = [];
+  const liRe = /<li>[\s\S]*?<\/li>/g;
+  const aRe = /<a[^>]*href='([^']+)'[^>]*title='([^']+)'[^>]*>/;
+  const dRe = /(\d{4}-\d{2}-\d{2})/;
+  let lm;
+  while ((lm = liRe.exec(html))) {
+    const am = lm[0].match(aRe);
+    if (!am) continue;
+    const dm = lm[0].match(dRe);
+    items.push({ url: "https://ggzy.yueyang.gov.cn/56114/56125/56126/" + am[1], title: am[2].trim(), date: dm ? dm[1] : "" });
+  }
+  return items.filter(x => x.title);
+}
+
+// 遵义：贵州省平台 bespoke REST + docSourceName=遵义市 视角过滤（docRelTime=毫秒时间戳）
+async function zunyiList(ad, page, args) {
+  const r = await fetch("https://ggzy.guizhou.gov.cn/tradeInfo/es/list", {
+    method: "POST",
+    headers: { "Content-Type": "application/json;charset=UTF-8", "User-Agent": UA_STR, "Referer": "https://ggzy.guizhou.gov.cn/xxfw/gcjs/" },
+    body: JSON.stringify({ channelId: "5904475", pageNum: page, pageSize: 20, docSourceName: "遵义市", docTitle: args.keyword || "" }),
+  });
+  if (!r.ok) throw new Error("zunyi HTTP " + r.status);
+  const j = JSON.parse(await r.text());
+  const arr = Array.isArray(j.list) ? j.list : [];
+  return arr.map(it => {
+    const d = it.docRelTime ? new Date(Number(it.docRelTime)).toISOString().slice(0, 10) : "";
+    return { url: String(it.apiUrl || ""), title: String(it.docTitle || "").trim(), date: d, anno: String(it.announcement || "") };
+    // channelId=5904475 是工程建设大类不分阶段：docTitle 关键词会命中中标候选人公示等 B 阶段公告，
+    // 按 announcement 过滤只留 zb 范畴（交易公告/变更/澄清/资格预审），B 阶段留待 stages 专项枚举
+  }).filter(x => x.title && !/中标|候选|结果|合同|流标|开标/.test(x.anno))
+    .map(x => ({ url: x.url, title: x.title, date: x.date }));
+}
+
+// 宜宾：筑龙 SPA 统一网关 action RPC（xinXi_LeiXing=102 招标公告；详情为 SPA hash 无直链 → 部分 gongGao_URL 外链可用）
+async function yibinList(ad, page, args) {
+  const r = await fetch(ad.base + "/ggfwptwebapi/Web/service", {
+    method: "POST",
+    headers: { "Content-Type": "application/json; charset=utf-8", "User-Agent": UA_STR, "Referer": (ad.base + "/") },
+    body: JSON.stringify({ action: "pageTongYong_SouSuo", title: args.keyword || "", pageIndex: page, pageSize: 20, xiangMu_LeiXing: null, xinXi_LeiXing: "102" }),
+  });
+  if (!r.ok) throw new Error("yibin HTTP " + r.status);
+  const j = JSON.parse(await r.text());
+  const arr = Array.isArray(j.data) ? j.data : [];
+  return arr.map(it => {
+    const m = String(it.publish_StartTime || "").match(/(\d{4}-\d{2}-\d{2})/);
+    return { url: it.gongGao_URL ? String(it.gongGao_URL) : "", title: String(it.zhaoBiao_XiangMu_Name || "").trim(), date: m ? m[1] : "" };
+  }).filter(x => x.title);
+}
+
 async function ygpFetchPage(siteCode, secondType, keyword, pn, tradingProcess) {
   const body = {
     type: "trading-type", openConvert: false,
@@ -4947,6 +5152,8 @@ const PROV_ALIAS = {
   安阳: "anyang", // 城市级 adapter 范本（河南安阳市平台，非省级）
   定西: "dingxi", // 城市级 adapter（甘肃定西市平台，infodate 排序变体；源站 2023-04 后停更）
   常州: "changzhou", // 城市级 adapter（江苏常州独立平台，标准 EPoint 同构）
+  宜昌: "yichang", 临沂: "linyi", 烟台: "yantai", 无锡: "wuxi", 泉州: "quanzhou",
+  岳阳: "yueyang", 遵义: "zunyi", 宜宾: "yibin", // 城市级批次2（Goal v5）
 };
 async function collectProvince(prov0, args) {
   const prov = ADAPTERS[prov0] ? prov0 : (PROV_ALIAS[prov0] || prov0);
@@ -5039,6 +5246,20 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
       items = await gsList(ad, page, args);
     } else if (ad.kind === "henanNotice") {
       items = await henanNoticeList(ad, page, args);
+    } else if (ad.kind === "yichang") {
+      items = await yichangList(ad, page, args);
+    } else if (ad.kind === "sdwrap") {
+      items = await sdWrapList(ad, page, args);
+    } else if (ad.kind === "wuxi") {
+      items = await wuxiList(ad, page, args);
+    } else if (ad.kind === "quanzhou") {
+      items = await quanzhouList(ad, page, args);
+    } else if (ad.kind === "yueyang") {
+      items = await yueyangList(ad, page, args);
+    } else if (ad.kind === "zunyi") {
+      items = await zunyiList(ad, page, args);
+    } else if (ad.kind === "yibin") {
+      items = await yibinList(ad, page, args);
     } else {
       const html = await requestWithRetry(ad.listUrl(page), args.delay);
       items = ad.parse(html);
