@@ -14,6 +14,9 @@ Nuxt SSR，列表+详情同源 HTML。
 HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p chongqing -k 管网 --detail -d 120 --csv -o out/chongqing.csv
 ```
 
+## 城市/区县筛选（2026-08-16 实测）
+`-c 九龙坡 --limit 2 --detail` 返回 2/2 条记录（大九污水厂九龙坡范围…项目）；city 列碎片化为片区名，标题源稳定命中。
+
 ## 诚实留空字段（源页无则空，绝不伪造）
 performance / fullScore（源页普遍无评分细则/业绩要求，全省一致诚实留空）；projectSite / city / type 依省而异（源页无则空）
 

@@ -14,6 +14,9 @@ sxbid.com.cn SPA 壳页，正文为 PDF，经 pdfjs `viewer.html?rdm=3&file=<编
 HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p shanxi -k 管网 --detail -d 120 --csv -o out/shanxi.csv
 ```
 
+## 城市/区县筛选（2026-08-16 实测）
+`-c 定襄 --limit 1 --detail` 返回 1/1 条 `定襄县` 记录（定襄县老城北片区…项目）；PDF 正文省，--limit 1。
+
 ## 诚实留空字段（源页无则空，绝不伪造）
 performance / fullScore（源页普遍无评分细则/业绩要求，全省一致诚实留空）；projectSite / city / type 依省而异（源页无则空）
 

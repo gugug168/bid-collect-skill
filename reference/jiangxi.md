@@ -14,6 +14,9 @@ EPoint 自定义 `/XZinterface/.../getFullTextDataNew`，`noWd:true` 拉全量�
 HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p jiangxi -k 管网 --detail -d 120 --csv -o out/jiangxi.csv
 ```
 
+## 城市/区县筛选（2026-08-16 实测）
+`-c 信丰 --limit 2 --detail` 返回 2/2 条 `信丰县` 记录（[信丰县]江西日成…项目）；city 列与标题【】双源含筛词。
+
 ## 诚实留空字段（源页无则空，绝不伪造）
 performance / fullScore（源页普遍无评分细则/业绩要求，全省一致诚实留空）；projectSite / city / type 依省而异（源页无则空）
 

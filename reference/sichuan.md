@@ -14,6 +14,9 @@ EPoint 标准，cnum=002/003 变体。
 HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p sichuan -k 管网 --detail -d 120 --csv -o out/sichuan.csv
 ```
 
+## 城市/区县筛选（2026-08-16 实测）
+`-c 广汉 --limit 2 --detail` 返回 2/2 条 `广汉市` 记录（广汉市住房和城乡建设局…项目）。（2026-08-16 重跑）
+
 ## 诚实留空字段（源页无则空，绝不伪造）
 performance / fullScore（源页普遍无评分细则/业绩要求，全省一致诚实留空）；projectSite / city / type 依省而异（源页无则空）
 

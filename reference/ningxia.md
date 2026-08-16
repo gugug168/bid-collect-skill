@@ -14,6 +14,9 @@ EPoint 自定义 `/interface_wz/.../getFullTextDataNew`，pn=offset。
 HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p ningxia -k 管网 --detail -d 120 --csv -o out/ningxia.csv
 ```
 
+## 城市/区县筛选（2026-08-16 实测）
+`-c 银川 --limit 2 --detail` 返回 2/2 条记录（银川经开区工业蒸…项目）；city 列为行政区码（640100/640000），筛词经标题列命中。
+
 ## 诚实留空字段（源页无则空，绝不伪造）
 performance / fullScore（源页普遍无评分细则/业绩要求，全省一致诚实留空）；projectSite / city / type 依省而异（源页无则空）
 
