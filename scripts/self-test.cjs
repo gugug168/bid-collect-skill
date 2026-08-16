@@ -52,6 +52,22 @@ test("招标公告实时状态总账覆盖全部 43 个 adapter", () => {
   assert.match(text, /`FAILED`：2 个/);
 });
 
+// 2026-08-16 V5 逐列取证回访：9 处漏抽修复（江西/遵义/海南/重庆/青海/烟台/江苏实测原文形态）
+test("取证回访：政采措辞的开标/工期与复合词控制价", () => {
+  const o = M.extractDetail(M.ADAPTERS.jiangxi,
+    "<p>四、提交 响应 文件截止时间、 磋商 时间和地点 2026 年 08 月 27 日 09 点 30 分（北京时间）</p><p>合同履行期限： 自合同签订生效之日起 45 天内完成</p>",
+    { title: "x", url: "https://example.invalid/jx" }, "");
+  assert.equal(o.bidOpen, "2026-08-27 09:30");   // 字间空格 + 「点」时间词
+  assert.ok(o.duration.includes("45 天内完成"));    // 「合同履行期限」垫底标签（前缀保留完整语义）
+  assert.equal(M.grabMoneyWan("本次招标项目合同估算金额： 2964.95 万元", ["合同估算金额", "估算金额", "总投资金额", "标段估算价"]), "2964.95");
+  assert.equal(M.grabMoneyWan("标段估算价:1930.29万元", ["标段估算价"]), "1930.29");
+  assert.equal(M.grabMoneyWan("最高投标限价（或招标控制价): 6924677.31", ["最高投标限价", "控制价"]), "692.4677"); // 行尾无单位按元
+});
+test("取证回访：否定语境评标办法与信息来源地点", () => {
+  assert.equal(M.grabEvaluation("5.1是否评定分离： 否 5.2本次招标采用 综合评估法"), "综合评估法");
+  assert.equal(M.extractDetail(M.ADAPTERS.yantai, "<p>信息来源： 招远市 发布时间：2026-08-14</p>", { title: "x", url: "https://example.invalid/yt" }, "").projectSite, "招远市");
+});
+
 // 2026-08-16 V5 批次2 详情加固：括号单位金额 + GBK 详情 + 脏开标守卫（无锡/岳阳/泉州实测）
 test("标签自带括号单位的金额可正确提取且中文兜底不误配", () => {
   // 无锡实测形态：原版中文兜底把「（万」当数字输出 1 万元的错值
