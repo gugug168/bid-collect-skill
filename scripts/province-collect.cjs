@@ -320,6 +320,28 @@ const ADAPTERS = {
     // 安阳用默认请求体即返回全量（96504 条），不锁栏目（cats 留空）、不定制 unionCondition。
     // 后续可按需枚举其 categorynum 细化（警惕海南式「误锁招标计划」陷阱，故 PoC 阶段不锁）。
   },
+  // ===== 定西（城市级 · 2026-08-16 实测新增 · 标准 EPoint · infodate 排序变体）=====
+  // 定西市公共资源交易中心 = 独立站点 + 标准 EPoint getFullTextDataNew（端点与 Anyang/兰州同构，kind=epoint 复用 epointList/epointPost，零定制）。
+  // 实测（沙箱可达，200）：默认请求体 POST 返回 total=4621 条真实标讯；cats=["004"] 隔离交易类 3875 条（剔除 009 新闻中心/030 业务动态）。
+  // 范本外覆盖点（本 adapter 验证的三件事）：
+  //   ① 该实例**无 infodatepx/webdate/infodateformat** 字段，日期仅在 infodate 列。
+  //      webdate/infodatepx 排序静默失效 → 返回 2018 年老记录在前 → 被 days 截止滤光得 0 条；
+  //      必须 sortField:"infodate"（{infodate:0}=最新在前 / {infodate:1}=最旧在前，已实测）。这是继 infodatepx/webdate/showdate 后的**第 4 种** sortField。
+  //   ② epointList 日期回退链 infodateformat||infodatepx||webdate||infodate 已含 infodate → 零代码改动即可正确读日期。
+  //   ③ 分类体系与兰州(002001001)不同，categorynum 前缀 contains "004" 隔离标讯（likeType:2 实测生效），与 Lanzhou unionCondition 范式并列。
+  // ⚠ 真实局限（诚实标注，不做近期来源）：该门户最新数据停在 2023-04-23，2024/2025/2026 全库 0 条 → days:30 实跑返回 0；
+  //   仅证明"可达城市级 EPoint + infodate 排序变体"可接入，覆盖第 4 种 sortField。
+  dingxi: {
+    name: "定西市公共资源交易中心（城市级·标准 EPoint·infodate 排序变体）",
+    verified: true, // 2026-08-16 实测：POST getFullTextDataNew total=4621；cats=004 隔离交易类 3875 条；最新数据 2023-04-23
+    kind: "epoint",
+    base: "https://ggzy.dingxi.gov.cn",
+    referer: "https://ggzy.dingxi.gov.cn/",
+    // 定西实例无 infodatepx/webdate，日期在 infodate 列；webdate/infodatepx 排序失效→2018 老记录在前。须 infodate 排序（第 4 种 sortField）。
+    sortField: "infodate",
+    cats: ["004"], // categorynum 前缀 contains 004 = 交易类，隔离 009 新闻/030 业务动态，仅取标讯
+    defaultType: "招标公告",
+  },
   // ===== 广东（粤公平 · 2026-08-12 集成 · 独立 API，非 EPoint）=====
   // 数据源: POST https://ygp.gdzwfw.gov.cn/ggzy-portal/search/v2/items （SPA 内部接口）
   // 详情正文/附件需 SPA 内部交易环节码，列表接口不暴露 → 本 adapter 仅列表层（no detail），诚实不抓详情。
