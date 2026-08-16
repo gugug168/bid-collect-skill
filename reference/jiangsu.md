@@ -14,8 +14,8 @@ EPoint 标准，cnum=003；日期 infodateformat/infodatepx 多字段回退。
 HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p jiangsu -k 管网 --detail -d 120 --csv -o out/jiangsu.csv
 ```
 
-## 城市/区县筛选（2026-08-15 实测）
-`-c 徐州 --limit 2 --detail` 返回 2/2 条 `徐州市` 记录（贾汪区老矿片区改造提升项目）；`-c` 在客户端匹配地区、标题和提取地点，不能确认归属时留空而不猜测。
+## 城市/区县筛选（2026-08-16 实测）
+`-c 盐城 --limit 2 --detail` 返回 2/2 条 `盐城市` 记录（盐南高新区学海路…项目）；`-c` 在客户端匹配地区、标题和提取地点，不能确认归属时留空而不猜测。（2026-08-16 重跑，替代 08-15 徐州旧记录）
 
 ## 诚实留空字段（源页无则空，绝不伪造）
 performance / fullScore（源页普遍无评分细则/业绩要求，全省一致诚实留空）；projectSite / city / type 依省而异（源页无则空）

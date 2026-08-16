@@ -14,6 +14,9 @@ EPoint 标准，cnum=002；日期 webdate（无 infodatepx，须 webdate 排序�
 HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p zhejiang -k 管网 --detail -d 120 --csv -o out/zhejiang.csv
 ```
 
+## 城市/区县筛选（2026-08-16 实测）
+`-c 嵊泗 --limit 1 --detail` 返回 1/1 条 `嵊泗县` 记录（嵊泗县洋山连接道…项目）；PDF 正文省，窗口内单城记录数即 1。
+
 ## 诚实留空字段（源页无则空，绝不伪造）
 performance / fullScore（源页普遍无评分细则/业绩要求，全省一致诚实留空）；projectSite / city / type 依省而异（源页无则空）
 

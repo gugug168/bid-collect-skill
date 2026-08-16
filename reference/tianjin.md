@@ -14,8 +14,8 @@ JEECMS：`POST /content/pageContent` 取详情 HTML 片段。
 HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p tianjin -k 管网 --detail -d 120 --csv -o out/tianjin.csv
 ```
 
-## 城市/区县筛选（2026-08-15 实测）
-`-c 滨海 --limit 1 --detail` 返回 1/1 条 `滨海新区` 记录（供热“一张网”项目）。同次验证修复了「一标段: 资质:…」格式：企业资质输出为 `市政公用工程施工总承包一级及以上`，不会截断成标签前缀。
+## 城市/区县筛选（2026-08-16 实测）
+`-c 宝坻 --limit 2 --no-detail` 返回 2/2 条记录（天津市宝坻区京津新城管网…项目，标题含筛词）；`--detail` 模式下站点 title（「全国公共资源交易平台（天津市）」）会覆盖列表标题、projectSite 回填 city，城市验证用 `--no-detail` 列表层口径。（2026-08-16 重跑，替代 08-15 滨海旧记录）
 
 ## 诚实留空字段（源页无则空，绝不伪造）
 performance / fullScore（源页普遍无评分细则/业绩要求，全省一致诚实留空）；projectSite / city / type 依省而异（源页无则空）

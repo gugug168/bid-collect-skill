@@ -17,6 +17,9 @@ HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p shaanxi -k 管网
 // （401 登录墙，已放弃）
 ```
 
+## 城市/区县筛选（2026-08-16 实测）
+`-c 西安 --limit 3 --no-detail`（无 `-k` 口径）返回 3/3 条记录（西安秦华智慧生活…项目，标题含筛词）；sntba 无详情 URL（`allowNoUrl` 已知形态），城市验证为列表层。
+
 ## 诚实留空字段（源页无则空，绝不伪造）
 （见 verdict；该源无法提供建设类公告厚字段）
 
