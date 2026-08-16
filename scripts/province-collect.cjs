@@ -300,6 +300,24 @@ const ADAPTERS = {
       candidate: { type: "中标候选人", cats: ["003002001002"] },
     },
   },
+  // ===== 安阳（城市级 · 2026-08-16 实测新增 · 标准 EPoint 范本）=====
+  // 安阳市公共资源交易中心 = 独立站点 + 标准 EPoint getFullTextDataNew（与兰州/江苏同构）。
+  // 实测：默认请求体 POST 返回 total=96504 条真实标讯（样本「安阳市第六中学改造工程-中标结果公告」）。
+  // 省本级（河南）feed 已聚合安阳，但城市门户可独立直采——本 adapter 作为「城市级 adapter」接入范本：
+  //   证明地级市独立站只要走标准 EPoint，即可零定制套用 epointList/epointPost 复用现有管线。
+  anyang: {
+    name: "安阳市公共资源交易中心（城市级·标准 EPoint 范本）",
+    verified: true, // 2026-08-16 实测：POST getFullTextDataNew 返回 96504 条真实标讯
+    kind: "epoint",
+    base: "https://ggzy.anyang.gov.cn",
+    referer: "https://ggzy.anyang.gov.cn/",
+    // 安阳记录**无 infodatepx 字段**（同浙江/海南），默认 sort 失效→老记录在前→被 days 截止滤光。
+    // 必须按 webdate 排序才能近 N 天正确截断（实测 sort:{webdate:0}=最新在前，{webdate:1}=最旧在前）。
+    sortField: "webdate",
+    defaultType: "招标公告",
+    // 安阳用默认请求体即返回全量（96504 条），不锁栏目（cats 留空）、不定制 unionCondition。
+    // 后续可按需枚举其 categorynum 细化（警惕海南式「误锁招标计划」陷阱，故 PoC 阶段不锁）。
+  },
   // ===== 广东（粤公平 · 2026-08-12 集成 · 独立 API，非 EPoint）=====
   // 数据源: POST https://ygp.gdzwfw.gov.cn/ggzy-portal/search/v2/items （SPA 内部接口）
   // 详情正文/附件需 SPA 内部交易环节码，列表接口不暴露 → 本 adapter 仅列表层（no detail），诚实不抓详情。
