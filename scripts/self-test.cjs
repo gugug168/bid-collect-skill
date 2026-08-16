@@ -18,8 +18,8 @@ test("SKILL.md frontmatter 只使用 Codex 支持的顶层键", () => {
   assert.deepEqual(keys.filter((key) => !allowed.has(key)), []);
 });
 
-test("32 个 adapter 均已注册", () => {
-  assert.equal(Object.keys(M.ADAPTERS).length, 32);
+test("34 个 adapter 均已注册（32 省级 + anyang/dingxi 城市级）", () => {
+  assert.equal(Object.keys(M.ADAPTERS).length, 34);
 });
 
 test("中文省名覆盖全部 adapter", () => {
@@ -40,15 +40,15 @@ test("32 个 adapter 均有可执行的官方 reference", () => {
   }
 });
 
-test("招标公告实时状态总账覆盖全部32个 adapter", () => {
+test("招标公告实时状态总账覆盖全部 34 个 adapter", () => {
   const file = path.join(__dirname, "..", "reference", "ZB_LIVE_STATUS_2026-08-15.md");
   assert.ok(fs.existsSync(file), "缺少招标公告实时状态总账");
   const text = fs.readFileSync(file, "utf8");
   const rows = [...text.matchAll(/^\| ([a-z][a-z0-9]+) \|/gm)].map((m) => m[1]).filter((adapter) => M.ADAPTERS[adapter]);
-  assert.equal(new Set(rows).size, 32);
+  assert.equal(new Set(rows).size, 34);
   assert.deepEqual([...new Set(rows)].sort(), Object.keys(M.ADAPTERS).sort());
-  assert.match(text, /`VERIFIED_RECORD`：26 个/);
-  assert.match(text, /`CONNECTED_NO_RECENT_DATA`：5 个/);
+  assert.match(text, /`VERIFIED_RECORD`：27 个/);
+  assert.match(text, /`CONNECTED_NO_RECENT_DATA`：6 个/);
   assert.match(text, /`FAILED`：1 个/);
 });
 
@@ -134,6 +134,45 @@ test("城市/区县筛选支持简称、全称和逗号 OR", () => {
   assert.equal(M.matchesCityFilter("三亚,海口", ["海口市", "项目标题"]), true);
   assert.equal(M.matchesCityFilter("三亚、海口", ["海口市", "项目标题"]), true);
   assert.equal(M.matchesCityFilter("三亚", ["海口市", "项目标题"]), false);
+});
+
+// 2026-08-16 PR #4 审查修正的归一语义（实测 -c 林州 曾被放大为整市放行；"市辖区"跨市误命中）
+test("地级市↔区县归一不放大区县筛词且市辖区不跨市误命中", () => {
+  // 筛地级市"安阳"→ 命中其区县记录（林州市）
+  assert.equal(M.matchesCityFilter("安阳", ["林州市管网项目"]), true);
+  // 筛区县"林州"→ 不放行安阳市本级记录（直接子串才命中）
+  assert.equal(M.matchesCityFilter("林州", ["安阳市西片区雨水管网更新改造工程"]), false);
+  assert.equal(M.matchesCityFilter("林州", ["林州市城区道路综合管网工程"]), true);
+  // "市辖区"是 281 市通用词：筛"郑州"不得命中外市的"市辖区"记录
+  assert.equal(M.matchesCityFilter("郑州", ["市辖区"]), false);
+  assert.equal(M.matchesCityFilter("郑州", ["中牟县", "项目标题"]), true);
+});
+
+test("重名区县不跨地级市误命中", () => {
+  assert.equal(M.matchesCityFilter("阳泉", ["晋城市城区某项目"]), false);
+  assert.equal(M.matchesCityFilter("乐山", ["内江市市中区某项目"]), false);
+  // 唯一归属区县仍可扩展到地级市，避免把全部区县归一能力一刀切掉。
+  assert.equal(M.matchesCityFilter("郑州", ["中牟县管网项目"]), true);
+});
+
+test("安阳 zb 只采工程招标与政府采购公告栏目", () => {
+  assert.deepEqual(M.ADAPTERS.anyang.cats, ["001001002", "001002002"]);
+  assert.equal(M.ADAPTERS.anyang.defaultType, "招标公告");
+  assert.ok(!M.ADAPTERS.anyang.cats.includes("001001004")); // 评标结果
+  assert.ok(!M.ADAPTERS.anyang.cats.includes("001001005")); // 中标结果
+});
+
+test("无 XLSX 模式的 sidecar 不声明不存在的 XLSX", () => {
+  assert.deepEqual(M.resolveOutputPaths({ out: "out/anyang.md", xlsx: false }), { mdPath: "out/anyang.md", xlsxPath: null });
+  assert.deepEqual(M.resolveOutputPaths({ out: "out/anyang.xlsx", xlsx: false }), { mdPath: "out/anyang.md", xlsxPath: null });
+  assert.match(M.buildMarkdown("anyang", M.ADAPTERS.anyang, [], { keyword: "", city: "", days: 30, detail: false }), /采集报告（列表层）/);
+});
+
+test("未验证 cityCodes 时服务端城市循环保持惰性", () => {
+  assert.equal(M.resolveCityTargets(M.ADAPTERS.henan, { city: "郑州" }), null);
+  const ad = { cityCodes: [{ name: "郑州市", code: "410100" }, { name: "洛阳市", code: "410300" }] };
+  assert.deepEqual(M.resolveCityTargets(ad, { city: "郑州" }), [ad.cityCodes[0]]);
+  assert.equal(M.resolveCityTargets(ad, { city: "" }), null);
 });
 
 test("标段式资质字段不截断在标签前缀", () => {

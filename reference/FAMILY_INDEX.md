@@ -56,7 +56,7 @@ HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p <adapter> -k 管�
 
 | 家族 | adapter kind | 成员（已验证状态） | 共通打法 |
 |---|---|---|---|
-| EPoint 标准 | `epoint` | jiangsu/zhejiang/hainan/sichuan/xinjiangbt/**heilongjiang(修复)** | `/inteligentsearch/rest/.../getFullTextDataNew`，cnum 变体，匿名 JSON（河南已迁 `henanNotice` 独立 kind，见 §3.1） |
+| EPoint 标准 | `epoint` | jiangsu/zhejiang/hainan/sichuan/xinjiangbt/**heilongjiang(修复)**/**anyang(城市级范本)** | `/inteligentsearch/rest/.../getFullTextDataNew`，cnum 变体，匿名 JSON（河南已迁 `henanNotice` 独立 kind，见 §3.1；anyang 为首个城市级接入，见 reference/anyang.md） |
 | EPoint 自定义 | `epointX`/`gs` | ningxia/xinjiang/jiangxi/qinghai/gansu | 路径/参数非标准，须逆向；gs 双分支 |
 | TRS 引擎 | `jl`/`ln`/`nmg` | jilin/liaoning/neimenggu | `was5/web/search` 或 openSearch，JSONP 剥离，反爬严 |
 | HTML SSR | （默认） | shandong(限)/anhui(改 ah)/xizang(改 xz)/guangxi(限)/beijing(改)/shanxi(改)/hebei/shanghai | Jeecms/Hanweb/WebBuilder SSR 正则，零鉴权 |
