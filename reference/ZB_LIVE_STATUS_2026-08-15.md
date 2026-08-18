@@ -46,6 +46,11 @@
 | mianyang | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/mianyang.run-report.json` | 静态列表+关系接口；精确选择 `001001` 招标公告；附件验证码不绕过 |
 | qinhuangdao | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/qinhuangdao.run-report.json` | 静态近期页；排除资格预审/变更；深页验证码边界保留 |
 | nantong | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/nantong-v2.run-report.json` | EWB-FRONT；严格阶段三字段；剔除已作废并清理 `[新]` |
+| nanjing | `VERIFIED_RECORD` | 2 | 30 天 2，停止扩大 | `city-batch2-release/nanjing.run-report.json` | 服务类/工程类双栏目；`status.error` 下解析 custom；排除澄清/资审 |
+| huizhou | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `city-batch2-release/huizhou.run-report.json` | 官方广东政府 JSONP；8 栏目地区映射；过滤废止/过期 |
+| zhongshan | `VERIFIED_RECORD` | 3 | 30/90 天 0，365 天 3 | `city-batch2-release/zhongshan-365.run-report.json` | `nodeId=58`；补充公告过滤；控制价公式末值；附件验证码留空 |
+| jinan | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `city-batch2-release/jinan-v2.run-report.json` | 建设工程 search.do 锁招标公告；详情预检排除资格预审；table_one 精确主体和金额 |
+| wuhan | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `city-batch2-release/wuhan-v2.run-report.json` | `channelId=160`；详情预检排除资格预审；页内重复去重 |
 | suzhou | `CONNECTED_NO_RECENT_DATA` | 0 | 30/90/365 天均 0 | `city-retest-01/batch-summary.json` | 接口成功；历史 VERIFIED 路由证据保留，当前窗口空不冒充有记录 |
 | xuzhou | `VERIFIED_RECORD` | 3 | 30 天 0，90 天 3 | `xuzhou-api-90d-v2/xuzhou.run-report.json` | 城市级独立平台：EPoint new API；禁用静态分页断层；16 列回源复验 |
 | yichang | `VERIFIED_RECORD` | 3 | — | `b2_yichang.run-report.json` | 城市级（EpointWebBuilder 变体）（V5 批次2 侦察接入） |
@@ -67,7 +72,7 @@
 
 ## 汇总
 
-- `VERIFIED_RECORD`：48 个（新增城市级 luoyang/zhengzhou/mianyang/qinhuangdao/nantong）
+- `VERIFIED_RECORD`：53 个（新增城市级 nanjing/huizhou/zhongshan/jinan/wuhan）
 - `CONNECTED_NO_RECENT_DATA`：7 个（河北、黑龙江、河南、陕西、兵团、定西、苏州）
 - `FAILED`：2 个（广东官方 429；宜宾 allowNoUrl 无直链形态）
 - `BROWSER_REQUIRED`：本轮未新增；Chrome CDP 未连接，不能宣称浏览器路径可用。

@@ -18,14 +18,14 @@ test("SKILL.md frontmatter 只使用 Codex 支持的顶层键", () => {
   assert.deepEqual(keys.filter((key) => !allowed.has(key)), []);
 });
 
-test("57 个 adapter 均已注册（32 省级 + 25 城市级）", () => {
-  assert.equal(Object.keys(M.ADAPTERS).length, 57);
+test("62 个 adapter 均已注册（32 省级 + 30 城市级）", () => {
+  assert.equal(Object.keys(M.ADAPTERS).length, 62);
 });
 
 test("SKILL.md adapter 清单与代码完全一致", () => {
   const skill = fs.readFileSync(path.join(__dirname, "..", "SKILL.md"), "utf8");
-  const block = skill.match(/## 57 个 adapter[\s\S]*?```text\r?\n([\s\S]*?)\r?\n```/);
-  assert.ok(block, "SKILL.md 缺少 57 个 adapter 清单");
+  const block = skill.match(/## 62 个 adapter[\s\S]*?```text\r?\n([\s\S]*?)\r?\n```/);
+  assert.ok(block, "SKILL.md 缺少 62 个 adapter 清单");
   const listed = block[1].trim().split(/\s+/);
   assert.deepEqual([...new Set(listed)].sort(), Object.keys(M.ADAPTERS).sort());
 });
@@ -36,7 +36,7 @@ test("中文省名覆盖全部 adapter", () => {
   assert.deepEqual(missing, []);
 });
 
-test("57 个 adapter 均有可执行的官方 reference", () => {
+test("62 个 adapter 均有可执行的官方 reference", () => {
   for (const adapter of Object.keys(M.ADAPTERS)) {
     const file = path.join(__dirname, "..", "reference", `${adapter}.md`);
     assert.ok(fs.existsSync(file), `${adapter} 缺少 reference`);
@@ -48,14 +48,14 @@ test("57 个 adapter 均有可执行的官方 reference", () => {
   }
 });
 
-test("招标公告实时状态总账覆盖全部 57 个 adapter", () => {
+test("招标公告实时状态总账覆盖全部 62 个 adapter", () => {
   const file = path.join(__dirname, "..", "reference", "ZB_LIVE_STATUS_2026-08-15.md");
   assert.ok(fs.existsSync(file), "缺少招标公告实时状态总账");
   const text = fs.readFileSync(file, "utf8");
   const rows = [...text.matchAll(/^\| ([a-z][a-z0-9]+) \|/gm)].map((m) => m[1]).filter((adapter) => M.ADAPTERS[adapter]);
-  assert.equal(new Set(rows).size, 57);
+  assert.equal(new Set(rows).size, 62);
   assert.deepEqual([...new Set(rows)].sort(), Object.keys(M.ADAPTERS).sort());
-  assert.match(text, /`VERIFIED_RECORD`：48 个/);
+  assert.match(text, /`VERIFIED_RECORD`：53 个/);
   assert.match(text, /`CONNECTED_NO_RECENT_DATA`：7 个/);
   assert.match(text, /`FAILED`：2 个/);
 });
@@ -250,6 +250,83 @@ test("南通 EWB 列表严格锁阶段、剔除作废并清理新标记", () => 
   const detail2 = M.extractDetail(ad, "<p>本项目招标人为 启东市城市水处理有限公司。</p>",
     { title: "启东污水管网监理公告", url: "https://example.invalid/nt2" }, "");
   assert.equal(detail2.owner, "启东市城市水处理有限公司");
+});
+
+test("南京 webdb 在 status.error 时仍解析 custom，并拒绝澄清与资审", () => {
+  const ad = M.ADAPTERS.nanjing;
+  const payload = { status: { state: "error" }, custom: JSON.stringify({ Table: [
+    { GongGaoName: "(六合分中心) 供水管网工程总承包招标公告", GongGaoFBDate: "2026-08-12", href: "/njweb/fjsz/068001/068001002/a.html", BiaoDuanNO: "NJ-001", HeTongGuSuanPrice: "7488" },
+    { GongGaoName: "某项目澄清修改公告", GongGaoFBDate: "2026-08-12", href: "/b.html" },
+    { GongGaoName: "某项目方案设计资审公告", GongGaoFBDate: "2026-08-12", href: "/c.html" },
+  ] }) };
+  const got = M.parseNanjingPayload(payload, ad);
+  assert.equal(got.length, 1);
+  assert.equal(got[0].cityHint, "六合区");
+  assert.equal(got[0].projectCode, "NJ-001");
+  assert.equal(got[0].controlPrice, "7488");
+  assert.deepEqual(ad.categoryNums, ["068001001", "068001002"]);
+  assert.equal(M.PROV_ALIAS.南京, "nanjing");
+});
+
+test("惠州官方 JSONP 严格过滤状态、映射地区并规范代理 URL", () => {
+  const ad = M.ADAPTERS.huizhou;
+  const rows = [
+    { title: "惠州市排水<em>管网</em>改造工程【监理】招标公告", pub_time: "2026-07-31", post_url: "http://zyjy--huizhou--gov--cn--salt.proxy.huizhou.gov.cn:80/ggfw/jyxx/jsgc/zbzgysgg/szx/content/post_1.html", post_type: "normal", is_abolished: 0, is_expired: 0, category: 31261 },
+    { title: "作废管网工程招标公告", pub_time: "2026-07-31", post_url: "http://zyjy.huizhou.gov.cn/x", post_type: "normal", is_abolished: 1, is_expired: 0, category: 31261 },
+    { title: "错误栏目管网工程招标公告", pub_time: "2026-07-31", post_url: "http://zyjy.huizhou.gov.cn/y", post_type: "normal", is_abolished: 0, is_expired: 0, category: 999 },
+  ];
+  const got = M.parseHuizhouSearchJsonp(`__bid(${JSON.stringify({ results: rows })})`, ad);
+  assert.equal(got.length, 1);
+  assert.equal(got[0].cityHint, "惠州市");
+  assert.equal(got[0].url, "https://zyjy.huizhou.gov.cn/ggfw/jyxx/jsgc/zbzgysgg/szx/content/post_1.html");
+  assert.equal(ad.normalizeTitle(got[0].title), "惠州市排水管网改造工程招标公告");
+});
+
+test("中山 node58 拒绝补充公告，地区固定并按公式末值取控制价", () => {
+  const ad = M.ADAPTERS.zhongshan;
+  const got = M.parseZhongshanPayload({ data: { rows: [
+    { arab01: "1", arab02: "58", arab04: "坦洲镇物流北路道路建设工程", arab32: "2026-08-17 17:30:00", arab37: "0" },
+    { arab01: "2", arab02: "58", arab04: "某工程补充公告", arab32: "2026-08-17 17:30:00", arab37: "1" },
+    { arab01: "3", arab02: "59", arab04: "错误节点", arab32: "2026-08-17 17:30:00", arab37: "0" },
+  ] } }, ad);
+  assert.equal(got.length, 1);
+  assert.equal(got[0].cityHint, "中山市");
+  assert.equal(M.zhongshanControlPrice("最高投标限价（投标报价上限值）130245770.07×（1-10%）=117221193.06元 是否接受联合体投标 否", {}), "11722.119306");
+  const detail = M.zhongshanDetail("<table><tr><td>招标项目 实施 （交货） 地点</td><td>中山市坦洲镇</td></tr><tr><td>工期（交货期）</td><td>570日历天</td></tr></table><p>本次投标总价最高投标限价为53609696.39元</p>", got[0], "");
+  assert.equal(detail.projectSite, "中山市坦洲镇");
+  assert.equal(detail.duration, "570日历天");
+  assert.equal(detail.controlPrice, "5360.969639");
+  assert.equal(detail.docLink, "");
+});
+
+test("济南 search.do 保留 isnew 并用 table_one 精确覆盖详情主体", () => {
+  const ad = M.ADAPTERS.jinan;
+  const html = `<ul><li><span class="span1">[市本级]</span><a onclick="showview('ABC123',1,'招标公告')" title='济南供热管网工程招标公告'>x</a><span class="span2">2026-08-18</span></li><li><span class="span1">[历城区]</span><a onclick="showview('9988',0,'招标公告')" title='历城区道路工程招标公告'>x</a><span class="span2">2026-08-17</span></li><li><span class="span1">[市本级]</span><a onclick="showview('BAD',1,'招标公告')" title='管网工程中标候选人公示'>x</a><span class="span2">2026-08-16</span></li></ul>`;
+  const got = M.parseJinanPayload({ success: true, params: { str: html } }, ad);
+  assert.equal(got.length, 2);
+  assert.match(got[0].url, /isnew=1/);
+  assert.match(got[1].url, /isnew=0/);
+  const detail = M.jinanDetail(`<div class="tle">济南管网工程招标公告</div><table><tr><td>项目编号：</td><td>JN-1</td></tr><tr><td>工程地点：</td><td>济南市</td></tr><tr><td>合同估算价：</td><td>1011万元</td></tr><tr><td>招标单位：</td><td>济南热力集团有限公司</td></tr><tr><td>招标代理单位：</td><td>瀚景项目管理有限公司</td></tr><tr><td>招标单位联系人：</td><td>孙经理</td></tr><tr><td>招标单位联系电话：</td><td>0531-86106573</td></tr></table><p>投标文件的提交截止时间：2026年9月10日09时00分</p>`, got[0], "");
+  assert.equal(detail.owner, "济南热力集团有限公司");
+  assert.equal(detail.agency, "瀚景项目管理有限公司");
+  assert.equal(detail.controlPrice, "1011");
+  assert.equal(detail.bidOpen, "2026-09-10 09:00");
+});
+
+test("武汉列表页内去重并由结构化详情精确映射字段", () => {
+  const ad = M.ADAPTERS.wuhan;
+  const block = (id, title, type = "招标/资格预审公告") => `<li onclick="window.location='http://ggzyfw.wuhan.gov.cn:80/whggzy/jygkgy/${id}.jhtml'"><p class="name">${title}</p><div><p><span>信息来源：</span><span>市级</span></p><p><span>信息类型：</span><span>${type}</span></p><p><span>发布时间：</span><span>2026-08-18</span></p></div></li>`;
+  const got = M.parseWuhanHtml(block("1", "武汉供水管网工程") + block("2", "武汉供水管网工程") + block("3", "武汉供水管网工程延期公告"), ad);
+  assert.equal(got.length, 1);
+  assert.equal(got[0].cityHint, "武汉市");
+  assert.match(got[0].url, /^https:\/\/ggzyfw\.wuhan\.gov\.cn/);
+  const detail = M.wuhanDetail(ad, `<input type="hidden" id="bidOpenTime" value="2026-09-10 09:29:00"><table><tr><td>招标登记编号：</td><td>WH-1</td></tr><tr><td>招标项目名称：</td><td>武汉供水管网工程</td></tr><tr><td>招标人（盖章）：</td><td>武汉建设有限公司</td></tr><tr><td>招标代理机构：</td><td>湖北代理有限公司</td></tr><tr><td>工程地点：</td><td>武汉市</td></tr><tr><td>计划工期（日历天）：</td><td>30</td></tr><tr><td>评标办法：</td><td>综合评估法</td></tr><tr><td>本次招标工程投资额(万元)：</td><td>227</td></tr><tr><td>其他要求：</td><td>本次招标不接受联合体投标。</td></tr></table>`, got[0]);
+  assert.equal(detail.bidOpen, "2026-09-10 09:29");
+  assert.equal(detail.duration, "30日历天");
+  assert.equal(detail.controlPrice, "");
+  assert.equal(detail.budget, "227");
+  assert.equal(detail.owner, "武汉建设有限公司");
+  assert.equal(detail.consortium, "不接受");
 });
 
 test("烟台只允许官方招标/采购公告栏目，拒绝中标结果和合同", () => {

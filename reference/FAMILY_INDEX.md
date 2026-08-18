@@ -61,6 +61,7 @@ HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p <adapter> -k 管�
 | TRS 引擎 | `jl`/`ln`/`nmg` | jilin/liaoning/neimenggu | `was5/web/search` 或 openSearch，JSONP 剥离，反爬严 |
 | HTML SSR | （默认）/`mianyang`/`qinhuangdao` | shandong(限)/anhui(改 ah)/xizang(改 xz)/guangxi(限)/beijing(改)/shanxi(改)/hebei/shanghai/**mianyang·qinhuangdao(城市级)** | Jeecms/Hanweb/WebBuilder SSR；绵阳关系接口解壳；秦皇岛深页验证码边界 |
 | WebBuilder REST | `nantong` | **nantong(城市级)** | EWB-FRONT `params` 表单，`categorymum` 官方拼写，零基分页，作废/阶段三字段守卫 |
+| 城市官方 bespoke | `nanjing`/`huizhou`/`zhongshan`/`jinan`/`wuhan` | 南京/惠州/中山/济南/武汉 | webdb 双栏目、广东政府 JSONP、pageList、search.do、静态 CMS 查询；各自按官方阶段字段和详情表映射 |
 | bespoke REST | `hn`/`hb`/`gz`/`yn`/`fj`/`tj`/`sntba` | hunan/hubei/guizhou/yunnan/fujian/tianjin/shaanxi(墙) | 各省独立 API，须逐省逆向 |
 | 特殊 | `cq`/`ygp` | chongqing(复测通)/guangdong(限) | cq Nuxt SSR；gd 独立 API 逐市循环 |
 

@@ -475,6 +475,69 @@ const ADAPTERS = {
     normalizeTitle: (title) => String(title || "").replace(/^\[新\]\s*/, "").trim(),
     defaultType: "招标公告",
   },
+  // ===== 城市扩展第二批（2026-08-18）：南京/惠州/中山/济南/武汉 =====
+  nanjing: {
+    name: "南京市公共资源交易平台（城市级·webdb）",
+    verified: true,
+    kind: "nanjing",
+    base: "https://njggzy.nanjing.gov.cn",
+    referer: "https://njggzy.nanjing.gov.cn/njweb/fjsz/buildService1.html",
+    categoryNums: ["068001001", "068001002"], // 服务类 + 工程类，均需标题阶段复核
+    rn: 10,
+    clientFilterOnly: true,
+    cityName: "南京市",
+    detail: nanjingDetail,
+    defaultType: "招标公告",
+  },
+  huizhou: {
+    name: "惠州市公共资源交易中心（城市级·静态政府站）",
+    verified: true,
+    kind: "huizhou",
+    base: "https://zyjy.huizhou.gov.cn",
+    referer: "https://zyjy.huizhou.gov.cn/ggfw/jyxx/jsgc/zbzgysgg/",
+    categoryIds: ["31261", "31263", "31264", "31265", "31266", "31267", "31268", "36676"],
+    clientFilterOnly: false,
+    cityName: "惠州市",
+    normalizeTitle: (title) => String(title || "").replace(/【(?:施工|监理|试验检测|勘察设计|工程总承包|设备材料|其他)】/g, "").trim(),
+    detail: huizhouDetail,
+    defaultType: "招标公告",
+  },
+  zhongshan: {
+    name: "中山市公共资源交易平台（城市级·pageList API）",
+    verified: true,
+    kind: "zhongshan",
+    base: "https://www.zsjypt.cn",
+    referer: "https://www.zsjypt.cn/subItem/58",
+    nodeId: "58",
+    rn: 15,
+    clientFilterOnly: false,
+    pdfBody: false,
+    cityName: "中山市",
+    detail: zhongshanDetail,
+    defaultType: "招标公告",
+  },
+  jinan: {
+    name: "济南公共资源交易中心（城市级·建设工程 search.do）",
+    verified: true,
+    kind: "jinan",
+    base: "https://jnggzy.jinan.gov.cn",
+    referer: "https://jnggzy.jinan.gov.cn/jnggzyztb/front/noticelist.do?type=0&xuanxiang=1&area=",
+    rn: 15,
+    clientFilterOnly: true,
+    cityName: "济南市",
+    detail: jinanDetail,
+    defaultType: "招标公告",
+  },
+  wuhan: {
+    name: "武汉市公共资源交易电子服务系统（城市级·静态 CMS）",
+    verified: true,
+    kind: "wuhan",
+    base: "https://ggzyfw.wuhan.gov.cn",
+    referer: "https://ggzyfw.wuhan.gov.cn/whggzy/jygkgy/index.jhtml",
+    clientFilterOnly: false, // 官方 queryContent 支持标题和日期窗口
+    cityName: "武汉市",
+    defaultType: "招标公告",
+  },
   // ===== Goal v5 批次2：8 个城市级 adapter（2026-08-16 侦察真机验证接入；端点证据见各 reference 页）=====
   yichang: {
     name: "宜昌公共资源交易电子服务系统（城市级·EpointWebBuilder 变体）",
@@ -3806,6 +3869,357 @@ async function nantongList(ad, page, args) {
   return parseNantongPayload(await r.text(), ad);
 }
 
+const SECOND_BATCH_NON_ZB = /(资格预审公告|资审公告|澄清|修改公告|变更公告|延期公告|答疑|补充公告|中标|成交|结果公示|合同公告|终止公告|流标|废标)/;
+
+function parseLabelTable(html) {
+  const fields = {};
+  for (const row of String(html || "").match(/<tr\b[\s\S]*?<\/tr>/gi) || []) {
+    const cells = [...row.matchAll(/<td\b[^>]*>([\s\S]*?)<\/td>/gi)]
+      .map(m => htmlToText(m[1]).replace(/^[　\s]+|[　\s]+$/g, ""));
+    for (let i = 0; i + 1 < cells.length; i += 2) {
+      const key = cells[i].replace(/[：:]\s*$/, "").trim();
+      const value = cells[i + 1].trim();
+      if (key && key.length <= 50 && value && !fields[key]) fields[key] = value;
+    }
+  }
+  return fields;
+}
+
+function looseField(fields, ...names) {
+  const entries = Object.entries(fields || {});
+  for (const name of names) {
+    const wanted = String(name).replace(/\s+/g, "");
+    const hit = entries.find(([key]) => String(key).replace(/\s+/g, "") === wanted);
+    if (hit) return hit[1];
+  }
+  return "";
+}
+
+function structuredMoneyWan(value) {
+  const raw = String(value || "").replace(/[,，\s]/g, "");
+  const m = raw.match(/(\d+(?:\.\d+)?)/);
+  if (!m) return "";
+  const n = Number(m[1]);
+  if (!Number.isFinite(n)) return "";
+  if (/万元/.test(raw)) return String(Number(n.toFixed(6)));
+  if (/(?:人民币)?元/.test(raw)) return String(Number((n / 10000).toFixed(6)));
+  return String(Number(n.toFixed(6))); // 结构化字段标签本身已注明“万元”时使用
+}
+
+function stripSealNoise(value) {
+  return String(value || "").replace(/&&&[^&]+&&&/g, "").replace(/^[为是：:\s]+/, "").trim();
+}
+
+function nanjingDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  for (const key of ["owner", "agency", "contact", "manager"]) out[key] = stripSealNoise(out[key]);
+  return out;
+}
+
+function jinanDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  const f = parseLabelTable(html);
+  const title = htmlToText(String(html).match(/<div\b[^>]*class=["'][^"']*\btle\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1] || "").trim();
+  if (title) out.title = title;
+  out.projectCode = f["项目编号"] || out.projectCode || "";
+  out.projectSite = f["工程地点"] || out.projectSite || "";
+  out.funding = f["资金来源"] || out.funding || "";
+  out.budget = f["计划批文总投资额"] ? structuredMoneyWan(f["计划批文总投资额"]) : (out.budget || "");
+  out.controlPrice = f["合同估算价"] ? structuredMoneyWan(f["合同估算价"]) : (out.controlPrice || "");
+  out.scale = f["工程规模"] || out.scale || "";
+  out.approval = f["计划文号"] || out.approval || "";
+  out.owner = stripSealNoise(f["招标单位"] || f["建设单位"] || "");
+  out.agency = stripSealNoise(f["招标代理单位"] || "");
+  out.contact = stripSealNoise(f["招标单位联系人"] || f["建设单位联系人"] || "");
+  out.phone = String(f["招标单位联系电话"] || f["建设单位联系电话"] || "").trim();
+  out.bidOpen = out.bidOpen || grabDateTime(htmlToText(html), ["投标文件的提交截止时间", "投标截止时间", "开标时间"]);
+  return out;
+}
+
+function wuhanDetail(ad, html, item) {
+  const f = parseLabelTable(html);
+  const other = String(f["其他要求"] || "");
+  const bidOpen = String(html).match(/id\s*=\s*["']bidOpenTime["'][^>]*value\s*=\s*["']([^"']+)/i)?.[1] || "";
+  const durationValue = String(f["计划工期（日历天）"] || "").match(/\d+(?:\.\d+)?/)?.[0] || "";
+  return {
+    title: f["招标项目名称"] || item.title,
+    projectCode: f["招标登记编号"] || "",
+    projectSite: f["工程地点"] || "",
+    bidOpen: bidOpen ? bidOpen.slice(0, 16) : "",
+    funding: "",
+    duration: durationValue ? `${durationValue}日历天` : "",
+    qualification: grabQualification(other, flatten(other)),
+    performance: grabPerformance(other, flatten(other)),
+    controlPrice: "",
+    budget: structuredMoneyWan(f["本次招标工程投资额(万元)"] || f["投资总额（万元）"] || ""),
+    bond: "",
+    evaluation: grabEvaluation(String(f["评标办法"] || "")),
+    consortium: grabConsortium(other),
+    fullScore: "",
+    approval: f["立项批准文号"] || "",
+    method: f["招标方式"] || "",
+    scale: "",
+    scope: f["招标内容说明"] || f["招标内容"] || "",
+    owner: stripSealNoise(f["招标人（盖章）"] || ""),
+    agency: stripSealNoise(f["招标代理机构"] || ""),
+    manager: "",
+    contact: stripSealNoise(f["招标人联系人"] || ""),
+    phone: String(f["招标联系电话"] || "").trim(),
+    docLink: "",
+  };
+}
+
+function nanjingArea(title) {
+  const value = String(title || "");
+  const maps = [
+    ["江宁", "江宁区"], ["浦口", "浦口区"], ["六合", "六合区"],
+    ["溧水", "溧水区"], ["高淳", "高淳区"], ["江北新区", "江北新区"],
+  ];
+  const hit = maps.find(([key]) => value.includes(key));
+  return hit ? hit[1] : "南京市";
+}
+
+function parseNanjingPayload(payload, ad) {
+  const outer = typeof payload === "string" ? JSON.parse(payload) : payload;
+  const inner = typeof outer.custom === "string" ? JSON.parse(outer.custom) : outer.custom;
+  if (!inner || !Array.isArray(inner.Table)) throw new Error("nanjing invalid response structure");
+  return inner.Table.map(it => {
+    const title = htmlToText(String(it.GongGaoName || it.title || "")).trim();
+    const date = String(it.GongGaoFBDate || it.GongGaoStartDate || "").match(/(?:19|20)\d{2}-\d{2}-\d{2}/)?.[0] || "";
+    const rawPrice = String(it.HeTongGuSuanPrice || it.FaBaoPrice || "").replace(/,/g, "").trim();
+    return {
+      title,
+      date,
+      url: it.href ? toAbs(String(it.href), ad.base) : "",
+      cityHint: nanjingArea(title),
+      projectCode: String(it.BiaoDuanNO || "").trim(),
+      controlPrice: /^\d+(?:\.\d+)?$/.test(rawPrice) ? rawPrice : "",
+    };
+  }).filter(x => x.title && x.date && x.url && /招标公告/.test(x.title) && !SECOND_BATCH_NON_ZB.test(x.title));
+}
+
+async function nanjingList(ad, page, args) {
+  const out = [];
+  for (const categorynum of ad.categoryNums || []) {
+    const body = new URLSearchParams({
+      categorynum,
+      keyword: args.keyword || "",
+      pageIndex: String(Math.max(1, page)),
+      pageSize: String(ad.rn || 10),
+      startprice: "", endprice: "", startdate: "", enddate: "", bdbh: "", bdmc: "",
+    });
+    const r = await fetch(ad.base + "/webdb_njggzy/fjszListAction.action?cmd=getInfolist", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8", "User-Agent": UA_STR, "Referer": ad.referer, "X-Requested-With": "XMLHttpRequest" },
+      body: body.toString(),
+    });
+    if (!r.ok) throw new Error("nanjing HTTP " + r.status);
+    out.push(...parseNanjingPayload(await r.text(), ad));
+  }
+  return out;
+}
+
+function normalizeHuizhouUrl(href) {
+  const value = String(href || "").replace(/&amp;/gi, "&");
+  return value.replace(/^https?:\/\/zyjy--huizhou--gov--cn--[^./]+\.proxy\.huizhou\.gov\.cn(?::80)?/i, "https://zyjy.huizhou.gov.cn");
+}
+
+function huizhouDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  const f = parseLabelTable(html);
+  out.projectSite = looseField(f, "招标项目实施（交货）地点", "项目实施（交货）地点") || out.projectSite || "";
+  out.duration = looseField(f, "工期（交货期）", "工期") || out.duration || "";
+  const limit = f["最高投标限价（投标报价上限值）"] || f["最高投标限价"] || f["投标报价上限值"] || "";
+  if (limit) out.controlPrice = structuredMoneyWan(limit);
+  if (out.docLink && !/\/projectInit\/viewPdf\?id=/i.test(out.docLink)) out.docLink = "";
+  return out;
+}
+
+function parseHuizhouHtml(html, ad) {
+  const out = [];
+  for (const row of String(html || "").match(/<tr\b[\s\S]*?<\/tr>/gi) || []) {
+    const am = row.match(/<a\b[^>]*href=["']([^"']*\/ggfw\/jyxx\/jsgc\/zbzgysgg\/[^"']+)["'][^>]*>([\s\S]*?)<\/a>/i);
+    const dm = row.match(/(?:19|20)\d{2}-\d{2}-\d{2}/);
+    if (!am || !dm) continue;
+    const title = htmlToText(am[2]).trim();
+    if (!title || SECOND_BATCH_NON_ZB.test(title)) continue;
+    const area = title.match(/【([^】]{2,20})】/)?.[1] || extractKnownArea(title) || ad.cityName;
+    out.push({ title, date: dm[0], url: normalizeHuizhouUrl(am[1]), cityHint: area });
+  }
+  return out;
+}
+
+function parseHuizhouSearchJsonp(payload, ad) {
+  const raw = String(payload || "").trim();
+  const jsonText = raw.match(/^[^(]+\(([\s\S]*)\)\s*;?$/)?.[1] || raw;
+  const j = JSON.parse(jsonText);
+  const rows = Array.isArray(j.results) ? j.results : [];
+  const categoryArea = {
+    "31261": "惠州市", "31263": "惠阳区", "31264": "惠东县", "31265": "仲恺区",
+    "31266": "博罗县", "31267": "大亚湾区", "31268": "龙门县", "36676": "惠城区",
+  };
+  return rows.map(it => {
+    const title = htmlToText(String(it.title || "")).trim();
+    const date = String(it.pub_time || "").match(/(?:19|20)\d{2}-\d{2}-\d{2}/)?.[0] || "";
+    const url = normalizeHuizhouUrl(it.post_url || it.url || "");
+    const bracketArea = title.match(/【([^】]{2,20})】/)?.[1] || "";
+    return {
+      title, date, url,
+      cityHint: categoryArea[String(it.category || "")] || (/(?:施工|监理|试验检测|勘察设计|工程总承包|设备材料|其他)$/.test(bracketArea) ? "" : bracketArea) || extractKnownArea(title) || ad.cityName,
+      _normal: String(it.post_type || "") === "normal",
+      _abolished: Number(it.is_abolished || 0) === 1,
+      _expired: Number(it.is_expired || 0) === 1,
+      _category: String(it.category || ""),
+    };
+  }).filter(x => x.title && x.date && x.url && x._normal && !x._abolished && !x._expired
+    && (ad.categoryIds || []).includes(x._category)
+    && /招标公告/.test(x.title) && !SECOND_BATCH_NON_ZB.test(x.title));
+}
+
+async function huizhouList(ad, page, args) {
+  const out = [];
+  for (const categoryId of ad.categoryIds || []) {
+    const qs = new URLSearchParams({
+      text: args.keyword ? `'${args.keyword}'` : "", category_id: categoryId,
+      position: "title", order: "1", page: String(Math.max(1, page)),
+      pagesize: "20", callback: "__bid",
+    });
+    const payload = await requestWithRetry(`https://search.gd.gov.cn/jsonp/site/752376?${qs.toString()}`, args.delay);
+    out.push(...parseHuizhouSearchJsonp(payload, ad).filter(item => !args.keyword || item.title.includes(args.keyword)));
+  }
+  const seen = new Set();
+  return out.filter(item => !seen.has(item.url) && seen.add(item.url));
+}
+
+function parseZhongshanPayload(payload, ad) {
+  const j = typeof payload === "string" ? JSON.parse(payload) : payload;
+  const rows = j && j.data && Array.isArray(j.data.rows) ? j.data.rows : null;
+  if (!rows) throw new Error("zhongshan invalid response structure");
+  return rows.map(it => {
+    const title = htmlToText(String(it.arab04 || "")).trim();
+    const date = String(it.arab32 || it.arab25 || "").match(/(?:19|20)\d{2}-\d{2}-\d{2}/)?.[0] || "";
+    return {
+      title, date,
+      url: it.arab01 ? `${ad.base}/artical/${ad.nodeId}/${it.arab01}` : "",
+      cityHint: ad.cityName,
+      _nodeId: String(it.arab02 || ""),
+      _supplement: String(it.arab37 || "") === "1",
+    };
+  }).filter(x => x.title && x.date && x.url && x._nodeId === String(ad.nodeId) && !x._supplement && !SECOND_BATCH_NON_ZB.test(x.title));
+}
+
+function zhongshanControlPrice(text, fields) {
+  const normalized = String(text || "").replace(/(\d)\s*\.\s*(\d)/g, "$1.$2");
+  const direct = normalized.match(/本次投标总价最高投标限价为\s*(\d+(?:\.\d+)?)\s*(万元|元)/);
+  if (direct) return direct[2] === "万元" ? String(Number(direct[1])) : String(Number((Number(direct[1]) / 10000).toFixed(6)));
+  const section = normalized.match(/最高投标限价[\s\S]*?(?=是否接受联合体投标|投标资格能力要求|$)/)?.[0] || "";
+  const fieldKey = Object.keys(fields || {}).find(key => /最高投标限价/.test(key));
+  const formula = (section || String(fieldKey ? fields[fieldKey] : "")).replace(/(\d)\s*\.\s*(\d)/g, "$1.$2");
+  const amounts = [...formula.matchAll(/(\d+(?:\.\d+)?)\s*(万元|元)/g)];
+  if (!amounts.length) return "";
+  const last = amounts[amounts.length - 1];
+  return last[2] === "万元" ? String(Number(last[1])) : String(Number((Number(last[1]) / 10000).toFixed(6)));
+}
+
+function zhongshanDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  const f = parseLabelTable(html);
+  const text = htmlToText(html);
+  out.projectSite = looseField(f, "招标项目实施（交货）地点", "项目实施（交货）地点");
+  out.duration = looseField(f, "工期（交货期）", "工期");
+  out.controlPrice = zhongshanControlPrice(text, f) || out.controlPrice || "";
+  out.docLink = "";
+  out._attachNote = "招标文件下载需验证码，静态采集不绕过";
+  return out;
+}
+
+async function zhongshanList(ad, page, args) {
+  const body = new URLSearchParams({ nodeId: ad.nodeId, offset: String(Math.max(1, page)), limit: String(ad.rn || 15), gjz: args.keyword || "" });
+  const r = await fetch(ad.base + "/pageList", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8", "User-Agent": UA_STR, "Referer": ad.referer, "X-Requested-With": "XMLHttpRequest" },
+    body: body.toString(),
+  });
+  if (!r.ok) throw new Error("zhongshan HTTP " + r.status);
+  return parseZhongshanPayload(await r.text(), ad);
+}
+
+function parseJinanPayload(payload, ad) {
+  const j = typeof payload === "string" ? JSON.parse(payload) : payload;
+  const html = j && j.success && j.params ? String(j.params.str || "") : "";
+  if (!html) throw new Error("jinan invalid response structure");
+  const out = [];
+  for (const block of html.match(/<li\b[\s\S]*?<\/li>/gi) || []) {
+    const area = block.match(/class=["']span1["'][^>]*>\s*\[([^\]]+)\]/i)?.[1] || "";
+    const action = block.match(/showview\(\s*["']([A-Za-z0-9-]+)["']\s*,\s*([01])\s*,\s*["']([^"']+)["']/i);
+    const title = htmlToText(block.match(/\btitle=["']([^"']+)["']/i)?.[1] || "").trim();
+    const date = block.match(/class=["']span2["'][^>]*>\s*((?:19|20)\d{2}-\d{2}-\d{2})/i)?.[1] || "";
+    if (!action || action[3] !== "招标公告" || !title || !date || SECOND_BATCH_NON_ZB.test(title)) continue;
+    const cityHint = !area || area === "市本级" ? ad.cityName : area;
+    const qs = new URLSearchParams({ iid: action[1], isnew: action[2], xuanxiang: "招标公告" });
+    out.push({ title, date, cityHint, url: `${ad.base}/jnggzyztb/front/showNotice.do?${qs.toString()}` });
+  }
+  return out;
+}
+
+async function jinanList(ad, page, args) {
+  const body = new URLSearchParams({ area: "", type: "0", xuanxiang: "招标公告", subheading: "", pagenum: String(Math.max(1, page)) });
+  const r = await fetch(ad.base + "/jnggzyztb/front/search.do", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8", "User-Agent": UA_STR, "Referer": ad.referer, "X-Requested-With": "XMLHttpRequest" },
+    body: body.toString(),
+  });
+  if (!r.ok) throw new Error("jinan HTTP " + r.status);
+  const listed = parseJinanPayload(await r.text(), ad)
+    .filter(item => !args.keyword || item.title.includes(args.keyword));
+  const out = [];
+  for (const item of listed) {
+    const detailHtml = await requestWithRetry(item.url, args.delay);
+    const detailTitle = jinanDetail(detailHtml, item, "").title || item.title;
+    if (SECOND_BATCH_NON_ZB.test(detailTitle)) continue;
+    out.push({ ...item, title: detailTitle, _detailHtml: detailHtml });
+  }
+  return out;
+}
+
+function parseWuhanHtml(html, ad) {
+  const out = [];
+  const seen = new Set();
+  for (const block of String(html || "").match(/<li\b[^>]*onclick="[^"]*jygkgy\/\d+\.jhtml[^"]*"[^>]*>[\s\S]*?<\/li>/gi) || []) {
+    const href = block.match(/https?:\/\/ggzyfw\.wuhan\.gov\.cn(?::80)?(\/whggzy\/jygkgy\/\d+\.jhtml)/i)?.[1] || "";
+    const title = htmlToText(block.match(/<p\b[^>]*class=["']name["'][^>]*>([\s\S]*?)<\/p>/i)?.[1] || "").trim();
+    const type = block.match(/信息类型：\s*<\/span>\s*<span[^>]*>([^<]+)</i)?.[1]?.trim() || "";
+    const date = block.match(/发布时间：\s*<\/span>\s*<span[^>]*>\s*((?:19|20)\d{2}-\d{2}-\d{2})/i)?.[1] || "";
+    const area = block.match(/信息来源：\s*<\/span>\s*<span[^>]*>([^<]+)</i)?.[1]?.trim() || "";
+    if (!href || !title || !date || type !== "招标/资格预审公告" || SECOND_BATCH_NON_ZB.test(title)) continue;
+    const key = `${date}|${area}|${title}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ title, date, cityHint: !area || area === "市级" ? ad.cityName : area, cityWeak: ad.cityName, url: ad.base + href });
+  }
+  return out;
+}
+
+async function wuhanList(ad, page, args) {
+  const end = new Date();
+  const start = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  start.setDate(start.getDate() - Math.max(0, Number(args.days || 30) - 1));
+  const qs = new URLSearchParams({
+    title: args.keyword || "", channelId: "160",
+    beginTime: localYmd(start), endTime: localYmd(end),
+  });
+  const path = page === 1 ? "/whggzy/queryContent-jygk.jspx" : `/whggzy/queryContent_${page}-jygk.jspx`;
+  const listed = parseWuhanHtml(await requestWithRetry(`${ad.base}${path}?${qs.toString()}`, args.delay), ad);
+  const out = [];
+  for (const item of listed) {
+    const detailHtml = await requestWithRetry(item.url, args.delay);
+    const fields = parseLabelTable(detailHtml);
+    if (/资格预审/.test(String(fields["对投标人资格审查方式"] || ""))) continue;
+    out.push({ ...item, _detailHtml: detailHtml });
+  }
+  return out;
+}
+
 async function weifangList(ad, page, args) {
   const end = new Date();
   const start = new Date(end.getFullYear(), end.getMonth(), end.getDate());
@@ -6195,6 +6609,8 @@ const PROV_ALIAS = {
   常州: "changzhou", // 城市级 adapter（江苏常州独立平台，标准 EPoint 同构）
   洛阳: "luoyang", 郑州: "zhengzhou", 绵阳: "mianyang", 秦皇岛: "qinhuangdao", 南通: "nantong",
   // 城市级扩展批次（2026-08-18）：仅官方独立入口，均锁定 zb 招标公告。
+  南京: "nanjing", 惠州: "huizhou", 中山: "zhongshan", 济南: "jinan", 武汉: "wuhan",
+  // 城市级扩展第二批（2026-08-18）：官方市级入口，严格过滤非 zb 阶段。
   苏州: "suzhou", // 城市级 adapter（江苏苏州独立平台，静态 SSR webBuilder）
   徐州: "xuzhou", // 城市级 adapter（江苏徐州独立平台，静态 SSR webBuilder）
   宜昌: "yichang", 临沂: "linyi", 烟台: "yantai", 无锡: "wuxi", 泉州: "quanzhou",
@@ -6308,6 +6724,16 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
       items = await qinhuangdaoList(ad, page, args);
     } else if (ad.kind === "nantong") {
       items = await nantongList(ad, page, args);
+    } else if (ad.kind === "nanjing") {
+      items = await nanjingList(ad, page, args);
+    } else if (ad.kind === "huizhou") {
+      items = await huizhouList(ad, page, args);
+    } else if (ad.kind === "zhongshan") {
+      items = await zhongshanList(ad, page, args);
+    } else if (ad.kind === "jinan") {
+      items = await jinanList(ad, page, args);
+    } else if (ad.kind === "wuhan") {
+      items = await wuhanList(ad, page, args);
     } else if (ad.kind === "qingdao") {
       items = await qingdaoList(ad, page, args);
     } else if (ad.kind === "shenzhen") {
@@ -6448,6 +6874,14 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
             for (const [k, v] of Object.entries(dt)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
           } else if (ad.kind === "shenzhen") {
             const dt = await shenzhenDetail(ad, item);
+            for (const [k, v] of Object.entries(dt)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
+          } else if (ad.kind === "jinan") {
+            const dhtml = item._detailHtml || await requestWithRetry(item.url, args.delay);
+            const dt = jinanDetail(dhtml, item, "");
+            for (const [k, v] of Object.entries(dt)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
+          } else if (ad.kind === "wuhan") {
+            const dhtml = item._detailHtml || await requestWithRetry(item.url, args.delay);
+            const dt = wuhanDetail(ad, dhtml, item);
             for (const [k, v] of Object.entries(dt)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
           } else {
             // 2026-08-16 V5 批次2：岳阳等静态 CMS 站点详情页为 GBK 编码（charset=gb2312），
@@ -6791,5 +7225,5 @@ function resolveOutputPaths(args) {
 })();
 
 
-module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseQingdaoHtml, parseStrongTableFields, qingdaoDetail, parseShenzhenList, parseBgTableFields, exactMoneyWan,
+module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseNanjingPayload, nanjingDetail, parseHuizhouHtml, parseHuizhouSearchJsonp, normalizeHuizhouUrl, huizhouDetail, parseZhongshanPayload, zhongshanControlPrice, zhongshanDetail, parseJinanPayload, jinanDetail, parseWuhanHtml, wuhanDetail, parseQingdaoHtml, parseStrongTableFields, qingdaoDetail, parseShenzhenList, parseBgTableFields, exactMoneyWan,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, cqList, tjList, nmgList, lnList, gsList };

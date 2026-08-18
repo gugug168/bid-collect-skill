@@ -15,6 +15,11 @@
 | 绵阳 mianyang | ggzy.my.gov.cn | 静态列表+关系接口 | `projectInfo` 壳页经 `getInfolistNew` 精确选 `001001` 真实详情；附件验证码不绕过 | ✅ VERIFIED（2026-08-18） |
 | 秦皇岛 qinhuangdao | qhdggzy.cn | 静态 HTML | 仅 1–6 页连续；第 7 页深翻需验证码；排除资格预审/变更等非 zb | ✅ VERIFIED（2026-08-18） |
 | 南通 nantong | ggzyjy.nantong.gov.cn | EWB-FRONT | `categorymum=003001001`；零基分页；客户端关键词；剔除 `[已作废]` | ✅ VERIFIED（2026-08-18） |
+| 南京 nanjing | njggzy.nanjing.gov.cn | webdb 双栏目 | 服务类/工程类分取；关键词有效；`status.error` 不可信；标题阶段守卫 | ✅ VERIFIED（2026-08-18） |
+| 惠州 huizhou | zyjy.huizhou.gov.cn | 广东政府 JSONP | 遍历 8 叶子栏目；废止/过期过滤；避开静态分页乱序 | ✅ VERIFIED（2026-08-18） |
+| 中山 zhongshan | zsjypt.cn | pageList API | `nodeId=58`；`gjz` 关键词；排除 `arab37=1` 补充公告；控制价公式取末值 | ✅ VERIFIED（2026-08-18） |
+| 济南 jinan | jnggzy.jinan.gov.cn | 建设工程 search.do | 锁 `xuanxiang=招标公告`；保留 isnew；table_one 结构化详情 | ✅ VERIFIED（2026-08-18） |
+| 武汉 wuhan | ggzyfw.wuhan.gov.cn | 静态 CMS 查询 | `channelId=160`；标题+日期查询；详情预检排除资格预审；页内去重 | ✅ VERIFIED（2026-08-18） |
 | 苏州 suzhou | ggzy.suzhou.gov.cn | 静态 SSR webBuilder | 锁 003001001 招标公告子栏目；`?pageIndex=N` 分页；相对详情链接拼绝对 | 🟡 CONNECTED_NO_RECENT_DATA（2026-08-18，30/90/365d“管网”均 0；历史 VERIFIED 保留） |
 | 徐州 xuzhou | ggzy.zwb.xz.gov.cn | EPoint new API + SSR 首页 | 锁 003001001；官方 `list.js` POST `/inteligentsearchnew/`；禁用有年度断层的静态 `N.html` 分页 | ✅ VERIFIED（2026-08-18，90d 管网 3 条） |
 | 定西 dingxi | ggzy.dingxi.gov.cn | 标准 EPoint·infodate 变体 | 第 4 种 sortField；源站 2023-04 停更 | 🟡 技术样本 |
@@ -44,7 +49,7 @@
 
 ## 变体未命中（域名变体不中，不代表无平台——域名模式待扩充）
 
-绍兴、襄阳、中山、惠州、大连等已确认存在独立官方入口，留待后续批次；赣州、柳州、湛江、保定、包头等确认应复用省级城市分站；唐山当前公开入口 502。洛阳、绵阳已在本批接入。后续发现入口时必须从政府页面反向验证主办方和栏目，不只猜域名。
+绍兴、襄阳、大连等已确认存在独立官方入口，留待后续批次；赣州、柳州、湛江、保定、包头等确认应复用省级城市分站；唐山当前公开入口 502。洛阳、绵阳、中山、惠州、南京已接入。后续发现入口时必须从政府页面反向验证主办方和栏目，不只猜域名。
 
 ## 不适用（已由省平台/现有机制覆盖）
 
