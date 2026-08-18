@@ -56,10 +56,11 @@ HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p <adapter> -k 管�
 
 | 家族 | adapter kind | 成员（已验证状态） | 共通打法 |
 |---|---|---|---|
-| EPoint 标准 | `epoint` | jiangsu/zhejiang/hainan/sichuan/xinjiangbt/**heilongjiang(修复)**/**anyang·changzhou(城市级)** | `/inteligentsearch/rest/.../getFullTextDataNew`，cnum 变体，匿名 JSON（河南已迁 `henanNotice` 独立 kind，见 §3.1；城市级独立平台总账见 CITY_PLATFORMS.md，常州实例对 fields 投影参数敏感需 omitFields） |
+| EPoint 标准 | `epoint` | jiangsu/zhejiang/hainan/sichuan/xinjiangbt/**heilongjiang(修复)**/**anyang·changzhou·luoyang·zhengzhou(城市级)** | `/inteligentsearch/rest/.../getFullTextDataNew`，cnum 变体，匿名 JSON（河南已迁 `henanNotice` 独立 kind，见 §3.1；城市级独立平台总账见 CITY_PLATFORMS.md，常州实例对 fields 投影参数敏感需 omitFields） |
 | EPoint 自定义 | `epointX`/`gs` | ningxia/xinjiang/jiangxi/qinghai/gansu | 路径/参数非标准，须逆向；gs 双分支 |
 | TRS 引擎 | `jl`/`ln`/`nmg` | jilin/liaoning/neimenggu | `was5/web/search` 或 openSearch，JSONP 剥离，反爬严 |
-| HTML SSR | （默认） | shandong(限)/anhui(改 ah)/xizang(改 xz)/guangxi(限)/beijing(改)/shanxi(改)/hebei/shanghai | Jeecms/Hanweb/WebBuilder SSR 正则，零鉴权 |
+| HTML SSR | （默认）/`mianyang`/`qinhuangdao` | shandong(限)/anhui(改 ah)/xizang(改 xz)/guangxi(限)/beijing(改)/shanxi(改)/hebei/shanghai/**mianyang·qinhuangdao(城市级)** | Jeecms/Hanweb/WebBuilder SSR；绵阳关系接口解壳；秦皇岛深页验证码边界 |
+| WebBuilder REST | `nantong` | **nantong(城市级)** | EWB-FRONT `params` 表单，`categorymum` 官方拼写，零基分页，作废/阶段三字段守卫 |
 | bespoke REST | `hn`/`hb`/`gz`/`yn`/`fj`/`tj`/`sntba` | hunan/hubei/guizhou/yunnan/fujian/tianjin/shaanxi(墙) | 各省独立 API，须逐省逆向 |
 | 特殊 | `cq`/`ygp` | chongqing(复测通)/guangdong(限) | cq Nuxt SSR；gd 独立 API 逐市循环 |
 
@@ -71,6 +72,7 @@ HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p <adapter> -k 管�
 - **cnum 实测映射**：江苏 003 / 浙江 002 / 四川 002·003 / 海南默认 / 兵团 004 / **黑龙江 002（工程建设，原 003 错配为政府采购）** / 河南 001（档案电子件，文件索引级）。
 - **坑**：① 河南为文件索引，`linkurl` 恒空 → `allowNoUrl`（仅列表级，无建设公告）；② **黑龙江服务端 `wd` 检索全坏**（任何关键词 0），须 `keywordClient:true` 拉全量类目后客户端按标题过滤；③ 浙江无 `infodatepx`，须 `webdate` 排序否则返回 2018 老公告；④ 去重坍缩（linkurl 坍缩成 base 强制留空）。
 - 厚字段：`--detail` 触发后通用 HTML 抓取即拿全（owner/控制价/开标/资质/docLink 等 18/20 稳定命中）。
+- 城市变体：洛阳 `cnum=001/cat=003001002/HTTP`；郑州 `cnum=012/cat=004001`，栏目混入招标计划，过滤后仍必须继续分页。
 
 ### 2. EPoint 自定义（epointX / gs）
 - 路径非标准，必须逆向前端 bundle：`/interface_wz/`（宁夏）、`/inteligentsearchnew/`（新疆本级，标准 `/EpointWebBuilder/` 401）、`/XZinterface/`（江西）、`/inteligentsearch/rest/inteligentSearch`（青海，方法名非标准）、`/inteligentsearch/rest/...`（甘肃兰州，unionCondition 过滤 002001001/014001001）。

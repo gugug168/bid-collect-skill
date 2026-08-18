@@ -10,6 +10,11 @@
 | 安阳 anyang | ggzy.anyang.gov.cn | 标准 EPoint（范本） | 无 infodatepx→webdate 排序；锁 001001002/001002002 | ✅ VERIFIED |
 | 兰州（=gansu） | lzggzyjy.lanzhou.gov.cn | gs（双分支） | 省级 WAF 不可达走兰州市级门户 | ✅ VERIFIED（以 gansu 名义） |
 | 常州 changzhou | ggzy.changzhou.gov.cn | 标准 EPoint | **fields 投影参数传入即静默返空**（omitFields 开关）；12 位栏目锁 001001001 前缀 | ✅ VERIFIED（2026-08-16 V5） |
+| 洛阳 luoyang | lyggzyjy.ly.gov.cn | 标准 EPoint·HTTP | 锁 `003001002` 工程招标公告；webdate 排序；市辖区时从标题提区县 | ✅ VERIFIED（2026-08-18） |
+| 郑州 zhengzhou | zzggzy.zhengzhou.gov.cn | 标准 EPoint | `cnum=012`、锁 `004001`；排除混入的招标计划/采购意向 | ✅ VERIFIED（2026-08-18） |
+| 绵阳 mianyang | ggzy.my.gov.cn | 静态列表+关系接口 | `projectInfo` 壳页经 `getInfolistNew` 精确选 `001001` 真实详情；附件验证码不绕过 | ✅ VERIFIED（2026-08-18） |
+| 秦皇岛 qinhuangdao | qhdggzy.cn | 静态 HTML | 仅 1–6 页连续；第 7 页深翻需验证码；排除资格预审/变更等非 zb | ✅ VERIFIED（2026-08-18） |
+| 南通 nantong | ggzyjy.nantong.gov.cn | EWB-FRONT | `categorymum=003001001`；零基分页；客户端关键词；剔除 `[已作废]` | ✅ VERIFIED（2026-08-18） |
 | 苏州 suzhou | ggzy.suzhou.gov.cn | 静态 SSR webBuilder | 锁 003001001 招标公告子栏目；`?pageIndex=N` 分页；相对详情链接拼绝对 | 🟡 CONNECTED_NO_RECENT_DATA（2026-08-18，30/90/365d“管网”均 0；历史 VERIFIED 保留） |
 | 徐州 xuzhou | ggzy.zwb.xz.gov.cn | EPoint new API + SSR 首页 | 锁 003001001；官方 `list.js` POST `/inteligentsearchnew/`；禁用有年度断层的静态 `N.html` 分页 | ✅ VERIFIED（2026-08-18，90d 管网 3 条） |
 | 定西 dingxi | ggzy.dingxi.gov.cn | 标准 EPoint·infodate 变体 | 第 4 种 sortField；源站 2023-04 停更 | 🟡 技术样本 |
@@ -35,11 +40,11 @@
 |---|---|---|
 | 九江 | ggzyjy.jiujiang.gov.cn | **已下线**（2026-02 官方公告：全市平台并入江西省平台 ggzy.jiangxi.gov.cn；旧域名反代空壳）——采集九江走江西省平台按地区过滤（本仓库 jiangxi adapter 已覆盖省级源） |
 
-其余原"域名活非 EPoint"8 城已全部在 V5 批次2 接入（见上表）。18 个变体未中城市的域名模式扩充探测（6 变体 × HEAD+GET 双重复核）已于 2026-08-16 完成：仅绵阳 ggzy.mianyang.cn 命中但 503（后端停服或拒代理出口，改日重试），其余 17 城无独立域名（大概率用省平台聚合，已由省级 adapter 覆盖）。
+2026-08-18 回访证明“域名变体未命中”会漏掉简称域名、政务子域、官方跳转域和非 `.gov.cn` 官方域名。此类结果一律记 `UNVERIFIED`，不得据此推断“不存在独立平台”或“已被省级 adapter 覆盖”。
 
 ## 变体未命中（域名变体不中，不代表无平台——域名模式待扩充）
 
-绍兴、洛阳、襄阳、赣州、唐山、保定、包头、绵阳、柳州、中山、惠州、湛江、大连（截至 2026-08-16 探测的 3 种域名变体）。徐州已于 2026-08-17 找到政务网子域并接入；温州、嘉兴、宁波、潍坊、青岛、深圳已于 2026-08-18 经各自官方入口接入。扩充方向：`{py}ggzy.cn`、`ggzy.{py}.cn`、政务网子路径、省级平台内的城市分站。
+绍兴、襄阳、中山、惠州、大连等已确认存在独立官方入口，留待后续批次；赣州、柳州、湛江、保定、包头等确认应复用省级城市分站；唐山当前公开入口 502。洛阳、绵阳已在本批接入。后续发现入口时必须从政府页面反向验证主办方和栏目，不只猜域名。
 
 ## 不适用（已由省平台/现有机制覆盖）
 

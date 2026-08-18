@@ -41,6 +41,11 @@
 | anyang | `VERIFIED_RECORD` | 2 | — | `anyang-zb-30d.run-report.json` | 锁定 `001001002`/`001002002` 后近 30 天复验，2/2 均为招标公告 |
 | dingxi | `CONNECTED_NO_RECENT_DATA` | 0 | 365 仍 0 | `dingxi-365d.run-report.json` | 城市级（infodate 排序变体）：可达 total=4621 但源站 2023-04 后停更，非近期数据源 |
 | changzhou | `VERIFIED_RECORD` | 3 | — | `changzhou2.run-report.json` | 城市级独立平台（V5 探测接入）：近 30 天 3/3，控制价/招标人厚字段命中 |
+| luoyang | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/luoyang.run-report.json` | 标准 EPoint；锁 `003001002` 工程招标公告；HTTP 官方入口 |
+| zhengzhou | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/zhengzhou.run-report.json` | 标准 EPoint；排除 `004001` 混入的招标计划/采购意向 |
+| mianyang | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/mianyang.run-report.json` | 静态列表+关系接口；精确选择 `001001` 招标公告；附件验证码不绕过 |
+| qinhuangdao | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/qinhuangdao.run-report.json` | 静态近期页；排除资格预审/变更；深页验证码边界保留 |
+| nantong | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/nantong-v2.run-report.json` | EWB-FRONT；严格阶段三字段；剔除已作废并清理 `[新]` |
 | suzhou | `CONNECTED_NO_RECENT_DATA` | 0 | 30/90/365 天均 0 | `city-retest-01/batch-summary.json` | 接口成功；历史 VERIFIED 路由证据保留，当前窗口空不冒充有记录 |
 | xuzhou | `VERIFIED_RECORD` | 3 | 30 天 0，90 天 3 | `xuzhou-api-90d-v2/xuzhou.run-report.json` | 城市级独立平台：EPoint new API；禁用静态分页断层；16 列回源复验 |
 | yichang | `VERIFIED_RECORD` | 3 | — | `b2_yichang.run-report.json` | 城市级（EpointWebBuilder 变体）（V5 批次2 侦察接入） |
@@ -62,7 +67,7 @@
 
 ## 汇总
 
-- `VERIFIED_RECORD`：43 个（新增城市级 weifang/qingdao/shenzhen）
+- `VERIFIED_RECORD`：48 个（新增城市级 luoyang/zhengzhou/mianyang/qinhuangdao/nantong）
 - `CONNECTED_NO_RECENT_DATA`：7 个（河北、黑龙江、河南、陕西、兵团、定西、苏州）
 - `FAILED`：2 个（广东官方 429；宜宾 allowNoUrl 无直链形态）
 - `BROWSER_REQUIRED`：本轮未新增；Chrome CDP 未连接，不能宣称浏览器路径可用。

@@ -58,6 +58,11 @@
 | anyang | 安阳市（城市级范本） | ✅ | ❌ 全市列表+客户端过滤 | 安阳市; 林州市; 滑县 | 城市级 adapter（2026-08-16 接入，city 列区县级粒度；筛区县词只出区县，不放行全市） |
 | dingxi | 定西市（城市级） | ✅ | ❌ 全市列表+客户端过滤 | 源站 2023-04 后停更，无近期样本 | 城市级 adapter（infodate 排序变体技术样本；可达但近年无新公告） |
 | changzhou | 常州市（城市级独立平台） | ✅ | ❌ 全市列表+客户端过滤 | 常州经开区 | 城市级独立平台（V5 探测接入）；省平台不聚合，独立站点直采 |
+| luoyang | 洛阳市（城市级独立平台） | ✅ | ❌ 官方关键词+客户端地区补全 | 洛阳市; 汝阳县; 洛宁县等标题实体 | 标准 EPoint；锁 `003001002`；`市辖区` 不作为地区，优先标题区县 |
+| zhengzhou | 郑州市（城市级独立平台） | ✅ | ❌ 官方关键词+客户端过滤 | 郑州市; 中牟县; 登封市等 | 标准 EPoint；锁 `004001` 并排除招标计划/采购意向 |
+| mianyang | 绵阳市（城市级独立平台） | ✅ | ❌ 静态列表+客户端过滤 | 绵阳市; 平武县; 安州区等 | 关系接口精确选择 `001001` 招标公告；附件验证码不绕过 |
+| qinhuangdao | 秦皇岛市（城市级独立平台） | ✅ | ❌ 静态列表+客户端过滤 | 秦皇岛市及标题区县 | 静态 1–6 页连续；深页验证码记 BROWSER_REQUIRED；严格排除资审公告 |
+| nantong | 南通市（城市级独立平台） | ✅ | ❌ 官方列表+客户端过滤 | 南通市; 启东市; 如皋市; 通州区等官方字段 | EWB-FRONT；`categorymum=003001001`；剔除作废记录 |
 | suzhou | 苏州市（城市级独立平台） | ✅ | ❌ 全市列表+客户端过滤 | 高新区; 相城区; 吴中区 | 静态 SSR，cityHint 区县级粒度；2026-08-18 当前“管网”365d 为空，历史路由证据保留 |
 | xuzhou | 徐州市（城市级独立平台） | ✅ | ❌ 全市列表+客户端过滤 | 徐州市；新沂市等区县级 | 城市级独立平台（2026-08-18）：EPoint new API 服务端关键词，锁建设工程招标公告子栏目 |
 | yichang | 宜昌市（城市级） | ✅ | ❌ 全市列表+客户端过滤 | 宜昌市（列表 xiaquuname） | 城市级独立平台（V5 批次2 侦察接入）；EpointWebBuilder 变体；当阳/远安等县级粒度在标题 |
@@ -77,4 +82,4 @@
 | yibin | 宜宾市（城市级） | ✅ | ❌ 全市列表+客户端过滤 | 叙州区; 珙县（area 字段+标题） | 城市级独立平台（V5 批次2 侦察接入）；筑龙 SPA 网关；allowNoUrl |
 
 
-_共 32 省 + 20 城市级（anyang/dingxi/changzhou/suzhou/xuzhou/yichang/linyi/yantai/hefei/wenzhou/ningbo/jiaxing/weifang/qingdao/shenzhen/wuxi/quanzhou/yueyang/zunyi/yibin）。`--city` 过滤全支持；服务端地区码能力按官方平台逐项记录。城市级 adapter 只在独立官方入口取得可重复证据后计入，不以域名猜测补造支持。_
+_共 32 省 + 25 城市级（anyang/dingxi/changzhou/luoyang/zhengzhou/mianyang/qinhuangdao/nantong/suzhou/xuzhou/yichang/linyi/yantai/hefei/wenzhou/ningbo/jiaxing/weifang/qingdao/shenzhen/wuxi/quanzhou/yueyang/zunyi/yibin）。`--city` 过滤全支持；服务端地区码能力按官方平台逐项记录。城市级 adapter 只在独立官方入口取得可重复证据后计入，不以域名猜测补造支持。_

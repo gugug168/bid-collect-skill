@@ -106,20 +106,21 @@ node scripts/province-collect.cjs -p 浙江 -k 管网 -d 365 --verify
 - XLSX 与 CSV 不是同一列集。预算 `budget` 与控制价 `controlPrice` 是两个事实，禁止合并。
 - 输出层清理 `undefined`、`null`、`NaN` 和未渲染 `{{downloadurl}}`；合法数值 `0` 不会被当成缺失。
 
-## 52 个 adapter 与家族（32 省级 + 20 城市级）
+## 57 个 adapter 与家族（32 省级 + 25 城市级）
 
-代码内 `ADAPTERS` 是 adapter 清单真相源，当前 52 个键：
+代码内 `ADAPTERS` 是 adapter 清单真相源，当前 57 个键：
 
 ```text
 beijing tianjin hebei shanxi neimenggu liaoning jilin heilongjiang
 shanghai jiangsu zhejiang anhui fujian jiangxi shandong henan
 hubei hunan guangdong guangxi hainan chongqing sichuan guizhou
 yunnan xizang shaanxi gansu qinghai ningxia xinjiang xinjiangbt
-anyang dingxi changzhou suzhou xuzhou yichang linyi yantai wuxi quanzhou
+anyang dingxi changzhou luoyang zhengzhou mianyang qinhuangdao nantong
+suzhou xuzhou yichang linyi yantai wuxi quanzhou
 yueyang zunyi yibin hefei wenzhou ningbo jiaxing weifang qingdao shenzhen
 ```
 
-城市级 adapter（独立市级平台，`-p` 中文市名可用）：anyang/changzhou（EPoint 同构）、suzhou（静态 SSR webBuilder）、xuzhou（EPoint new API）、yichang/weifang（EpointWebBuilder 变体）、linyi/yantai（EPoint 双层包装）、qingdao（ASP.NET MVC SSR）、shenzhen（CMS trade API）、hefei（webBuilder Service）、wenzhou（JPaas CMS + PDF 详情）、ningbo（websiteapi SPA + 匿名访客 token）、jiaxing（JPaas CMS + HTML 详情）、wuxi（webBuilder AJAX）、quanzhou（Java .do·http）、yueyang（静态 CMS·GBK）、zunyi（贵州省平台视角）、yibin（筑龙 SPA·无直链）、dingxi（停更样本）。探测与接入总账见 [`reference/CITY_PLATFORMS.md`](reference/CITY_PLATFORMS.md)。城市级接入不改变 32 省语义——总账与逐省 reference 以省级为准，城市级单独计行。
+城市级 adapter（独立市级平台，`-p` 中文市名可用）：anyang/changzhou/luoyang/zhengzhou（EPoint 同构）、mianyang（静态列表+关系接口）、qinhuangdao（静态 HTML，深页验证码边界）、nantong（EWB-FRONT）、suzhou（静态 SSR webBuilder）、xuzhou（EPoint new API）、yichang/weifang（EpointWebBuilder 变体）、linyi/yantai（EPoint 双层包装）、qingdao（ASP.NET MVC SSR）、shenzhen（CMS trade API）、hefei（webBuilder Service）、wenzhou（JPaas CMS + PDF 详情）、ningbo（websiteapi SPA + 匿名访客 token）、jiaxing（JPaas CMS + HTML 详情）、wuxi（webBuilder AJAX）、quanzhou（Java .do·http）、yueyang（静态 CMS·GBK）、zunyi（贵州省平台视角）、yibin（筑龙 SPA·无直链）、dingxi（停更样本）。探测与接入总账见 [`reference/CITY_PLATFORMS.md`](reference/CITY_PLATFORMS.md)。城市级接入不改变 32 省语义——总账与逐省 reference 以省级为准，城市级单独计行。
 
 家族包括 `epoint`、`epointX`、HTML SSR、TRS、粤公平 API 及各省 bespoke REST/POST。具体端点、阶段、限制与复采命令维护在每省 reference 和 `reference/FAMILY_INDEX.md`；城市入口口径见 [`reference/CITY_ENTRY_INDEX.md`](reference/CITY_ENTRY_INDEX.md)。
 
