@@ -1,19 +1,18 @@
 # 遵义市 采集参考（城市级 · 省平台视角过滤）
 
-> 数据源 adapter：`zunyi` · kind=`zunyi` · 验证状态：**✅ 已打通（2026-08-16 V5 批次2 实测）**
-> 最后验证：2026-08-16（Goal v5 批次2 侦察接入实测）
+> 数据源 adapter：`zunyi` · kind=`zunyi` · 验证状态：**✅ VERIFIED_RECORD（2026-08-18 实时复测）**
+> 最后验证：2026-08-18（30 天“管网”3 条；Sol + Luna 双重复测）
 
 ## 机制
-贵州省平台 bespoke REST（`/tradeInfo/es/list` POST，channelId=5904475 工程建设 + docSourceName=遵义市 地市过滤 + docTitle=标题关键词；docRelTime 毫秒时间戳；**按 announcement 过滤 B 阶段**只留 zb 类；市站本体为 TRS SSR 通知栏，数据全在省平台）
+官方入口：https://ggzy.guizhou.gov.cn/ 。贵州省平台 bespoke REST（`/tradeInfo/es/list` POST，channelId=5904475 工程建设 + docSourceName=遵义市 地市过滤 + docTitle=标题关键词；docRelTime 毫秒时间戳）。只接受官方阶段字段 `announcement=交易公告`；答疑澄清、更正、中标、合同、异常等全部排除。
 （端点逆向证据：四路侦察 agent 真机验证，见 CITY_PLATFORMS.md）
 
 ## 验证结论
-✅ 2026-08-16 实测：3/3 VERIFIED_RECORD（赤水供水管网漏损治理/习水污水管网答疑澄清，省平台详情直链）。侦察 total=1982。
-机器证据：`test-logs/v5-fulltest-2026-08-16/b2_zunyi.run-report.json`。
+✅ 2026-08-18 实测：30 天“管网”3/3 均为真实招标公告（赤水供水管网、习水污水管网勘察设计等），标题、日期、官方详情链接、地区完整；答疑澄清/更正不再混入。机器证据：`city-semantic-retest-luna/batch-summary.json`。
 
 ## 可重复采集命令
 ```bash
-HTTPS_PROXY=http://127.0.0.1:7897 node scripts/province-collect.cjs -p zunyi -k 管网 -d 30 --limit 20 --csv -o out/zunyi.csv
+node scripts/province-collect.cjs -p zunyi -k 管网 -d 30 --limit 3 --csv --xlsx -o out/zunyi.xlsx
 ```
 
 ## 诚实留空字段（源页无则空，绝不伪造）

@@ -10,32 +10,40 @@
 | 安阳 anyang | ggzy.anyang.gov.cn | 标准 EPoint（范本） | 无 infodatepx→webdate 排序；锁 001001002/001002002 | ✅ VERIFIED |
 | 兰州（=gansu） | lzggzyjy.lanzhou.gov.cn | gs（双分支） | 省级 WAF 不可达走兰州市级门户 | ✅ VERIFIED（以 gansu 名义） |
 | 常州 changzhou | ggzy.changzhou.gov.cn | 标准 EPoint | **fields 投影参数传入即静默返空**（omitFields 开关）；12 位栏目锁 001001001 前缀 | ✅ VERIFIED（2026-08-16 V5） |
+| 苏州 suzhou | ggzy.suzhou.gov.cn | 静态 SSR webBuilder | 锁 003001001 招标公告子栏目；`?pageIndex=N` 分页；相对详情链接拼绝对 | 🟡 CONNECTED_NO_RECENT_DATA（2026-08-18，30/90/365d“管网”均 0；历史 VERIFIED 保留） |
+| 徐州 xuzhou | ggzy.zwb.xz.gov.cn | EPoint new API + SSR 首页 | 锁 003001001；官方 `list.js` POST `/inteligentsearchnew/`；禁用有年度断层的静态 `N.html` 分页 | ✅ VERIFIED（2026-08-18，90d 管网 3 条） |
 | 定西 dingxi | ggzy.dingxi.gov.cn | 标准 EPoint·infodate 变体 | 第 4 种 sortField；源站 2023-04 停更 | 🟡 技术样本 |
 | 宜昌 yichang | ggzy.sc.yichang.gov.cn | EpointWebBuilder 变体 | getSecInfoListYzm（与河南同族）；20 页起验证码 | ✅ VERIFIED（V5 批次2） |
 | 临沂 linyi | ggzyjy.linyi.gov.cn | EPoint 双层包装 | {code,content:"JSON"} 二次 parse；total 15.3 万 | ✅ VERIFIED（V5 批次2） |
-| 烟台 yantai | ggzyjy.yantai.gov.cn | EPoint 双层包装 | 与临沂同款 sdwrap kind；total 21.8 万 | ✅ VERIFIED（V5 批次2） |
+| 烟台 yantai | ggzyjy.yantai.gov.cn | EPoint 双层包装 | 锁 `003001003` 工程招标公告 + `003002002` 采购公告；服务端分轮 + 客户端 categorynum 双校验 | ✅ VERIFIED（2026-08-18，30d 2 条，阶段纯度复验） |
+| 合肥 hefei | ggzy.hefei.gov.cn | webBuilder Service | 锁 `002001001`；官方列表 API；合肥行政区标题守卫排除该中心承载的省级异地项目 | ✅ VERIFIED（2026-08-18，30d 2 条） |
+| 温州 wenzhou | ggzyjy-eweb.wenzhou.gov.cn | JPaas CMS AuthorizedRead | 锁温州市主站 `col1229696276` 招标公告；CMS unit 匿名分页；`#pdfshow[data-value]` 取官方 PDF 正文 | ✅ VERIFIED（2026-08-18，30d 0、90d 管网 1 条） |
+| 宁波 ningbo | jyxt.zwb.ningbo.gov.cn:4011 | websiteapi SPA | 锁 `020105` 招标公告；复现官网北京时间双 Base64 访客 token；`articleList` + `getArticle`；公开详情 URL 保留端口 | ✅ VERIFIED（2026-08-18，30d 管网 2 条） |
+| 嘉兴 jiaxing | jxszwsjb.jiaxing.gov.cn | JPaas CMS AuthorizedRead | 锁建设工程 `col1229743509` 招标公告；unitbuild 匿名分页；HTML 正文 + 官方公告 PDF | ✅ VERIFIED（2026-08-18，30d 管网 1 条） |
+| 潍坊 weifang | ggzy.weifang.gov.cn:8082 | EpointWebBuilder 变体 | 锁 `007001001`；`pageIndex` 零基；官方 HTTP 端口 | ✅ VERIFIED（2026-08-18，90d 管网 13 条） |
+| 青岛 qingdao | ggzy.qingdao.gov.cn | ASP.NET MVC SSR | 锁官方 `0-0-0` 招标公告；ProjectName/Time 分页；结构化详情覆盖 | ✅ VERIFIED（2026-08-18，30d 管网 4 条） |
+| 深圳 shenzhen | new.szggzy.com | CMS trade API | `channelId=2851`；客户端锁 noticeTypeName；日期拆窗规避 1000 上限 | ✅ VERIFIED（2026-08-18，静态列表/详情） |
 | 无锡 wuxi | ggzyjy.wuxi.gov.cn | webBuilder AJAX | /info_open JSON；无服务端关键词 clientFilterOnly | ✅ VERIFIED（V5 批次2） |
 | 泉州 quanzhou | ggzyjy.quanzhou.gov.cn | Java .do | 全站 http keepScheme；projName 过滤无效 clientFilterOnly | ✅ VERIFIED（V5 批次2） |
 | 岳阳 yueyang | ggzy.yueyang.gov.cn | 静态 CMS·GBK | TextDecoder("gbk")；JSP pager.offset 分页 | ✅ VERIFIED（V5 批次2） |
-| 遵义 zunyi | ggzy.guizhou.gov.cn | 贵州省平台视角 | docSourceName=遵义市 过滤；announcement 滤 B 阶段 | ✅ VERIFIED（V5 批次2） |
+| 遵义 zunyi | ggzy.guizhou.gov.cn | 贵州省平台视角 | docSourceName=遵义市；只收 `announcement=交易公告` | ✅ VERIFIED（2026-08-18，30d 3 条，排除答疑/更正） |
 | 宜宾 yibin | ggzy.yibin.gov.cn | 筑龙 SPA 网关 | action RPC；SPA hash 无直链 allowNoUrl（同陕西形态） | 🟡 FAILED=无直链诚实判定 |
 
 ## 已识别未接入
 
 | 城市 | 域名 | 状态 |
 |---|---|---|
-| 苏州 | ggzy.suzhou.gov.cn | 活(200) 自研 SSR（webBuilder 栏目树 jyxx/003XXX/tradeInfo.html 表格，侦察已拿到样本与解析正则）；**分页 URL 模式未验证**，接入留批次3（html kind，成本 ~20 行） |
 | 九江 | ggzyjy.jiujiang.gov.cn | **已下线**（2026-02 官方公告：全市平台并入江西省平台 ggzy.jiangxi.gov.cn；旧域名反代空壳）——采集九江走江西省平台按地区过滤（本仓库 jiangxi adapter 已覆盖省级源） |
 
 其余原"域名活非 EPoint"8 城已全部在 V5 批次2 接入（见上表）。18 个变体未中城市的域名模式扩充探测（6 变体 × HEAD+GET 双重复核）已于 2026-08-16 完成：仅绵阳 ggzy.mianyang.cn 命中但 503（后端停服或拒代理出口，改日重试），其余 17 城无独立域名（大概率用省平台聚合，已由省级 adapter 覆盖）。
 
 ## 变体未命中（域名变体不中，不代表无平台——域名模式待扩充）
 
-宁波、温州、绍兴、嘉兴、徐州、洛阳、襄阳、赣州、唐山、保定、包头、绵阳、柳州、中山、惠州、湛江、大连、潍坊（截至 2026-08-16 探测的 3 种域名变体）。扩充方向：`{py}ggzy.cn`、`ggzy.{py}.cn`、政务网子路径、省级平台内的城市分站。
+绍兴、洛阳、襄阳、赣州、唐山、保定、包头、绵阳、柳州、中山、惠州、湛江、大连（截至 2026-08-16 探测的 3 种域名变体）。徐州已于 2026-08-17 找到政务网子域并接入；温州、嘉兴、宁波、潍坊、青岛、深圳已于 2026-08-18 经各自官方入口接入。扩充方向：`{py}ggzy.cn`、`ggzy.{py}.cn`、政务网子路径、省级平台内的城市分站。
 
 ## 不适用（已由省平台/现有机制覆盖）
 
-广东 21 市（ygp siteCode 循环）、青岛/深圳等（省级平台聚合）、各省 EPoint 站内多子站（cnum 机制）。
+广东除深圳外的 20 市（ygp siteCode 循环）、各省 EPoint 站内多子站（cnum 机制）。青岛、深圳现已按独立官方入口单列接入。
 
 ## 纪律
 

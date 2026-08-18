@@ -10,7 +10,7 @@ require("dns").setDefaultResultOrder("ipv4first");
 const fs = require("fs");
 const zlib = require("zlib");
 const path = require("path");
-const { execFile } = require("child_process");
+const { execFile, execFileSync } = require("child_process");
 const { pdfToText } = require(path.join(__dirname, "pdf-text.cjs"));
 
 // ---- 统一 HTTP 传输层（Node fetch 为主，curl 兜底，失败分类 + 可选 HTTP 回退）----
@@ -170,6 +170,7 @@ const ADAPTERS = {
   shandong: {
     name: "山东省公共资源交易中心",
     verified: true, // 已在本环境实测跑通
+    base: "https://ggzyjy.shandong.gov.cn",
     // channelId=78 = 建设工程交易公开（含招标/中标/评标）
     // 翻页机制：Jeecms 按路径分页 queryContent_{N}-jyxxgk.jspx（POST 表单提交，GET 等效），N=页码
     listUrl: (page) => `https://ggzyjy.shandong.gov.cn/queryContent_${page}-jyxxgk.jspx?channelId=78&pageNo=1`,
@@ -330,6 +331,30 @@ const ADAPTERS = {
       return out;
     },
   },
+  // ===== 徐州（城市级 · 2026-08-18 接入 · EPoint new API + SSR 首页）=====
+  // SSR 首页可直接取到 12 条，但静态 2.html 会跳到 2025-07，真正的当前分页由官网 list.js
+  // POST /inteligentsearchnew/... 加载。必须走该 API，否则会漏掉首页与旧静态页之间约一年的公告。
+  xuzhou: {
+    name: "徐州市公共资源交易网（城市级·EPoint new API）",
+    verified: true, // 2026-08-18 官方 API 实测：wd=管网 totalcount=370，返回真实详情链接
+    kind: "epointX",
+    base: "https://ggzy.zwb.xz.gov.cn",
+    referer: "https://ggzy.zwb.xz.gov.cn/jyxx/003001/003001001/list.html",
+    apiPath: "/inteligentsearchnew/rest/esinteligentsearch/getFullTextDataNew",
+    cats: ["003001001"],
+    rn: 12,
+    defaultType: "招标公告",
+    makeBody(pn, wd, cat) {
+      return {
+        token: "", pn, rn: String(this.rn || 12), sdt: "", edt: "",
+        wd: wd || "", inc_wd: "", exc_wd: "", fields: "title",
+        cnum: "002", sort: JSON.stringify({ webdate: "0" }), ssort: "title", cl: 300, terminal: "",
+        condition: [{ fieldName: "categorynum", isLike: true, likeType: 2, equal: cat || "003001001" }],
+        time: null, highlights: "title", statistics: null, unionCondition: null,
+        accuracy: "", noParticiple: "0", searchRange: null, isBusiness: "1",
+      };
+    },
+  },
   // ===== 安阳（城市级 · 2026-08-16 实测新增 · 标准 EPoint 范本）=====
   // 安阳市公共资源交易中心 = 独立站点 + 标准 EPoint getFullTextDataNew（与兰州/江苏同构）。
   // 实测：默认请求体 POST 返回 total=96504 条真实标讯（样本「安阳市第六中学改造工程-中标结果公告」）。
@@ -379,6 +404,49 @@ const ADAPTERS = {
     rn: 20,
     defaultType: "招标公告",
   },
+  // ===== 潍坊（城市级 · 2026-08-18 接入 · EpointWebBuilder 变体）=====
+  // 官方列表页虽然混排多个阶段，但 getSecInfoListYzm 可锁 007001001=招标（资格预审）公告。
+  // 与宜昌同族但参数名大小写及页码语义不同：潍坊必须 pageIndex/pageSize，且首页为 0。
+  weifang: {
+    name: "潍坊市公共资源交易中心（城市级·EpointWebBuilder 变体）",
+    verified: true, // 2026-08-18 静态官方 API 实测：90 天“管网”13 条
+    kind: "weifang",
+    base: "http://ggzy.weifang.gov.cn:8082",
+    referer: "http://ggzy.weifang.gov.cn:8082/wfggzy/jyxx/007001/trade.html?nowid=007001001",
+    siteGuid: "7eb5f7f1-9041-43ad-8e13-8fcb82ea831a",
+    categoryNum: "007001001",
+    rn: 20,
+    keepScheme: true,
+    keepPort: true,
+    defaultType: "招标公告",
+  },
+  // ===== 青岛（城市级 · 2026-08-18 接入 · ASP.NET MVC SSR）=====
+  // 0-0-0 路径由官方导航明确标作工程建设“招标公告”；ProjectName 和 Time 为官网表单参数。
+  // 轻量 PartialZTBNew 不支持真实分页，只作探针，不用于正式采集。
+  qingdao: {
+    name: "青岛市公共资源交易电子服务系统（城市级·ASP.NET MVC SSR）",
+    verified: true, // 2026-08-18 官方列表、详情与当前真实公告复核
+    kind: "qingdao",
+    base: "https://ggzy.qingdao.gov.cn",
+    referer: "https://ggzy.qingdao.gov.cn/Tradeinfo-GGGSList/0-0-0",
+    rn: 10,
+    clientFilterOnly: true,
+    defaultType: "招标公告",
+  },
+  // ===== 深圳（城市级 · 2026-08-18 接入 · CMS trade API）=====
+  // 官网当前 fields/title/jsgcProjectType 服务端筛选会静默返空；按日期切片取全量后，
+  // 客户端严格锁 noticeTypeName=招标公告，再做关键词/地区过滤。详情同样走公开 CMS API。
+  shenzhen: {
+    name: "深圳公共资源交易中心（城市级·CMS trade API）",
+    verified: true, // 2026-08-18 无登录、无 token 的官方列表/详情 API 实测
+    kind: "shenzhen",
+    base: "https://new.szggzy.com",
+    referer: "https://new.szggzy.com/mobile/jygg/list.html?id=jsgc",
+    channelId: 2851,
+    rn: 50,
+    clientFilterOnly: true,
+    defaultType: "招标公告",
+  },
   linyi: {
     name: "临沂市公共资源交易中心（城市级·EPoint 双层包装）",
     verified: true, // 2026-08-16 侦察验证：wd=管网 total=153339
@@ -393,6 +461,70 @@ const ADAPTERS = {
     kind: "sdwrap",
     base: "https://ggzyjy.yantai.gov.cn",
     referer: "https://ggzyjy.yantai.gov.cn/",
+    // 官方接口 2026-08-18 实测：003001003=工程建设招标公告，003002002=政府采购公告。
+    // 原全站搜索会混入 003001011 中标结果、003002006 采购合同等非 zb 阶段记录。
+    cats: ["003001003", "003002002"],
+    allowedCategoryNums: ["003001003", "003002002"],
+    defaultType: "招标公告",
+  },
+  hefei: {
+    name: "全国公共资源交易平台（安徽省·合肥市）（城市级·webBuilder Service）",
+    verified: true, // 2026-08-18 官方 engineer2.js 逆向 + 实时“管网”公告验证
+    kind: "hefei",
+    base: "https://ggzy.hefei.gov.cn",
+    referer: "https://ggzy.hefei.gov.cn/jyxx/002001/engineer2.html",
+    siteGuid: "7eb5f7f1-9041-43ad-8e13-8fcb82ea831a",
+    categoryNum: "002001001", // 官方 JS cateStr：招标公告
+    defaultType: "招标公告",
+  },
+  // ===== 温州（城市级 · 2026-08-18 接入 · JPaas CMS AuthorizedRead）=====
+  // 主站 col1229696276 明确标注「招标公告」，列表由 AuthorizedRead/unitbuild.js 调用
+  // /api-gateway/jpaas-publish-server/front/page/build/unit 匿名生成；详情正文为官方 PDF。
+  // 注意：col1229666813 是瑞安分网旧栏目，不代表温州市主站，不能据此声称全市覆盖。
+  wenzhou: {
+    name: "温州市公共资源交易网（城市级·JPaas CMS）",
+    verified: true, // 2026-08-18 官方主站栏目 + CMS 接口 + PDF 详情实时验证
+    kind: "wenzhou",
+    base: "https://ggzyjy-eweb.wenzhou.gov.cn",
+    referer: "https://ggzyjy-eweb.wenzhou.gov.cn/col/col1229696276/index.html",
+    pageId: "1229696276", // 温州市主站 工程建设-招标公告（非答疑/候选/结果）
+    webId: "3819",
+    tplSetId: "u6TkEPbH8M7PmFoLKwDnZ",
+    tagId: "资料list",
+    rn: 10,
+    clientFilterOnly: true, // CMS unit 接口无可靠标题检索参数，按发布日期分页后客户端过滤
+    defaultType: "招标公告",
+  },
+  // ===== 宁波（城市级 · 2026-08-18 接入 · SPA websiteapi）=====
+  // 官方前端不是账号认证：登录页在滑块通过后，以当前北京时间字符串双层 Base64 生成临时访客 token。
+  // 携该 token 可匿名访问 /websiteapi；getCmsType 实测 020105=工程建设-招标公告。
+  ningbo: {
+    name: "宁波市公共资源交易电子服务系统（城市级·websiteapi）",
+    verified: true, // 2026-08-18 官方前端 token 逻辑 + 020105 栏目 + articleList/getArticle 实时验证
+    kind: "ningbo",
+    base: "https://jyxt.zwb.ningbo.gov.cn:4011",
+    referer: "https://jyxt.zwb.ningbo.gov.cn:4011/website/construction",
+    channel: "020105", // getCmsType(pcode=0201) 官方返回 type_name=招标公告
+    projectType: "A",  // 工程建设全部行业
+    rn: 12,
+    keepPort: true,     // 官方服务只在 :4011；normUrl 不得剥端口
+    defaultType: "招标公告",
+  },
+  // ===== 嘉兴（城市级 · 2026-08-18 接入 · JPaas CMS AuthorizedRead）=====
+  // 建设工程 col1229743509 页面 meta 明确 ColumnName=招标公告；列表使用 JPaas unitbuild 匿名生成。
+  // 与温州同属 JPaas，但列表项 class 是 wb-data-list（温州为 cf），须单独解析，不能假设模板同构。
+  jiaxing: {
+    name: "嘉兴市公共资源交易网（城市级·JPaas CMS）",
+    verified: true, // 2026-08-18 官方栏目、unitbuild 接口与当前真实公告验证
+    kind: "jiaxing",
+    base: "https://jxszwsjb.jiaxing.gov.cn",
+    referer: "https://jxszwsjb.jiaxing.gov.cn/col/col1229743509/index.html",
+    pageId: "1229743509", // 建设工程-招标公告
+    webId: "3856",
+    tplSetId: "qs3Pt5ZSPt8UZss6yAknP",
+    tagId: "信息list",
+    rn: 18,
+    clientFilterOnly: true,
     defaultType: "招标公告",
   },
   wuxi: {
@@ -1371,13 +1503,21 @@ function grabMoneyWan(text, labels) {
     // 数字通道仍失配时按括号量纲换算标签后首个数字。
     const unitM = text.match(new RegExp(lab + "[（(]\\s*(百万元|万元|元)\\s*[)）]", "i"));
     const bracketUnit = unitM ? unitM[1] : "";
-    const moneyText = bracketUnit ? text.replace(new RegExp(lab + "[（(]\\s*(?:百万元|万元|元)\\s*[)）]", "gi"), lab) : text;
+    const rawMoneyText = bracketUnit ? text.replace(new RegExp(lab + "[（(]\\s*(?:百万元|万元|元)\\s*[)）]", "gi"), lab) : text;
+    // webBuilder 富文本会把一个小数拆成多个 span，转纯文本后形成「606 . 2 2 万元」。
+    // 只在明确的小数点形态内合并最多 7 位小数，避免全局删除数字间空格造成串号。
+    const moneyText = rawMoneyText.replace(/(\d)\s*[.．]\s*(\d(?:\s*\d){0,6})(?=\s*(?:万元|万|元|[；;，,。:：）)]|$))/g,
+      (_, intLast, decimals) => intLast + "." + decimals.replace(/\s+/g, ""));
     // 数字与单位之间允许杂散点/空格（2026-08-10 海南实测）：
     //   琼海地灾治理公告原文「最高投标限价（或招标控制价): 9313711.85.元」——金额后多打了一个点。
     //   原正则要求 `数字\s*单位`，遇到 "85.元" 直接失配 → 控制价被当成"公告未载"漏掉。
     const re = new RegExp(lab + "[\\s\\S]{0,60}?([0-9][0-9,，]*(?:[.．][0-9]+)?)[\\s.．、]{0,3}(万元|万|元)", "gi");
     let m;
     while ((m = re.exec(moneyText))) {
+      const between = m[0].slice(lab.length, Math.max(lab.length, m[0].lastIndexOf(m[1])));
+      // 「最高投标限价按评标价计算……应扣除专业工程暂估价 87200 元」中的 87200
+      // 属于暂估价，不是最高限价。标签与数字之间出现另一个金额主体时拒绝跨标签借值。
+      if (/(?:专业工程)?暂估价|评标价|投标报价|中标价|合同价|概算价|工程造价|预算金额/.test(between)) continue;
       const num = parseFloat(m[1].replace(/[,，]/g, ""));
       if (!isFinite(num) || num <= 0) continue;
       const wan = m[2] === "元" ? num / 10000 : num;
@@ -1493,6 +1633,14 @@ function grabPerfClause(flat) {
 }
 
 function grabPerformance(text, flat) {
+  // 江苏建设工程通用模板会保留未勾选的 3.4.1「承担过类似工程」整段说明，说明文字本身又含
+  // 「类似工程业绩的企业……」；若直接从“业绩”标签抓，会把模板说明误报成真实业绩要求。
+  // 先读复选框状态：明确未勾选 = 不要求；只有勾选时才继续抽取具体条款。
+  const perfCheckbox = text.match(/([R☑√■⊠□£])\s*3\s*\.\s*4\s*\.\s*1[\s\S]{0,120}?承担过类似工程/);
+  if (perfCheckbox && /[□£]/.test(perfCheckbox[1])) return "不要求";
+  // 烟台工程公告的明确空值形态：「3.4 业绩要求：/ 3.5 其他要求」。
+  // 斜杠不是缺失，而是发布方明确表示无业绩要求；须在宽松 grab 跨入 3.5 前截住。
+  if (/(?:业绩要求|业绩条件|企业业绩)\s*[:：]\s*[\/／]\s*(?=\d+\.\d|[。；;\n]|$)/.test(text)) return "不要求";
   // "以下业绩"：海南 G98 环岛高速检测公告写「2.投标人需同时具备以下业绩：2021年1月1日至…」，
   // 标签既不是"业绩要求"也不是"业绩条件"，原标签表全落空 → 真实业绩条款被当成"未载"。
   const v = grab(text, ["入围业绩要求", "业绩要求", "业绩条件", "企业业绩", "类似工程业绩", "以下业绩", "类似业绩"]);
@@ -1644,6 +1792,7 @@ const OPEN_LABELS = [
   //   江西「四、提交 响应 文件截止时间、 磋商 时间…2026年08月27日 09点30分」（政采磋商措辞）
   //   遵义「投标文件上传递交的截止时间为 北京时间2026年09月07日 09时30分」
   "提交响应文件截止时间", "磋商时间", "上传递交的截止时间",
+  "响应文件提交截止时间",
   "投标截止时间", "递交截止时间",
   "开标",
 ];
@@ -1674,7 +1823,45 @@ function grabOwnerGuarded(text, flat) {
   return "";
 }
 const AGENCY_LABELS = ["招标代理机构", "采购代理机构", "代理机构为", "代理机构", "招标代理"];
+const AGENCY_ORG = /(?:有限责任公司|有限公司|股份公司|集团公司|集团|公司|事务所|研究院|咨询中心|招标中心|服务中心)/;
+const AGENCY_GARBAGE = /^(?:应|须|需|负责|点击|登录|查询|在|于)|应在|负责查询|操作指引|应急流程/;
+function grabAgencyGuarded(text, flat) {
+  const sources = [text, flat].filter(Boolean);
+  const patterns = [
+    /(?:招标|采购|委托)?\s*代理机构(?:信息)?\s*(?:名\s*称)?\s*[:：为]\s*([^\n。；;]{2,140})/g,
+    /招标代理\s*[:：]\s*([^\n。；;]{2,140})/g,
+  ];
+  for (const source of sources) {
+    for (const pattern of patterns) {
+      pattern.lastIndex = 0;
+      let m;
+      while ((m = pattern.exec(source))) {
+        let v = completeOrgName(trimAtClause(cleanVal(m[1])), flat);
+        // 取本行最末机构后缀，避免「温州建设集团建筑设计院有限公司」在较早出现的
+        // “集团”处被非贪婪匹配截成「温州建设集团」。
+        const org = v && v.match(new RegExp("^.{1,100}" + AGENCY_ORG.source));
+        if (org) v = org[0];
+        if (v && AGENCY_ORG.test(v) && !AGENCY_GARBAGE.test(v)) return v.slice(0, 100);
+      }
+    }
+  }
+  // 兼容旧公告的非标准版式，但必须经过机构名和噪声双重校验。
+  const fallback = completeOrgName(grabBoth(text, flat, AGENCY_LABELS), flat);
+  return fallback && AGENCY_ORG.test(fallback) && !AGENCY_GARBAGE.test(fallback) ? fallback : "";
+}
 const CONTACT_LABELS = ["联系人", "项目联系人", "联系人员"];
+function grabContactGuarded(text, flat) {
+  let value = grabBoth(text, flat, CONTACT_LABELS, 2);
+  if (!value) return "";
+  // PDF 常把标签拆成「联 系 人」「电 话」。grab 的跨行兜底会把电话乃至下一机构
+  // 一并接到姓名后；按容空白的下一个字段标签截断，只保留真实联系人。
+  const stop = ["电话", "手机", "招标代理机构", "采购代理机构", "代理机构", "地址", "邮编"]
+    .map(labRe).join("|");
+  value = value.replace(new RegExp("(?:" + stop + ")[\\s\\S]*$"), "");
+  value = cleanVal(value).replace(/\s+/g, "").trim();
+  if (!value || value.length > 30 || /\d{5,}/.test(value)) return "";
+  return value;
+}
 // 工期：监理/服务类公告通篇没有"工期"二字，写成表单勾选式（浙江德清滨海燃气监理实测）：
 //   2.3计划监理服务期：
 //   □ 个日历天，从 年 月 日起，至 年 月 日止。
@@ -1725,7 +1912,7 @@ function grabDuration(text, flat) {
  * 嘉兴 EPC 公告（zj1）实测就栽在这里。真资质必然带资质名或等级词，用它当准入闸。
  */
 // "详见招标文件"是公告的真实写法，属有效记录（诚实记录原文，好过去抓条款残句）
-const QUAL_OK = /(?:资质|甲级|乙级|丙级|[一二三四五六七八九壹贰叁肆伍]级|总承包|专业承包|详见招标文件|见招标文件)/;
+const QUAL_OK = /(?:资质|许可证|甲级|乙级|丙级|[一二三四五六七八九壹贰叁肆伍]级|总承包|专业承包|详见招标文件|见招标文件)/;
 
 /**
  * 条款残句黑名单（2026-08-10 海南实测补强）。
@@ -1777,7 +1964,7 @@ function grabQualClause(flat) {
 
 // 资质信息量计数：用于在"整条"与"短语"之间择优（谁覆盖的资质项多用谁）
 function countQual(s) {
-  return (String(s || "").match(/资质|甲级|乙级|丙级|[一二三四五六七八九壹贰叁肆伍]级/g) || []).length;
+  return (String(s || "").match(/资质|许可证|甲级|乙级|丙级|[一二三四五六七八九壹贰叁肆伍]级/g) || []).length;
 }
 
 function grabQualification(text, flat) {
@@ -1854,6 +2041,10 @@ function grabApprovalNo(text) {
   let m;
   while ((m = re.exec(text))) {
     const v = m[0].replace(/\s+/g, ""); // 整段匹配即文号（正则无捕获组）
+    // 只认项目立项/审批语境。平台政策通知（如“远程异地评标通知 烟发改公管…”、
+    // “政府采购信用承诺制通知”）虽然长得像文号，却不是当前项目批准文号。
+    const ctx = text.slice(Math.max(0, m.index - 100), Math.min(text.length, re.lastIndex + 100));
+    if (!/(?:项目|工程|可行性研究报告|初步设计)[\s\S]{0,80}?(?:批复|批准建设|审批|核准|备案|立项)|(?:批复|批准建设|审批|核准|备案|立项)[\s\S]{0,80}?(?:项目|工程|可行性研究报告|初步设计)/.test(ctx)) continue;
     if (v.length > best.length) best = v; // 取最长（最完整的文号）
   }
   return best;
@@ -1930,9 +2121,12 @@ function grabFullScore(text, flat) {
 function extractNoticeTitle(html, fallback = "") {
   const raw = String(html || "");
   const candidates = [
+    // 合肥等 webBuilder 详情页把真实公告标题放在 meta ArticleTite（平台历史拼写），
+    // 正文内的 <h1> 可能只是答疑段落标题，不能优先于页面元数据。
+    raw.match(/<meta\b[^>]*name=["']ArticleTit(?:e|le)["'][^>]*content=["']([^"']+)/i),
     raw.match(/class=["'][^"']*article-title[^"']*["'][^>]*>([\s\S]*?)<\//i),
-    raw.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i),
     raw.match(/<meta\b[^>]*property=["']og:title["'][^>]*content=["']([^"']+)/i),
+    raw.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/i),
   ];
   for (const m of candidates) {
     const value = htmlToText(m && m[1] || "").replace(/\s+/g, " ").trim();
@@ -1989,9 +2183,9 @@ function extractDetail(ad, html, item, pdfText) {
     owner: grabOwnerGuarded(text, flat),
     // 代理机构：带"招标/采购"前缀的完整标签优先 —— PDF 正文里"委托代理机构为\n嘉兴经投工程咨询\n服务有限公司"
     // 的公司名被换行拆成两段，只有落款处"招标代理机构：…"是整行完整值。
-    agency: completeOrgName(grabBoth(text, flat, AGENCY_LABELS), flat),
+    agency: grabAgencyGuarded(text, flat),
     // 联系人姓名常仅 2~3 字（"孙先生"），需把 minLen 放宽到 2，否则被 isMeaningful 默认阈值 4 过滤掉
-    contact: grabBoth(text, flat, CONTACT_LABELS, 2),
+    contact: grabContactGuarded(text, flat),
     phone: grabPhone(text),
     docLink,
   };
@@ -2182,6 +2376,10 @@ function grabDocLink(html, baseUrl) {
   const SE_HOST = /(baidu|google|sogou|so\.com|bing|360|qq\.com|yahoo|sina|taobao|weibo)/i;
   const FILE_EXT = /\.(pdf|docx?|zip|rar|7z)(\?|#|$)/i;
   const out = [];
+  // JPaas PDF 壳页（温州等）用 #pdfshow[data-value] 指向真正公告正文；它比同页的
+  // 公平竞争审查表等附件更接近“招标公告正文”，必须优先。
+  const embedded = findEmbeddedPdfHref(html);
+  if (embedded) return toAbs(embedded, baseUrl);
   const push = (href, text) => {
     if (!href) return;
     if (/^\s*(#|javascript:|mailto:)/i.test(href)) return;
@@ -2395,11 +2593,13 @@ async function epointXList(ad, page, args, catsOverride) {
   return recs.map(r => {
     const rawDate = r.webdate || r.infodateformat || r.infodatepx || r.infodate || "";
     const m = String(rawDate).match(/(\d{4})-(\d{2})-(\d{2})/);
+    const c = pickCity(r);
     return {
       url: (r.linkurl && toAbs(r.linkurl, ad.base) !== ad.base) ? toAbs(r.linkurl, ad.base) : "",
       title: String(r.title || r.titlenew || "").replace(/<\/?em[^>]*>/gi, "").trim(),
       date: m ? m[0] : "",
-      cityHint: (r.xiaquname || r.xiaqucode || ""),
+      cityHint: c.city,
+      cityWeak: c.weak,
       summary: r.content || "",
     };
   }).filter(x => (ad.allowNoUrl ? x.title : (x.url && x.title)));
@@ -3356,10 +3556,257 @@ async function yichangList(ad, page, args) {
   }).filter(x => x.title);
 }
 
+function localYmd(d) {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function parseWeifangList(payload, ad) {
+  const j = typeof payload === "string" ? JSON.parse(payload) : payload;
+  if (!j || !j.custom || !Array.isArray(j.custom.infodata)) throw new Error("weifang invalid response structure");
+  return j.custom.infodata.map(it => {
+    const title = htmlToText(String(it.customtitle || it.title || "")).trim();
+    const date = String(it.infodate || "").match(/\d{4}-\d{2}-\d{2}/)?.[0] || "";
+    const district = ["潍城区", "寒亭区", "坊子区", "奎文区", "临朐县", "昌乐县", "青州市", "诸城市", "寿光市", "安丘市", "高密市", "昌邑市"].find(x => title.includes(x));
+    return {
+      url: it.infourl ? toAbs(String(it.infourl), ad.base) : "",
+      title, date,
+      cityHint: district || extractKnownArea(title) || extractCity(title) || "潍坊市",
+      projectCode: String(it.projectno || "").trim(),
+    };
+  }).filter(x => x.title && x.date && x.url);
+}
+
+async function weifangList(ad, page, args) {
+  const end = new Date();
+  const start = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  start.setDate(start.getDate() - Math.max(0, Number(args.days || 30) - 1));
+  const body = new URLSearchParams({
+    siteGuid: ad.siteGuid, categoryNum: ad.categoryNum, content: args.keyword || "",
+    startDate: localYmd(start), endDate: localYmd(end),
+    pageIndex: String(Math.max(0, page - 1)), pageSize: String(ad.rn || 20),
+    YZM: "", ImgGuid: "", zbfs: "", qyfw: "",
+  });
+  const r = await fetch(ad.base + "/EpointWebBuilder/rest/secaction/getSecInfoListYzm", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8", "User-Agent": UA_STR, "Referer": ad.referer, "X-Requested-With": "XMLHttpRequest" },
+    body: body.toString(),
+  });
+  if (!r.ok) throw new Error("weifang HTTP " + r.status);
+  return parseWeifangList(await r.text(), ad);
+}
+
+function parseQingdaoHtml(html, ad) {
+  const out = [];
+  for (const row of String(html || "").match(/<tr\b[\s\S]*?<\/tr>/gi) || []) {
+    const a = row.match(/href=["']([^"']*TradeDetals-ZtbShow[^"']*)["'][^>]*title=["']([^"']+)["']/i);
+    const dm = row.match(/(?:19|20)\d{2}-\d{2}-\d{2}/);
+    if (!a || !dm) continue;
+    const rowText = htmlToText(row);
+    const area = rowText.match(/\[\s*([^\]]{1,20})\s*\]/)?.[1] || "青岛市";
+    out.push({
+      url: toAbs(a[1], ad.base), title: htmlToText(a[2]).trim(), date: dm[0], cityHint: area,
+    });
+  }
+  return out;
+}
+
+async function qingdaoList(ad, page, args) {
+  const qs = new URLSearchParams({ pageIndex: String(Math.max(1, page)) });
+  if (args.keyword) qs.set("ProjectName", args.keyword);
+  const days = Number(args.days || 30);
+  if (days <= 30) qs.set("Time", "30");
+  else if (days <= 90) qs.set("Time", "90");
+  else if (days <= 300) qs.set("Time", "300");
+  const html = await requestWithRetry(`${ad.base}/Tradeinfo-GGGSList/0-0-0?${qs.toString()}`, args.delay);
+  return parseQingdaoHtml(html, ad);
+}
+
+function parseStrongTableFields(html) {
+  const out = {};
+  const re = /<strong[^>]*>([\s\S]*?)<\/strong>\s*<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>/gi;
+  let m;
+  while ((m = re.exec(String(html || "")))) {
+    const key = htmlToText(m[1]).replace(/[：:]\s*$/, "").trim();
+    const value = htmlToText(m[2]).trim();
+    if (key && value && !out[key]) out[key] = value;
+  }
+  return out;
+}
+
+function exactMoneyWan(value) {
+  const raw = String(value || "");
+  const n = Number((raw.match(/[\d,.]+/)?.[0] || "").replace(/,/g, ""));
+  if (!Number.isFinite(n)) return "";
+  return String(Number((/万元/.test(raw) ? n : n / 10000).toFixed(6)));
+}
+
+function qingdaoDetail(ad, html, item) {
+  const out = extractDetail(ad, html, item, "");
+  const f = parseStrongTableFields(html);
+  const pageTitle = String(html || "").match(/<div[^>]*class=["'][^"']*\btle\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1];
+  if (pageTitle) out.title = htmlToText(pageTitle).replace(/招标公告\s*$/, "").trim();
+  if (f["工程地点"]) out.projectSite = f["工程地点"];
+  if (f["资金来源"]) out.funding = [f["资金来源"], f["出资比例"]].filter(Boolean).join("；");
+  if (f["工程造价"]) out.controlPrice = exactMoneyWan(f["工程造价"]);
+  if (f["本项目总投资额"]) out.budget = exactMoneyWan(f["本项目总投资额"]);
+  if (f["工程规模"]) out.scale = f["工程规模"];
+  if (f["计划文号"]) out.approval = f["计划文号"];
+  if (f["招标单位"]) out.owner = f["招标单位"];
+  if (f["招标代理单位"]) out.agency = f["招标代理单位"];
+  if (f["招标代理项目负责人"]) out.manager = f["招标代理项目负责人"];
+  if (f["招标单位联系人"]) out.contact = f["招标单位联系人"];
+  if (f["招标单位联系电话"]) out.phone = f["招标单位联系电话"];
+  if (f["项目统一代码（编码）"]) out.projectCode = f["项目统一代码（编码）"];
+  out.duration = f["工期"] || ""; // 无精确字段时不保留通用解析器从违约条款误抓的句子
+  return out;
+}
+
+function parseShenzhenList(payload, ad) {
+  const data = payload && payload.data;
+  const arr = data && Array.isArray(data.content) ? data.content : [];
+  return arr.filter(it => String(it.noticeTypeName || "") === "招标公告").map(it => {
+    const contentId = String(it.contentId || it.id || "");
+    return {
+      url: `${ad.base}/jygg/details.html?contentId=${encodeURIComponent(contentId)}&channelId=${encodeURIComponent(it.channelId || ad.channelId)}`,
+      title: String(it.noticeTitle || it.title || it.projectName || "").trim(),
+      date: String(it.releaseTime || it.publishTime || "").match(/\d{4}-\d{2}-\d{2}/)?.[0] || "",
+      cityHint: String(it.areaName || it.projectRegion || "深圳市").trim(),
+      contentId,
+      projectCode: String(it.bidSectionNumber || it.projectCode || "").trim(),
+      owner: String(it.tenderer || it.tenderer2 || "").trim(),
+      agency: String(it.proxyComName || "").trim(),
+    };
+  }).filter(x => x.contentId && x.title && x.date);
+}
+
+async function shenzhenPage(ad, start, end, page) {
+  const r = await fetch(ad.base + "/cms/api/v1/trade/content/page", {
+    method: "POST",
+    headers: { "Content-Type": "application/json;charset=UTF-8", "User-Agent": UA_STR, "Referer": ad.referer, "Accept": "application/json, text/plain, */*" },
+    body: JSON.stringify({
+      channelId: ad.channelId, fields: null, title: "",
+      releaseTimeBegin: `${localYmd(start)} 00:00:00`, releaseTimeEnd: `${localYmd(end)} 23:59:59`,
+      parentBusinessType: "", page, size: ad.rn || 50, siteId: 1, jsgcProjectType: "",
+    }),
+  });
+  if (!r.ok) throw new Error("shenzhen list HTTP " + r.status);
+  const j = JSON.parse(await r.text());
+  if (!j || Number(j.code) !== 200 || !j.data || !Array.isArray(j.data.content)) throw new Error("shenzhen invalid response structure");
+  return j;
+}
+
+function shenzhenTarget(items, args) {
+  return items.filter(it => (!args.keyword || it.title.includes(args.keyword))
+    && matchesCityFilter(args.city, [it.cityHint, it.title]));
+}
+
+async function shenzhenWindow(ad, start, end, args, remaining) {
+  const first = await shenzhenPage(ad, start, end, 0);
+  const total = Number(first.data.totalElements || 0);
+  const span = Math.round((end - start) / 86400000);
+  // 官方对宽窗口把 totalElements 截断为 1000；递归拆窗后再分页，不能把 1000 当完整总数。
+  if (total >= 1000 && span >= 1) {
+    const mid = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    mid.setDate(mid.getDate() + Math.floor(span / 2));
+    const newerStart = new Date(mid.getFullYear(), mid.getMonth(), mid.getDate());
+    newerStart.setDate(newerStart.getDate() + 1);
+    const newer = await shenzhenWindow(ad, newerStart, end, args, remaining);
+    if (newer.length >= remaining) return newer;
+    const older = await shenzhenWindow(ad, start, mid, args, remaining - newer.length);
+    return newer.concat(older);
+  }
+  const out = shenzhenTarget(parseShenzhenList(first, ad), args);
+  const totalPages = Math.min(20, Number(first.data.totalPages || 0));
+  for (let p = 1; p < totalPages && out.length < remaining; p++) {
+    await sleep(args.delay || 500);
+    out.push(...shenzhenTarget(parseShenzhenList(await shenzhenPage(ad, start, end, p), ad), args));
+  }
+  return out.slice(0, remaining);
+}
+
+async function shenzhenList(ad, page, args) {
+  if (page > 1) return [];
+  const today = new Date();
+  const endBoundary = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const cutoff = new Date(endBoundary);
+  cutoff.setDate(cutoff.getDate() - Math.max(0, Number(args.days || 30) - 1));
+  const limit = Number(args.limit || 0) > 0 ? Number(args.limit) : Number.MAX_SAFE_INTEGER;
+  const out = [], seen = new Set();
+  let end = new Date(endBoundary);
+  while (end >= cutoff && out.length < limit) {
+    const start = new Date(end);
+    start.setDate(start.getDate() - 6);
+    if (start < cutoff) start.setTime(cutoff.getTime());
+    const chunk = await shenzhenWindow(ad, start, end, args, limit - out.length);
+    for (const it of chunk) {
+      if (!seen.has(it.contentId)) { seen.add(it.contentId); out.push(it); }
+    }
+    end = new Date(start);
+    end.setDate(end.getDate() - 1);
+  }
+  return out;
+}
+
+function parseBgTableFields(html) {
+  const out = {};
+  const re = /<td(?=[^>]*class=["'][^"']*\bbg\b[^"']*["'])[^>]*>([\s\S]*?)<\/td>\s*<td[^>]*>([\s\S]*?)<\/td>/gi;
+  let m;
+  while ((m = re.exec(String(html || "")))) {
+    const key = htmlToText(m[1]).replace(/[：:]\s*$/, "").trim();
+    const value = htmlToText(m[2]).trim();
+    if (key && value && !out[key]) out[key] = value;
+  }
+  return out;
+}
+
+async function shenzhenDetail(ad, item) {
+  const r = await fetch(`${ad.base}/cms/api/v1/trade/content/detail?contentId=${encodeURIComponent(item.contentId)}`, {
+    headers: { "User-Agent": UA_STR, "Referer": item.url || ad.referer, "Accept": "application/json, text/plain, */*" },
+  });
+  if (!r.ok) throw new Error("shenzhen detail HTTP " + r.status);
+  const j = JSON.parse(await r.text());
+  const d = j && Number(j.code) === 200 ? j.data : null;
+  if (!d || !d.txt) throw new Error("shenzhen invalid detail structure");
+  const noticeType = (Array.isArray(d.attrs) ? d.attrs : []).find(x => x.attrName === "jygg_gglxmc")?.attrValue;
+  if (noticeType && noticeType !== "招标公告") throw new Error("shenzhen detail stage mismatch: " + noticeType);
+  const out = extractDetail(ad, d.txt, item, "");
+  const f = parseBgTableFields(d.txt);
+  out.title = String(d.title || item.title || out.title || "").trim();
+  if (item.owner) out.owner = item.owner;
+  if (item.agency) out.agency = item.agency;
+  if (item.projectCode) out.projectCode = item.projectCode;
+  if (f["工程地址"]) out.projectSite = f["工程地址"];
+  if (f["投标文件递交截止时间"]) out.bidOpen = f["投标文件递交截止时间"].slice(0, 16);
+  if (f["计划工期"]) out.duration = f["计划工期"];
+  if (f["本次发包工程估价"]) out.controlPrice = exactMoneyWan(f["本次发包工程估价"]);
+  if (f["计划总投资"]) out.budget = exactMoneyWan(f["计划总投资"]);
+  if (f["投标保证金"]) out.bond = exactMoneyWan(f["投标保证金"]);
+  if (f["拟采用评标方法"]) out.evaluation = f["拟采用评标方法"];
+  if (f["是否接受联合体投标"]) out.consortium = f["是否接受联合体投标"];
+  if (f["投标人资质要求"] || f["其他资质要求"]) out.qualification = [f["投标人资质要求"], f["其他资质要求"]].filter(Boolean).join("；");
+  if (f["投标申请人应当具有的同类工程经验要求"]) out.performance = /^(?:无|不要求)$/.test(f["投标申请人应当具有的同类工程经验要求"]) ? "不要求" : f["投标申请人应当具有的同类工程经验要求"];
+  const doc = [...String(d.txt).matchAll(/<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi)]
+    .find(m => /招标(?:公告|文件)/.test(htmlToText(m[2])) && /unified_download|\.pdf(?:$|[?&#])/i.test(m[1]));
+  out.docLink = doc ? doc[1].replace(/&amp;/g, "&") : "";
+  return out;
+}
+
 // 临沂/烟台共用：山东系 SSR 壳 + 标准 EPoint 后端，响应为 {code, content:"JSON字符串"} 双层包装（须二次 JSON.parse）
-async function sdWrapList(ad, page, args) {
+function isAllowedSdWrapRecord(ad, it) {
+  if (!Array.isArray(ad.allowedCategoryNums) || !ad.allowedCategoryNums.length) return true;
+  return ad.allowedCategoryNums.includes(String(it.categorynum || "").trim());
+}
+
+async function sdWrapList(ad, page, args, cats) {
   const rn = ad.rn || 20;
-  const body = { token: "", pn: (page - 1) * rn, rn: String(rn), wd: args.keyword || "", cl: 200, sort: JSON.stringify({ webdate: "0", id: "0" }) };
+  const body = {
+    token: "", pn: (page - 1) * rn, rn: String(rn), wd: args.keyword || "", cl: 200,
+    sort: JSON.stringify({ webdate: "0", id: "0" }),
+    condition: (cats && cats.length)
+      ? [{ fieldName: "categorynum", isLike: true, likeType: 2, equal: cats[0] }]
+      : null,
+  };
   const r = await fetch(ad.base + EPOINT_API, {
     method: "POST",
     headers: { "Content-Type": "application/json;charset=utf-8", "User-Agent": UA_STR, "Referer": ad.referer || (ad.base + "/") },
@@ -3369,9 +3816,15 @@ async function sdWrapList(ad, page, args) {
   const j = JSON.parse(await r.text());
   const inner = (typeof j.content === "string") ? JSON.parse(j.content) : j;   // 双层包装剥壳
   const recs = (inner && inner.result && inner.result.records) || [];
-  return recs.map(it => {
+  return recs.filter(it => isAllowedSdWrapRecord(ad, it)).map(it => {
     const m = String(it.webdate || "").match(/(\d{4}-\d{2}-\d{2})/);
-    return { url: it.linkurl ? toAbs(String(it.linkurl), ad.base) : "", title: String(it.titlenew || it.title || "").trim(), date: m ? m[1] : "" };
+    return {
+      url: it.linkurl ? toAbs(String(it.linkurl), ad.base) : "",
+      title: htmlToText(String(it.titlenew || it.title || "")).trim(),
+      date: m ? m[1] : "",
+      cityHint: String(it.xiaquname || it.zhuanzai || "").trim(),
+      categorynum: String(it.categorynum || "").trim(),
+    };
   }).filter(x => x.title);
 }
 
@@ -3441,13 +3894,227 @@ async function zunyiList(ad, page, args) {
   if (!r.ok) throw new Error("zunyi HTTP " + r.status);
   const j = JSON.parse(await r.text());
   const arr = Array.isArray(j.list) ? j.list : [];
-  return arr.map(it => {
+  return arr.filter(it => isZunyiTenderRecord(it)).map(it => {
     const d = it.docRelTime ? new Date(Number(it.docRelTime)).toISOString().slice(0, 10) : "";
-    return { url: String(it.apiUrl || ""), title: String(it.docTitle || "").trim(), date: d, anno: String(it.announcement || "") };
-    // channelId=5904475 是工程建设大类不分阶段：docTitle 关键词会命中中标候选人公示等 B 阶段公告，
-    // 按 announcement 过滤只留 zb 范畴（交易公告/变更/澄清/资格预审），B 阶段留待 stages 专项枚举
-  }).filter(x => x.title && !/中标|候选|结果|合同|流标|开标/.test(x.anno))
-    .map(x => ({ url: x.url, title: x.title, date: x.date }));
+    return { url: String(it.apiUrl || ""), title: String(it.docTitle || "").trim(), date: d };
+  }).filter(x => x.title);
+}
+
+function isZunyiTenderRecord(it) {
+  // channelId=5904475 是工程建设大类，announcement 才是官方阶段字段。
+  // 只收“交易公告”；变更公告（澄清与答疑）、中标、合同、异常等均不属于本 Skill 的 zb 范围。
+  return String(it && it.announcement || "").trim() === "交易公告";
+}
+
+// 合肥：官方 webBuilder Service。该中心同时承载少量省级集团异地项目，故不能仅凭来源站
+// 就把每条都标成合肥；列表层必须再用项目标题中的合肥行政区实体做城市真实性守卫。
+const HEFEI_AREA_RE = /合肥|肥东|肥西|长丰|庐江|巢湖|瑶海|庐阳|蜀山|包河|高新(?:区)?|经开(?:区)?|新站(?:区|高新区)?/;
+function isHefeiCityRecord(it) {
+  return String(it && it.categorynum || "") === "002001001" && HEFEI_AREA_RE.test(String(it && it.title || ""));
+}
+
+async function hefeiList(ad, page, args) {
+  const qs = new URLSearchParams({
+    pageIndex: String(page), pageSize: "20", siteguid: ad.siteGuid,
+    Categorynum: ad.categoryNum, infoC: "", title: args.keyword || "",
+    ggstartdate: "", ggenddate: "", zhaobiaofangshi: "", projectno: "", hangye: "", quyu: "",
+  });
+  const r = await fetch(ad.base + "/EpointWebBuilderService/hfggzyGetGgInfo.action?cmd=getinfojyxxlistZfcg&" + qs.toString(), {
+    headers: { "User-Agent": UA_STR, "Referer": ad.referer, "X-Requested-With": "XMLHttpRequest" },
+  });
+  if (!r.ok) throw new Error("hefei HTTP " + r.status);
+  const outer = JSON.parse(await r.text());
+  const inner = typeof outer.custom === "string" ? JSON.parse(outer.custom) : outer.custom;
+  const arr = inner && Array.isArray(inner.infoList) ? inner.infoList : [];
+  return arr.filter(isHefeiCityRecord).map(it => {
+    const date = String(it.infodate2 || it.infodate || "").match(/\d{4}-\d{2}-\d{2}/)?.[0] || "";
+    const day = date.replace(/-/g, "");
+    return {
+      url: it.infoid && day ? `${ad.base}/jyxx/002001/002001001/${day}/${it.infoid}.html` : "",
+      title: String(it.title || "").trim(), date,
+      cityHint: String(it.infod || "").trim(),
+      projectCode: String(it.projectno || "").trim(),
+      method: String(it.zhaobiaofangshi || "").trim(),
+      categorynum: String(it.categorynum || "").trim(),
+    };
+  }).filter(x => x.title && x.url);
+}
+
+function parseWenzhouCmsList(html, ad) {
+  const out = [];
+  const liRe = /<li\b[^>]*class=["'][^"']*\bcf\b[^"']*["'][^>]*>([\s\S]*?)<\/li>/gi;
+  let lm;
+  while ((lm = liRe.exec(String(html || "")))) {
+    const am = lm[1].match(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/i);
+    const dm = lm[1].match(/(?:19|20)\d{2}-\d{2}-\d{2}/);
+    if (!am || !dm) continue;
+    const title = htmlToText(am[2]).replace(/^\s*[•·]\s*/, "").trim();
+    if (title.length < 4) continue;
+    const href = am[1].replace(/&amp;/gi, "&");
+    out.push({
+      url: toAbs(href, ad.base),
+      title,
+      date: dm[0],
+      cityHint: extractKnownArea(title) || extractCity(title),
+    });
+  }
+  return out;
+}
+
+function parseJiaxingCmsList(html, ad) {
+  const out = [];
+  const liRe = /<li\b[^>]*class=["'][^"']*\bwb-data-list\b[^"']*["'][^>]*>([\s\S]*?)<\/li>/gi;
+  let lm;
+  while ((lm = liRe.exec(String(html || "")))) {
+    const am = lm[1].match(/<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/i);
+    const dm = lm[1].match(/(?:19|20)\d{2}-\d{2}-\d{2}/);
+    if (!am || !dm) continue;
+    const title = htmlToText(am[2]).trim();
+    if (title.length < 4) continue;
+    out.push({
+      url: toAbs(am[1].replace(/&amp;/gi, "&"), ad.base),
+      title, date: dm[0],
+      cityHint: extractKnownArea(title) || extractCity(title) || "嘉兴市",
+    });
+  }
+  return out;
+}
+
+function ningboVisitorToken(at = new Date()) {
+  // 官网 login chunk 的 getDate()：北京时间 `YYYY-MM-DD H:mm:ss` → Base64 → Base64。
+  // 显式用 UTC+8，避免采集机不在中国时区时生成无效 token。
+  const d = new Date(at.getTime() + 8 * 3600000);
+  const pad = n => String(n).padStart(2, "0");
+  const raw = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${d.getUTCHours()}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
+  return Buffer.from(Buffer.from(raw, "utf8").toString("base64"), "utf8").toString("base64");
+}
+
+const NINGBO_AREA_NAME = {
+  本级: "宁波市", 海曙: "海曙区", 江北: "江北区", 镇海: "镇海区", 北仑: "北仑区",
+  鄞州: "鄞州区", 奉化: "奉化区", 余姚: "余姚市", 慈溪: "慈溪市", 宁海: "宁海县",
+  象山: "象山县", 前湾: "前湾新区", 高新: "高新区",
+};
+
+function ningboHeaders(ad) {
+  return {
+    "Content-Type": "application/json;charset=UTF-8", "User-Agent": UA_STR,
+    "Referer": ad.referer, "token": ningboVisitorToken(),
+  };
+}
+
+function parseNingboList(payload, ad) {
+  const arr = payload && Array.isArray(payload.list) ? payload.list : [];
+  return arr.filter(it => String(it.channel || "") === ad.channel).map(it => {
+    const title = String(it.title || "").trim();
+    const date = String(it.publish_START_TIME || it.publishing_TIME || "").match(/\d{4}-\d{2}-\d{2}/)?.[0] || "";
+    const areaShort = String(it.area_SHORT_NAME || "").trim();
+    const qs = new URLSearchParams({
+      article_ID: String(it.article_ID || ""), code: String(it.channel || ad.channel),
+      project_ID: String(it.project_ID || ""), project_NO: String(it.project_NO || ""),
+      isShowTypeSteps: "true",
+    });
+    return {
+      url: `${ad.base}/website/announcementDetails?${qs.toString()}`,
+      title, date,
+      cityHint: NINGBO_AREA_NAME[areaShort] || extractKnownArea(title) || (areaShort ? areaShort : "宁波市"),
+      articleId: String(it.article_ID || ""), projectId: String(it.project_ID || ""),
+      projectCode: String(it.project_NO || ""), channel: String(it.channel || ad.channel),
+    };
+  }).filter(x => x.title && x.date && x.articleId && x.projectId);
+}
+
+async function ningboList(ad, page, args) {
+  const r = await fetch(ad.base + "/websiteapi/articleList", {
+    method: "POST", headers: ningboHeaders(ad),
+    body: JSON.stringify({
+      PUBLISHING_TIME_BEGIN: "", PUBLISHING_TIME_END: "", AREA_CODE: "",
+      PROJECT_TYPE_ID: ad.projectType, TITLE: args.keyword || "", CHANNEL: ad.channel,
+      page, pagesize: ad.rn || 12,
+    }),
+  });
+  if (!r.ok) throw new Error("ningbo articleList HTTP " + r.status);
+  return parseNingboList(JSON.parse(await r.text()), ad);
+}
+
+function ningboFileUrl(ad, path) {
+  const raw = String(path || "");
+  const suffix = raw.includes("/profile") ? raw.split("/profile")[1] : raw;
+  return suffix ? ad.base + "/prod-api/profile" + (suffix.startsWith("/") ? suffix : "/" + suffix) : "";
+}
+
+function ningboSegmentControlPrice(detailText) {
+  const segmentCosts = [];
+  for (const m of String(detailText || "").matchAll(/([ⅠⅡⅢⅣⅤⅥ一二三四五六]+标段)范围[:：][\s\S]{0,300}?建安工程造价约?\s*([\d,.]+)\s*元/g)) {
+    const yuan = Number(String(m[2]).replace(/,/g, ""));
+    if (Number.isFinite(yuan)) segmentCosts.push(`${m[1]}${Number((yuan / 10000).toFixed(6))}`);
+  }
+  return segmentCosts.length > 1 ? segmentCosts.join("；") : "";
+}
+
+async function ningboDetail(ad, item) {
+  const qs = new URLSearchParams({ projectid: item.projectId, channel: item.channel || ad.channel, articeid: item.articleId });
+  const r = await fetch(ad.base + "/websiteapi/getArticle/?" + qs.toString(), { headers: ningboHeaders(ad) });
+  if (!r.ok) throw new Error("ningbo getArticle HTTP " + r.status);
+  const arr = JSON.parse(await r.text());
+  const d = Array.isArray(arr) ? arr[0] : arr;
+  if (!d || String(d.channel || "") !== ad.channel) throw new Error("ningbo detail channel mismatch");
+  // 平台 content 内保留大量旧模板 HTML 注释；先删注释，避免未选中的资质/联合体/开标块污染抽取。
+  const content = String(d.content || "").replace(/<!--[\s\S]*?-->/g, "");
+  const out = extractDetail(ad, content, item, "");
+  const detailText = htmlToText(content);
+  // 宁波多标段公告会在同一项目页逐段披露建安造价；只取首个数字会把其余标段静默丢失。
+  // 单标段继续保持原数值形态，多标段才写成带标段名的可审计文本。
+  const segmentControlPrice = ningboSegmentControlPrice(detailText);
+  if (segmentControlPrice) out.controlPrice = segmentControlPrice;
+  // 合并项目可能有多组资金来源；逐组保留，避免只报告第一个子项目。
+  const fundingSources = [...detailText.matchAll(/建设资金来\s*自\s*([^，。；]{2,100})[，,]\s*出资比例/g)]
+    .map(m => m[1].trim()).filter((v, i, a) => v && a.indexOf(v) === i);
+  if (fundingSources.length > 1) out.funding = fundingSources.join("；");
+  const files = Array.isArray(d.files) ? d.files : [];
+  const tenderFile = files.find(f => /招标文件/.test(String(f.file_origin_name || "")))
+    || files.find(f => /招标公告/.test(String(f.file_origin_name || "")));
+  out.docLink = tenderFile ? ningboFileUrl(ad, tenderFile.file_path) : out.docLink;
+  out.title = String(d.title || out.title || item.title).trim();
+  out.owner = String(d.owner_NAME || out.owner || "").trim();
+  out.projectCode = String(d.project_NO || out.projectCode || item.projectCode || "").trim();
+  const areaCode = String(d.area_CODE || "");
+  const codeName = { "330201":"宁波市", "330203":"海曙区", "330205":"江北区", "330211":"镇海区", "330206":"北仑区", "330212":"鄞州区", "330213":"奉化区", "330281":"余姚市", "330282":"慈溪市", "330226":"宁海县", "330225":"象山县", "330232":"前湾新区", "330231":"高新区" }[areaCode];
+  if (!out.projectSite && codeName) out.projectSite = codeName;
+  return out;
+}
+
+// 温州：JPaas CMS AuthorizedRead 匿名列表。pageId 锁定温州市主站「招标公告」，
+// paramJson 只负责分页；关键词由 collectProvince 在客户端筛选，避免错误依赖未公开的搜索 schema。
+async function wenzhouList(ad, page, args) {
+  const qs = new URLSearchParams({
+    parseType: "bulidstatic", webId: ad.webId, tplSetId: ad.tplSetId,
+    pageType: "column", tagId: ad.tagId, editType: "null", pageId: ad.pageId,
+    paramJson: JSON.stringify({ pageNo: page, pageSize: ad.rn || 10, search: JSON.stringify("") }),
+  });
+  const r = await fetch(ad.base + "/api-gateway/jpaas-publish-server/front/page/build/unit?" + qs.toString(), {
+    headers: { "User-Agent": UA_STR, "Referer": ad.referer, "Accept": "application/json, text/plain, */*" },
+  });
+  if (!r.ok) throw new Error("wenzhou HTTP " + r.status);
+  const j = JSON.parse(await r.text());
+  const html = j && j.success && j.data ? String(j.data.html || "") : "";
+  if (!html) throw new Error("wenzhou CMS empty response");
+  return parseWenzhouCmsList(html, ad);
+}
+
+async function jiaxingList(ad, page, args) {
+  const qs = new URLSearchParams({
+    parseType: "bulidstatic", webId: ad.webId, tplSetId: ad.tplSetId,
+    pageType: "column", tagId: ad.tagId, editType: "null", pageId: ad.pageId,
+    paramJson: JSON.stringify({ pageNo: page, pageSize: ad.rn || 18, search: JSON.stringify("") }),
+  });
+  const r = await fetch(ad.base + "/api-gateway/jpaas-publish-server/front/page/build/unit?" + qs.toString(), {
+    headers: { "User-Agent": UA_STR, "Referer": ad.referer, "Accept": "application/json, text/plain, */*" },
+  });
+  if (!r.ok) throw new Error("jiaxing HTTP " + r.status);
+  const j = JSON.parse(await r.text());
+  const html = j && j.success && j.data ? String(j.data.html || "") : "";
+  if (!html) throw new Error("jiaxing CMS empty response");
+  return parseJiaxingCmsList(html, ad);
 }
 
 // 宜宾：筑龙 SPA 统一网关 action RPC（xinXi_LeiXing=102 招标公告；详情为 SPA hash 无直链 → 部分 gongGao_URL 外链可用）
@@ -3493,9 +4160,12 @@ async function ygpFetchPage(siteCode, secondType, keyword, pn, tradingProcess) {
         const b = await r.json().catch(() => null);
         if (b && b.errmsg) { const m = String(b.errmsg).match(/(\d+)\s*秒/); if (m) cooldown = Math.max(cooldown, parseInt(m[1], 10) * 1000); }
       } catch { /* 忽略解析失败 */ }
-      if (cooldown > _ygpDelay) { _ygpDelay = cooldown; console.error("[ygp] 429 限流 → 全局冷却 %dms", cooldown); }
-      if (attempt === 6) throw new Error("HTTP 429 限流耗尽");
-      await sleep(_ygpDelay); continue;
+      if (cooldown > _ygpDelay) _ygpDelay = cooldown;
+      if (global.__RUN_REPORT) global.__RUN_REPORT.rate_limits.push({ status: 429, cooldown_ms: cooldown, source: "ygp" });
+      // 粤公平明确要求 60 秒级冷却时，本次 CLI 立即留下 FAILED sidecar，不在同一进程内
+      // 连续等待/重打七次。后续独立运行由调度层决定，避免一次省级测试挂住数分钟并续期限流。
+      console.error("[ygp] 429 限流 → 记录冷却 %dms，本次停止", cooldown);
+      throw new Error(`HTTP 429（建议冷却 ${cooldown}ms 后再运行）`);
     }
     if (r.status >= 500) { if (attempt === 6) throw new Error("HTTP " + r.status); await sleep(Math.min(8000, 500 * 2 ** attempt)); continue; }
     if (!r.ok) throw new Error("HTTP " + r.status);
@@ -3780,6 +4450,21 @@ async function maybePdfText(html, pageUrl, delay, minHtmlLen = 1200) {
       return { text: "", pdfUrl, note: "PDF 下载/解析失败: " + e.message };
     }
   }
+  // 温州 JPaas 详情页：iframe 的 src 初始为空，页面 JS 从 #pdfshow[data-value] 读取
+  // 无 .pdf 后缀的官方下载端点后再拼入 viewer。必须在 HTML 长度早退前识别，否则导航文本
+  // 会被误当成正文充足，16 列详情字段全部假空。
+  const embeddedHref = findEmbeddedPdfHref(html);
+  if (embeddedHref) {
+    const pdfUrl = toAbs(embeddedHref, pageUrl);
+    try {
+      const buf = await fetchBuffer(pdfUrl, delay);
+      const r = pdfToText(buf);
+      if (r && r.text) return { text: r.text, pdfUrl, note: r.note };
+      return { text: "", pdfUrl, note: "PDF 解析无文本（可能扫描件）: " + (r && r.note || "") };
+    } catch (e) {
+      return { text: "", pdfUrl, note: "PDF 下载/解析失败: " + e.message };
+    }
+  }
   const plain = htmlToText(html);
   if (plain.length >= minHtmlLen) return { text: "", pdfUrl: "", note: "HTML 正文充足，未走 PDF" };
   // 优先 id="fujian" 内的链接（EPoint 标准附件位），否则任意 .pdf
@@ -3801,6 +4486,13 @@ async function maybePdfText(html, pageUrl, delay, minHtmlLen = 1200) {
   }
 }
 
+function findEmbeddedPdfHref(html) {
+  const raw = String(html || "");
+  const tag = raw.match(/<[^>]+\bid=["']pdfshow["'][^>]*>/i)?.[0] || "";
+  const href = tag.match(/\bdata-value=["']([^"']+)["']/i)?.[1] || "";
+  return href.replace(/&amp;/gi, "&").trim();
+}
+
 // ---- 极简 xlsx 写入（零依赖：store-zip + inline strings）----
 function crc32(buf) {
   let c, table = crc32.t || (crc32.t = (() => {
@@ -3819,18 +4511,32 @@ function xlsxColumnWidths(count) {
   return (count === 16 ? compact16 : full29.slice(0, count));
 }
 
+function xlsxRowHeight(row, widths) {
+  let maxLines = 1;
+  for (let i = 0; i < row.length; i++) {
+    const value = row[i] == null ? "" : String(row[i]);
+    if (!value) continue;
+    const visualUnits = [...value].reduce((n, ch) => n + (/[^\x00-\xff]/.test(ch) ? 2 : 1), 0);
+    const width = Math.max(6, Number(widths[i]) || 12);
+    maxLines = Math.max(maxLines, value.split(/\r?\n/).length, Math.ceil(visualUnits / width));
+  }
+  return Math.max(42, Math.min(300, 8 + maxLines * 15));
+}
+
 function writeXlsx(path, sheets) {
   // sheets: [{name, rows:[[...]]}]
   const esc = xmlEsc;
   const sheetXml = sheets.map((sh, i) => {
-    const widthXml = xlsxColumnWidths((sh.rows[0] || []).length).map((width, ci) => `<col min="${ci + 1}" max="${ci + 1}" width="${width}" customWidth="1"/>`).join("");
+    const widths = xlsxColumnWidths((sh.rows[0] || []).length);
+    const widthXml = widths.map((width, ci) => `<col min="${ci + 1}" max="${ci + 1}" width="${width}" customWidth="1"/>`).join("");
     const rows = sh.rows.map((row, ri) => {
       const cells = row.map((val, ci) => {
         const ref = colLetter(ci) + (ri + 1);
         const v = val == null ? "" : String(val);
         return `<c r="${ref}" s="${ri === 0 ? 1 : 2}" t="inlineStr"><is><t xml:space="preserve">${esc(v)}</t></is></c>`;
       }).join("");
-      return `<row r="${ri + 1}" ht="${ri === 0 ? 30 : 42}" customHeight="1">${cells}</row>`;
+      const height = ri === 0 ? 30 : xlsxRowHeight(row, widths);
+      return `<row r="${ri + 1}" ht="${height}" customHeight="1">${cells}</row>`;
     }).join("");
     const lastCol = colLetter(Math.max(0, (sh.rows[0] || []).length - 1));
     const lastRow = Math.max(1, sh.rows.length);
@@ -5168,6 +5874,27 @@ for (const _p of Object.keys(PREFECTURE_DISTRICTS)) {
   if (_full && _full !== _p && !PREFECTURE_DISTRICTS[_full]) PREFECTURE_DISTRICTS[_full] = PREFECTURE_DISTRICTS[_p];
 }
 
+const KNOWN_ADMIN_AREAS = [...new Set(Object.values(PREFECTURE_DISTRICTS).flat())]
+  .filter((name) => name && name !== "市辖区")
+  .sort((a, b) => b.length - a.length);
+
+function extractKnownArea(text) {
+  const compact = String(text || "").replace(/\s+/g, "");
+  return KNOWN_ADMIN_AREAS.find((name) => compact.includes(name)) || "";
+}
+
+function jurisdictionFromAdapter(ad) {
+  const name = String(ad && ad.name || "").trim();
+  const m = name.match(/^(.{2,16}?(?:壮族自治区|维吾尔自治区|回族自治区|自治区|生产建设兵团|省|市))/);
+  return m ? m[1] : "";
+}
+
+function resolveRecordRegion(ad, rec) {
+  if (rec && String(rec.city || "").trim()) return String(rec.city).trim();
+  const fromText = extractKnownArea(`${rec && rec.projectSite || ""} ${rec && rec.title || ""}`);
+  return fromText || jurisdictionFromAdapter(ad);
+}
+
 // 城市筛选是客户端 OR 过滤：不同平台的行政区字段不一致，故同时使用列表地区、标题和提取值。
 // 不以“未命中”推断为不属于任何城市，只在用户明确给出 --city 时排除不匹配的记录。
 // 增强（2026-08-16）：支持 地级市↔区县 双向归一——`--city 珠海` 命中其区县；`--city 香洲区` 命中珠海记录。
@@ -5218,7 +5945,7 @@ function resolveCityTargets(ad, args) {
 function classifySheet(title) {
   if (/公路|高速|国道|省道|桥梁|隧道|路基|路面|市政道路|道路工程/.test(title)) return "公路";
   if (/水利|水库|灌区|灌渠|河道|水系|防洪|水环境|饮水|供水|排水|污水|管网|水厂|泵站|治水/.test(title)) return "水利";
-  if (/房建|建筑|市政|装修|绿化|景观|厂房|安置房|保障房|学校|医院|消防|充电|公园|道路/.test(title)) return "房建市政";
+  if (/房建|建筑|市政|装修|绿化|景观|厂房|安置房|保障房|学校|中学|小学|幼儿园|医院|康养|街区|社区|消防|充电|公园|道路/.test(title)) return "房建市政";
   return "其他项目";
 }
 
@@ -5238,8 +5965,16 @@ const PROV_ALIAS = {
   定西: "dingxi", // 城市级 adapter（甘肃定西市平台，infodate 排序变体；源站 2023-04 后停更）
   常州: "changzhou", // 城市级 adapter（江苏常州独立平台，标准 EPoint 同构）
   苏州: "suzhou", // 城市级 adapter（江苏苏州独立平台，静态 SSR webBuilder）
+  徐州: "xuzhou", // 城市级 adapter（江苏徐州独立平台，静态 SSR webBuilder）
   宜昌: "yichang", 临沂: "linyi", 烟台: "yantai", 无锡: "wuxi", 泉州: "quanzhou",
   岳阳: "yueyang", 遵义: "zunyi", 宜宾: "yibin", // 城市级批次2（Goal v5）
+  合肥: "hefei", // 城市级 adapter（安徽合肥官方 webBuilder Service）
+  温州: "wenzhou", // 城市级 adapter（浙江温州官方 JPaas CMS + PDF 详情）
+  宁波: "ningbo", // 城市级 adapter（浙江宁波官方 websiteapi + 临时访客 token）
+  嘉兴: "jiaxing", // 城市级 adapter（浙江嘉兴官方 JPaas CMS 建设工程招标公告）
+  潍坊: "weifang", // 城市级 adapter（山东潍坊官方 EpointWebBuilder 招标公告接口）
+  青岛: "qingdao", // 城市级 adapter（山东青岛官方 ASP.NET MVC 招标公告列表）
+  深圳: "shenzhen", // 城市级 adapter（广东深圳官方 CMS trade API）
 };
 async function collectProvince(prov0, args) {
   const prov = ADAPTERS[prov0] ? prov0 : (PROV_ALIAS[prov0] || prov0);
@@ -5279,7 +6014,7 @@ async function collectProvince(prov0, args) {
   //   opType 0/1 均无差异
   // 若直接把多栏目塞进一个 condition，后面的栏目会被**静默漏采**且无任何报错。
   // 江苏/浙江此前只配单栏目，故从未暴露此坑。
-  const catRounds = ((ad.kind === "epoint" || ad.kind === "epointX") && Array.isArray(ad.cats) && ad.cats.length > 1)
+  const catRounds = ((ad.kind === "epoint" || ad.kind === "epointX" || ad.kind === "sdwrap") && Array.isArray(ad.cats) && ad.cats.length > 1)
     ? ad.cats.map(c => [c])
     : [ad.cats];
   for (const cats of catRounds) {
@@ -5334,8 +6069,14 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
       items = await henanNoticeList(ad, page, args);
     } else if (ad.kind === "yichang") {
       items = await yichangList(ad, page, args);
+    } else if (ad.kind === "weifang") {
+      items = await weifangList(ad, page, args);
+    } else if (ad.kind === "qingdao") {
+      items = await qingdaoList(ad, page, args);
+    } else if (ad.kind === "shenzhen") {
+      items = await shenzhenList(ad, page, args);
     } else if (ad.kind === "sdwrap") {
-      items = await sdWrapList(ad, page, args);
+      items = await sdWrapList(ad, page, args, cats);
     } else if (ad.kind === "wuxi") {
       items = await wuxiList(ad, page, args);
     } else if (ad.kind === "quanzhou") {
@@ -5344,6 +6085,14 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
       items = await yueyangList(ad, page, args);
     } else if (ad.kind === "zunyi") {
       items = await zunyiList(ad, page, args);
+    } else if (ad.kind === "hefei") {
+      items = await hefeiList(ad, page, args);
+    } else if (ad.kind === "wenzhou") {
+      items = await wenzhouList(ad, page, args);
+    } else if (ad.kind === "ningbo") {
+      items = await ningboList(ad, page, args);
+    } else if (ad.kind === "jiaxing") {
+      items = await jiaxingList(ad, page, args);
     } else if (ad.kind === "yibin") {
       items = await yibinList(ad, page, args);
     } else {
@@ -5450,6 +6199,17 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
             // 西藏详情正文由 Jeecms AJAX 加载（/personalitySearch/initDetailbyProjectCode），壳页「暂无相关数据」，POST 取正文 HTML
             const dt = await xizangDetail(ad, item);
             for (const [k, v] of Object.entries(dt)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
+          } else if (ad.kind === "ningbo") {
+            // 宁波详情是 websiteapi JSON；公开 SPA 路由只返回壳页，必须复用官网 getArticle 请求。
+            const dt = await ningboDetail(ad, item);
+            for (const [k, v] of Object.entries(dt)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
+          } else if (ad.kind === "qingdao") {
+            const dhtml = await requestWithRetry(item.url, args.delay);
+            const dt = qingdaoDetail(ad, dhtml, item);
+            for (const [k, v] of Object.entries(dt)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
+          } else if (ad.kind === "shenzhen") {
+            const dt = await shenzhenDetail(ad, item);
+            for (const [k, v] of Object.entries(dt)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
           } else {
             // 2026-08-16 V5 批次2：岳阳等静态 CMS 站点详情页为 GBK 编码（charset=gb2312），
             // requestWithRetry 的 r.text() 按 UTF-8 解码会乱码导致厚字段全空——
@@ -5501,6 +6261,9 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
           console.error("[detail] FAIL", item.url.slice(0, 60), e.message);
         }
       }
+      // 地区是业务表硬字段：优先保留列表/详情的精确区县，其次从已知行政区词表识别，
+      // 最后只回退到该官方 adapter 的明确管辖区（省/市），不臆造更细粒度城市。
+      rec.city = resolveRecordRegion(ad, rec);
       result.push(rec);
     }
     if (stop) break;
@@ -5598,12 +6361,43 @@ function classifyRunStatus(result, errors = [], signals = {}) {
   return "CONNECTED_NO_RECENT_DATA";
 }
 
+function resolveCodeCommit() {
+  if (process.env.BID_COLLECT_COMMIT) return process.env.BID_COLLECT_COMMIT;
+  try {
+    return execFileSync("git", ["rev-parse", "HEAD"], {
+      cwd: __dirname,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      timeout: 2000,
+    }).trim() || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function resolveCodeDirty() {
+  try {
+    return !!execFileSync("git", ["status", "--porcelain=v1", "--untracked-files=no"], {
+      cwd: __dirname,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      timeout: 2000,
+    }).trim();
+  } catch (_) {
+    return null;
+  }
+}
+
 function buildRunReport(prov, ad, result, args, meta = {}) {
   const rows = Array.isArray(result) ? result : [];
   const errors = Array.isArray(meta.errors) ? meta.errors : [];
   const signals = meta.signals || {};
   const real = rows.filter((r) => r && r.title && r.date && r.url);
   const status = classifyRunStatus(rows, errors, signals);
+  let sourceBase = ad && ad.base || "";
+  if (!sourceBase && real[0] && real[0].url) {
+    try { sourceBase = new URL(real[0].url).origin; } catch (_) { /* 保持空值 */ }
+  }
   return {
     schema_version: "bid-collect.run-report.v1",
     snapshot_at: new Date().toISOString(),
@@ -5617,7 +6411,7 @@ function buildRunReport(prov, ad, result, args, meta = {}) {
           : "返回记录但硬字段不完整，或观测到程序错误/外部限流/传输异常，详见 counts、errors 与 signals",
     province: prov,
     adapter: Object.keys(ADAPTERS).find((k) => ADAPTERS[k] === ad) || prov,
-    source: { name: ad && ad.name || "", base: ad && ad.base || "" },
+    source: { name: ad && ad.name || "", base: sourceBase },
     args: {
       province: args.province,
       city: args.city || "",
@@ -5630,7 +6424,8 @@ function buildRunReport(prov, ad, result, args, meta = {}) {
     },
     counts: { total: rows.length, verified_records: real.length },
     output: meta.output || null,
-    code_commit: process.env.BID_COLLECT_COMMIT || null,
+    code_commit: resolveCodeCommit(),
+    code_dirty: resolveCodeDirty(),
     signals,
     errors,
   };
@@ -5646,6 +6441,10 @@ function writeRunReport(outputPath, report) {
 }
 
 function resolveOutputPaths(args) {
+  const ext = path.extname(args.out || "").toLowerCase();
+  if (ext !== ".xlsx" && ext !== ".md") {
+    throw new Error("--out 仅支持 .xlsx 或 .md；需要 CSV 时请同时传 --csv");
+  }
   let mdPath = args.out;
   let xlsxPath = null;
   if (args.out.toLowerCase().endsWith(".xlsx")) {
@@ -5726,16 +6525,20 @@ function resolveOutputPaths(args) {
   // 2026-08-16 V4A 补写：原版 FATAL 直接 exit(1)——恰在最需要机器回执的时刻 run-report 不落盘、
   // 已采结果全丢。现在尽力保全：有已采结果且指定了 --out 时，补写 markdown 与 run-report（FAILED）。
   try {
-    if (typeof args !== "undefined" && args && args.out && typeof result !== "undefined" && result && result.length && ad) {
+    if (typeof args !== "undefined" && args && args.out) {
+      const safeResult = Array.isArray(result) ? result : [];
+      const provKey = ADAPTERS[args.province] ? args.province : (PROV_ALIAS[args.province] || args.province);
+      const safeAd = ad || ADAPTERS[provKey];
+      if (!safeAd) throw new Error("无法解析 adapter，不能生成失败回执");
       const { mdPath } = resolveOutputPaths(args);
       ensureParentDir(mdPath);
-      fs.writeFileSync(mdPath, buildMarkdown(args.province, ad, result, args));
-      writeRunReport(mdPath, buildRunReport(args.province, ad, result, args, {
+      fs.writeFileSync(mdPath, buildMarkdown(args.province, safeAd, safeResult, args));
+      writeRunReport(mdPath, buildRunReport(args.province, safeAd, safeResult, args, {
         errors: args._run.errors,
         signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors },
         output: { markdown: mdPath, xlsx: null, csv: null },
       }));
-      console.error("FATAL 补写: 已采 " + result.length + " 条与 run-report 保全至", mdPath);
+      console.error("FATAL 补写: 已采 " + safeResult.length + " 条与 run-report 保全至", mdPath);
     }
   } catch (_) { /* 补写失败不掩盖原始错误 */ }
   console.error("FATAL:", e && (e.stack || e.message) || e);
@@ -5744,5 +6547,5 @@ function resolveOutputPaths(args) {
 })();
 
 
-module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, parseArgs, inferTenderType, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, extractNoticeTitle, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote,
+module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, extractDetail, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, parseWeifangList, parseQingdaoHtml, parseStrongTableFields, qingdaoDetail, parseShenzhenList, parseBgTableFields, exactMoneyWan,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, cqList, tjList, nmgList, lnList, gsList };
