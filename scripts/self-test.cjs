@@ -5,12 +5,13 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const M = require(path.join(__dirname, "province-collect.cjs"));
+const SKILL_ROOT = process.env.BID_COLLECT_SKILL_ROOT ? path.resolve(process.env.BID_COLLECT_SKILL_ROOT) : path.join(__dirname, "..");
 
 const tests = [];
 function test(name, fn) { tests.push({ name, fn }); }
 
 test("SKILL.md frontmatter 只使用 Codex 支持的顶层键", () => {
-  const skill = fs.readFileSync(path.join(__dirname, "..", "SKILL.md"), "utf8");
+  const skill = fs.readFileSync(path.join(SKILL_ROOT, "SKILL.md"), "utf8");
   const fm = skill.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   assert.ok(fm, "缺少 YAML frontmatter");
   const keys = fm[1].split(/\r?\n/).filter((line) => /^[A-Za-z][\w-]*:/.test(line)).map((line) => line.split(":", 1)[0]);
@@ -23,7 +24,7 @@ test("62 个 adapter 均已注册（32 省级 + 30 城市级）", () => {
 });
 
 test("SKILL.md adapter 清单与代码完全一致", () => {
-  const skill = fs.readFileSync(path.join(__dirname, "..", "SKILL.md"), "utf8");
+  const skill = fs.readFileSync(path.join(SKILL_ROOT, "SKILL.md"), "utf8");
   const block = skill.match(/## 62 个 adapter[\s\S]*?```text\r?\n([\s\S]*?)\r?\n```/);
   assert.ok(block, "SKILL.md 缺少 62 个 adapter 清单");
   const listed = block[1].trim().split(/\s+/);
@@ -38,7 +39,7 @@ test("中文省名覆盖全部 adapter", () => {
 
 test("62 个 adapter 均有可执行的官方 reference", () => {
   for (const adapter of Object.keys(M.ADAPTERS)) {
-    const file = path.join(__dirname, "..", "reference", `${adapter}.md`);
+    const file = path.join(SKILL_ROOT, "reference", `${adapter}.md`);
     assert.ok(fs.existsSync(file), `${adapter} 缺少 reference`);
     const text = fs.readFileSync(file, "utf8");
     assert.match(text, /^## 机制\s*$/m, `${adapter} 缺少机制说明`);
@@ -49,7 +50,7 @@ test("62 个 adapter 均有可执行的官方 reference", () => {
 });
 
 test("招标公告实时状态总账覆盖全部 62 个 adapter", () => {
-  const file = path.join(__dirname, "..", "reference", "ZB_LIVE_STATUS_2026-08-15.md");
+  const file = path.join(SKILL_ROOT, "reference", "ZB_LIVE_STATUS_2026-08-15.md");
   assert.ok(fs.existsSync(file), "缺少招标公告实时状态总账");
   const text = fs.readFileSync(file, "utf8");
   const rows = [...text.matchAll(/^\| ([a-z][a-z0-9]+) \|/gm)].map((m) => m[1]).filter((adapter) => M.ADAPTERS[adapter]);
@@ -453,7 +454,7 @@ test("参数默认 zb 与标标通16列，并保留已配置阶段", () => {
 });
 
 test("公开文档保留阶段选择并明确本 PR 只验收 zb", () => {
-  const root = path.join(__dirname, "..");
+  const root = SKILL_ROOT;
   const skill = fs.readFileSync(path.join(root, "SKILL.md"), "utf8");
   const family = fs.readFileSync(path.join(root, "reference", "FAMILY_INDEX.md"), "utf8");
   assert.match(skill, /--stage candidate/);
@@ -479,8 +480,50 @@ test("已配置阶段都有类型和可执行路由", () => {
 test("full29、biaobiaotong16 与 CSV schema 锁定", () => {
   assert.equal(M.XLSX_HEADER.length, 29);
   assert.equal(M.BIAOBIAOTONG_HEADER.length, 16);
+  assert.equal(M.PROJECT18_HEADER.length, 18);
   assert.equal(M.CSV_HEADER.length, 37); // 2026-08-15 +tenderType（标的量纲标记）
   assert.deepEqual(M.BIAOBIAOTONG_HEADER, ["序号", "项目地点", "开标时间", "项目名称", "资金来源", "工期", "资质要求", "业绩要求", "控制价万元", "保证金万元", "评标办法", "联合体", "满分标准", "链接", "招标文件", "备注"]);
+  assert.deepEqual(M.PROJECT18_HEADER, ["序号", "项目地点", "开标时间", "项目名称", "建设规模", "招标范围", "资金来源", "工期", "资质要求", "业绩要求", "控制价万元", "保证金万元", "评标办法", "联合体", "满分标准", "链接", "招标文件", "备注"]);
+});
+
+test("project18 固定四个 sheet、映射项目内容且有专用列宽", () => {
+  const sheets = M.buildXlsxSheets([{ sheet: "房建市政", city: "珠海市", projectSite: "珠海市香洲区", title: "老旧小区改造", scale: "改造17个小区", scope: "施工图及清单内全部施工", url: "https://example.invalid/1" }], { layout: "project18" });
+  assert.deepEqual(sheets.map((s) => s.name), ["房建市政", "水利", "公路", "其他项目"]);
+  for (const sheet of sheets) assert.equal(sheet.rows[0].length, 18);
+  assert.equal(sheets[0].rows[1][1], "珠海市香洲区");
+  assert.equal(sheets[0].rows[1][4], "改造17个小区");
+  assert.equal(sheets[0].rows[1][5], "施工图及清单内全部施工");
+  assert.equal(M.xlsxColumnWidths(18).length, 18);
+  assert.equal(M.xlsxColumnWidths(18)[4], 48);
+  assert.equal(M.xlsxColumnWidths(18)[5], 42);
+  assert.equal(M.parseArgs(["-p", "广东", "--xlsx-layout", "project18"]).xlsxLayout, "project18");
+  assert.equal(M.parseArgs(["-p", "广东"]).xlsxLayout, "biaobiaotong16");
+});
+
+test("项目内容按结构化标签分离规模与本次招标范围", () => {
+  const combined = `本项目包括17个老旧小区改造，红线面积约131385㎡，整治面积约75064.60㎡，包括道路、给排水和照明整治。具体招标内容包括施工图纸及工程量清单范围内的全部施工；招标人有权对建设内容进行增减，中标人不得有异议。`;
+  const html = `<table><tr><th>招标范围及规模</th><td>${combined}</td></tr><tr><th>招标内容</th><td>${combined}</td></tr></table>`;
+  const out = M.extractProjectContent(html, M.htmlToText(html), M.flatten(M.htmlToText(html)));
+  assert.match(out.scale, /17个老旧小区/);
+  assert.match(out.scale, /131385㎡/);
+  assert.match(out.scope, /施工图纸及工程量清单/);
+  assert.doesNotMatch(out.scope, /中标人不得有异议/);
+  assert.equal(out.note, "PROJECT_CONTENT_SPLIT_AT:具体招标内容包括");
+});
+
+test("项目内容拒绝法律尾句并保守处理歧义标签", () => {
+  const tail = `<table><tr><th>建设规模</th><td>进行增减，中标人不得有异议</td></tr></table>`;
+  assert.equal(M.extractProjectContent(tail, M.htmlToText(tail), M.flatten(M.htmlToText(tail))).scale, "");
+  const scaleHtml = `<table><tr><th>项目概况</th><td>新建污水管601米、工作井4座，设计规模5万立方米/日。</td></tr></table>`;
+  const scaleOut = M.extractProjectContent(scaleHtml, M.htmlToText(scaleHtml), M.flatten(M.htmlToText(scaleHtml)));
+  assert.match(scaleOut.scale, /污水管601米/);
+  const scopeHtml = `<table><tr><th>建设内容</th><td>本次招标为施工图纸及工程量清单范围内的全部施工。</td></tr></table>`;
+  const scopeOut = M.extractProjectContent(scopeHtml, M.htmlToText(scopeHtml), M.flatten(M.htmlToText(scopeHtml)));
+  assert.match(scopeOut.scope, /本次招标/);
+  const plant = `<table><tr><th>招标范围及规模</th><td>1.工程规模：新建一座设计规模5万m³/d的水质净化厂。2.招标内容：包括施工图设计、BIM及施工配合服务。</td></tr></table>`;
+  const plantOut = M.extractProjectContent(plant, M.htmlToText(plant), M.flatten(M.htmlToText(plant)));
+  assert.match(plantOut.scale, /5万m³\/d/);
+  assert.match(plantOut.scope, /施工图设计/);
 });
 
 test("标标通兼容版固定生成 4 个 sheet 和 16 列", () => {

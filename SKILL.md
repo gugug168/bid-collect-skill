@@ -42,8 +42,8 @@ node scripts/self-test.cjs
 ## 常用命令
 
 ```powershell
-# 招标阶段；默认抓详情并生成 XLSX
-node scripts/province-collect.cjs -p 浙江 -k 管网 -d 30 --limit 20 --out output/zhejiang.xlsx --csv
+# 招标阶段；Skill 日常业务表使用 project18，并从公开附件补缺字段
+node scripts/province-collect.cjs -p 浙江 -k 管网 -d 30 --limit 20 --xlsx-layout project18 --attach --out output/zhejiang.xlsx --csv
 
 # 中标候选 / 中标结果 / 合同（仅运行该省已配置阶段）
 node scripts/province-collect.cjs -p 海南 --stage candidate -k 管网 -d 120 --limit 20 --out output/hainan-candidate.xlsx --csv
@@ -74,7 +74,7 @@ node scripts/province-collect.cjs -p 浙江 -k 管网 -d 365 --verify
 | `--no-detail` | 关闭详情厚字段 | 默认开启详情 |
 | `--attach` | 详情缺金额时尝试从公开附件补抽 | 关闭 |
 | `--no-xlsx` | 不生成 XLSX | 默认生成 XLSX |
-| `--xlsx-layout` | `biaobiaotong16`（严格对齐标标通参考工作簿的 16 列顺序，固定 4 sheet）；`full29` 仅为旧调用兼容 | `biaobiaotong16` |
+| `--xlsx-layout` | `project18`（日常项目判断表）；`biaobiaotong16`（严格兼容标标通）；`full29`（完整旧布局） | CLI 默认 `biaobiaotong16`；Skill 常用命令显式 `project18` |
 | `--csv` | 同时生成 CSV | 关闭 |
 | `-o, --out` | 输出 `.xlsx` 或 `.md` 路径 | 不写文件 |
 | `--probe` | 探测单省端点并写证据 | 关闭 |
@@ -101,8 +101,9 @@ node scripts/province-collect.cjs -p 浙江 -k 管网 -d 365 --verify
 
 ## 输出 schema
 
-- XLSX schema 以 `scripts/province-collect.cjs` 的 `XLSX_HEADER` 为唯一真相源，当前 29 列，按房建市政、水利、公路、其他项目分 sheet。
-- 公开业务表固定使用 `biaobiaotong16` 的 16 列；`full29`/CSV 仅为既有调用兼容，不作为本轮验收表。机器侧失败原因、来源、时间和数量只写 sidecar。
+- XLSX schema 以 `scripts/province-collect.cjs` 的三个 header 常量为真相源，均按房建市政、水利、公路、其他项目分 sheet。
+- Skill 日常业务表使用 `project18`：在项目名称后增加“建设规模/招标范围”，分别回答整个项目做什么与本次招标做什么。`biaobiaotong16` 保持严格兼容；`full29`/CSV 保持旧调用兼容。
+- Excel 只保存官方确定性事实，不生成 AI 摘要。合并字段无法可靠拆分时不复制到两列，机器原因写 sidecar/短备注。
 - XLSX 与 CSV 不是同一列集。预算 `budget` 与控制价 `controlPrice` 是两个事实，禁止合并。
 - 输出层清理 `undefined`、`null`、`NaN` 和未渲染 `{{downloadurl}}`；合法数值 `0` 不会被当成缺失。
 
