@@ -33,7 +33,7 @@
 | zhejiang | 浙江 | epoint | generic(extractDetail) | ✅ WORKS | 18/20 | 待真机 | cnum=002，须 webdate 排序 |
 | hainan | 海南 | epoint | generic(extractDetail) | ✅ WORKS | 18/20 | 待真机 | 地区字段择优 xiaquname |
 | heilongjiang | 黑龙江 | epoint | generic(extractDetail) | ✅ WORKS | 18/20 | 待真机 | **修复**：cnum 003→002(工程建设) + keywordClient(wd 检索坏)；用 `-d 400` |
-| guangdong | 广东 | ygp | generic(extractDetail) | ⚠️ ENV_LIMIT | — | 待真机 | 粤公平 429 限流（代码完整，降频复采） |
+| guangdong | 广东 | ygp | ygpDetail(singleNode/detail)+附件 | ✅ VERIFIED_RECORD | — | 广州/珠海 | 3C14 纯招标；官方详情/文件链接；附件大文件与验证码单独记信号 |
 | henan | 河南 | henanNotice | generic(extractDetail) | ⚠️ LIMITED | — | 待真机 | 文件索引级（档案电子件），linkurl 恒空，0 建设公告 |
 | anhui | 安徽 | ah | bespoke(anhuiDetail) | ✅ WORKS | 18/20 | ≈10/14（满分·备注=诚实空；招标文件留空） | bespoke newDetailSub AJAX；去 `time=1` 限今天 |
 | sichuan | 四川 | epoint | generic(extractDetail) | ✅ WORKS | 18/20 | 待真机 | cnum=002/003 |
@@ -108,4 +108,3 @@ _共 32 省。bespoke 省(hn/yn/hb/gz/nmg/gs/ah/xizang)走各自详情函数（�
 
 ### 本轮代码修复
 - （无新增代码改动；沿用第一波 `DUR_LABELS`/`city` 守卫两处修复）
-

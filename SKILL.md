@@ -65,14 +65,14 @@ node scripts/province-collect.cjs -p 浙江 -k 管网 -d 365 --verify
 | 参数 | 含义 | 默认 |
 |---|---|---|
 | `-p, --province` | adapter 键或中文省名 | 必填 |
-| `-c, --city` | 城市/区县过滤（逗号 OR；简称/全称按地区、标题、提取地点客户端匹配，不依赖各省不一致的服务端参数） | 全省 |
+| `-c, --city` | 城市/区县过滤（逗号 OR；默认客户端匹配；adapter 有已验证官方代码时可先下推地市范围，再保留客户端精确过滤） | 全省 |
 | `-k, --keyword` | 标题关键词；空值表示不限 | 空 |
 | `-d, --days` | 近 N 天 | 30 |
 | `--stage` | `zb` / `candidate` / `result` / `contract`；具体支持范围以 adapter 的 `stages` 为准 | `zb` |
 | `--limit` | 最多输出条数 | 0，不限制 |
 | `--delay` | 请求间隔毫秒 | 500 |
 | `--no-detail` | 关闭详情厚字段 | 默认开启详情 |
-| `--attach` | 详情缺金额时尝试从公开附件补抽 | 关闭 |
+| `--attach` | 从公开附件补充 adapter 声明的缺失字段；默认仍补金额，广东另补项目内容与评标字段 | 关闭 |
 | `--no-xlsx` | 不生成 XLSX | 默认生成 XLSX |
 | `--xlsx-layout` | `project18`（日常项目判断表）；`biaobiaotong16`（严格兼容标标通）；`full29`（完整旧布局） | CLI 默认 `biaobiaotong16`；Skill 常用命令显式 `project18` |
 | `--csv` | 同时生成 CSV | 关闭 |
@@ -96,7 +96,7 @@ node scripts/province-collect.cjs -p 浙江 -k 管网 -d 365 --verify
 | 四川 | `广汉` | 广汉市（2/2） | EPoint |
 
 山东还实测了 `-c "济南,青岛" --limit 2` 的 OR 查询：返回济南与青岛各 1 条。
-32 省逐省实测粒度、空窗口与受限省口径全量见 [`reference/CITY_ENTRY_INDEX.md`](reference/CITY_ENTRY_INDEX.md)（2026-08-16 更新；广东 429 冷却中留待复测）。
+32 省逐省实测粒度、空窗口与受限省口径全量见 [`reference/CITY_ENTRY_INDEX.md`](reference/CITY_ENTRY_INDEX.md)；广东已于 2026-08-19 复测列表、详情和附件元数据。
 
 
 ## 输出 schema
@@ -140,7 +140,7 @@ yueyang zunyi yibin hefei wenzhou ningbo jiaxing weifang qingdao shenzhen
 
 - 官方平台结构和风控会变化；昨天验证通过不等于今天仍可达。
 - 部分省只公开列表或详情字段；源页不存在的字段写“未获取/留空”，不臆造数值或链接。
-- 上海等 SPA、广西加密附件、广东 429、陕西授权墙、山东特定网络出口等限制以当前 reference 和验证工作簿为准。
+- 上海等 SPA、广西加密附件、广东附件下载限额/验证码、陕西授权墙、山东特定网络出口等限制以当前 reference 和验证工作簿为准。
 - 附件只处理公开可下载内容；扫描件无文本层时诚实留空。
 - `--verify` 证明列表返回真实标题/日期，不自动证明所有厚字段齐全；厚字段仍需逐条回源复核。
 

@@ -38,10 +38,10 @@
 | shandong | 山东 | html | ⚠️ ENV_LIMIT | — | 沙箱不可达 `.jhtml`（RST），开放网络重试 |
 | henan | 河南 | epoint | ⚠️ LIMITED | — | 文件索引级（档案电子件），linkurl 恒空，0 建设公告 |
 | guangxi | 广西 | html | ⚠️ BROKEN_DETAIL | — | 列表通；详情 PDF 需 DES 解密（待纯 JS 实现） |
-| guangdong | 广东 | ygp | ⚠️ ENV_LIMIT | — | 粤公平 429 限流（代码完整，降频复采） |
+| guangdong | 广东 | ygp | ✅ VERIFIED_RECORD | — | 3C14 列表 + singleNode/detail + 官方附件；广州/珠海 2026-08-19 复测 |
 | shaanxi | 陕西 | sntba | ⛔ AUTH_WALL | — | 401 登录墙，放弃 |
 
-**统计**：✅ 27 省 / ⚠️ 4 省（shandong·henan·guangxi·guangdong）/ ⛔ 1 省（shaanxi）。
+**统计**：✅ 28 省 / ⚠️ 3 省（shandong·henan·guangxi）/ ⛔ 1 省（shaanxi）。
 **统一可重复采集命令**（WORKS 省直接套用，受限省见注记）：
 
 ```bash
@@ -63,7 +63,7 @@ HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p <adapter> -k 管�
 | WebBuilder REST | `nantong` | **nantong(城市级)** | EWB-FRONT `params` 表单，`categorymum` 官方拼写，零基分页，作废/阶段三字段守卫 |
 | 城市官方 bespoke | `nanjing`/`huizhou`/`zhongshan`/`jinan`/`wuhan` | 南京/惠州/中山/济南/武汉 | webdb 双栏目、广东政府 JSONP、pageList、search.do、静态 CMS 查询；各自按官方阶段字段和详情表映射 |
 | bespoke REST | `hn`/`hb`/`gz`/`yn`/`fj`/`tj`/`sntba` | hunan/hubei/guizhou/yunnan/fujian/tianjin/shaanxi(墙) | 各省独立 API，须逐省逆向 |
-| 特殊 | `cq`/`ygp` | chongqing(复测通)/guangdong(限) | cq Nuxt SSR；gd 独立 API 逐市循环 |
+| 特殊 | `cq`/`ygp` | chongqing/guangdong | cq Nuxt SSR；gd 独立 API 按官方地市码定向、公开详情与附件元数据 |
 
 ## 三、各族细节
 
@@ -95,7 +95,7 @@ HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p <adapter> -k 管�
 - 坑：服务端关键词多数失效 → 客户端过滤；福建需签名/解密；云南 `String(j.code)==="1"`；陕西 keywordBlind。
 
 ### 6. 特殊 / 限制
-- 广东（ygp）：独立 JSON API 100% 结构化含全厚字段，须逐 21 地市 `siteCode` 循环（`440000` 返 0）；本环境 429 限流 → ENV_LIMIT，降频复采。
+- 广东（ygp）：`3C14` 招标列表、21 地市 `siteCode`、公开 `singleNode/detail` 详情和 `noticeFileBOList` 附件；2026-08-19 广州/珠海复测为 VERIFIED_RECORD。附件仍受 12MB、每日限额与验证码边界约束。
 - 重庆（cq）：Nuxt SSR，2026-08-14 复测已可达（原 Cloudflare 521 解除）→ 升为 WORKS。
 
 ## 四、通用提醒（适用所有族）
@@ -172,7 +172,7 @@ node province-collect.cjs -p <adapter> --stage contract    # 合同公示
 | yunnan | 云南 | yn | ✅ candidate/result/contract | candidate=`getZbwjygsList`(tenderProjectName)/result=`getZbJgGgList`(bulletinname)/contract=`getContractList`(contractName)，全真机数千条；B 阶段详情端点各异→列表层诚实不伪造 URL |
 | fujian | 福建 | fj | ✅ candidate/result（无合同栏目） | candidate=GGTYPE`4`(中标候选人公示)/result=GGTYPE`5`(中标结果公告)；GGTYPE 3/6/7+ 返 0 → 无合同栏目，不配 contract |
 | chongqing | 重庆 | cq | ✅ candidate/result（无合同栏目） | `categoryNum`：候选`014001003`/结果`014001004`（公告`001`/答疑`002`/办事指南`005`）；无独立合同公示栏目→不配 contract；**顺带解除 `envLimited`（2026-08-15 复测 HTTP 200 可达，此前 Cloudflare 521 为瞬时/出口问题）** |
-| guangdong | 广东 | ygp | ✅ candidate/result（无合同栏目） | ygpList 已改消费 stages：tradingProcess 候选`3C51`(中标候选人公示,5798条)/结果`3C52`(中标结果,3814条)；**本轮烟测 candidate 实测 2 条**（含「旧区供水管网工程总承包（EPC）中标结果公告」真实管网记录）；3C53~3C60 实测均 0 条 → 无独立合同公示栏目，诚实不配 contract；列表 row 无 winner/winPrice（详情需 SPA 内部码）→ 诚实空；**owner/partyA 改取 row.projectOwner（原映射漏字段致招标人恒空，已修）**；仍受 429 限流（ENV_LIMIT，降频复采） |
+| guangdong | 广东 | ygp | ✅ candidate/result（无合同栏目） | `3C51`=候选、`3C52`=结果；无经验证合同栏目。2026-08-19 已接公开详情接口，但本轮全国验收仍只覆盖 `zb`，B 阶段不得据此宣称完整厚字段通过。 |
 | shaanxi | 陕西 | sntba | ⛔ 不可达 | sntba 仅最新 10 条无详情，B 阶段无意义 |
 | shandong | 山东 | html | ✅ candidate/result/contract | Jeecms `queryContent_${p}-jyxxgk.jspx` channelId 候选`149`/结果`87`/合同`78`（合同为混合源，自定义 parse 按 `/合同公示/` 过滤 block）；**`contract` 本轮 `-d 365` 烟测进行中**；ZB 基线仍受沙箱 RST 限制（§一） |
 

@@ -56,9 +56,9 @@ test("招标公告实时状态总账覆盖全部 62 个 adapter", () => {
   const rows = [...text.matchAll(/^\| ([a-z][a-z0-9]+) \|/gm)].map((m) => m[1]).filter((adapter) => M.ADAPTERS[adapter]);
   assert.equal(new Set(rows).size, 62);
   assert.deepEqual([...new Set(rows)].sort(), Object.keys(M.ADAPTERS).sort());
-  assert.match(text, /`VERIFIED_RECORD`：53 个/);
+  assert.match(text, /`VERIFIED_RECORD`：54 个/);
   assert.match(text, /`CONNECTED_NO_RECENT_DATA`：7 个/);
-  assert.match(text, /`FAILED`：2 个/);
+  assert.match(text, /`FAILED`：1 个/);
 });
 
 // 2026-08-16 V5 逐列取证回访：9 处漏抽修复（江西/遵义/海南/重庆/青海/烟台/江苏实测原文形态）
@@ -524,6 +524,71 @@ test("项目内容拒绝法律尾句并保守处理歧义标签", () => {
   const plantOut = M.extractProjectContent(plant, M.htmlToText(plant), M.flatten(M.htmlToText(plant)));
   assert.match(plantOut.scale, /5万m³\/d/);
   assert.match(plantOut.scope, /施工图设计/);
+});
+
+test("广东 siteCode 定向覆盖地级市与区县，未知词诚实回退全省", () => {
+  assert.deepEqual(M.resolveYgpCityTargets({ city: "广州" }).map((x) => x.code), ["440100"]);
+  assert.deepEqual(M.resolveYgpCityTargets({ city: "香洲" }).map((x) => x.code), ["440400"]);
+  assert.deepEqual(M.resolveYgpCityTargets({ city: "广州,珠海" }).map((x) => x.code), ["440100", "440400"]);
+  assert.equal(M.resolveYgpCityTargets({ city: "不存在地区" }).length, 21);
+});
+
+test("广东 3C14 列表只留正常招标公告并构造官方详情链接", () => {
+  const base = {
+    edition: "v3", noticeSecondType: "A", noticeSecondTypeDesc: "工程建设", projectType: "A02", projectTypeName: "市政",
+    regionCode: "440400", regionName: "珠海市", siteCode: "440400", siteName: "珠海市", projectCode: "E4404000001006053001",
+    tradingProcess: "3C14", noticeNature: "正常公告", publishDate: "20260819143220", pubServicePlat: "珠海市公共资源交易中心一体化平台",
+  };
+  const rows = [
+    { ...base, noticeId: "normal-1", noticeTitle: "隆城花园老旧小区整治工程招标公告" },
+    { ...base, noticeId: "change-1", noticeNature: "更正公告", noticeTitle: "某项目补充公告" },
+    { ...base, noticeId: "pre-1", noticeTitle: "某项目资格预审公告" },
+    { ...base, noticeId: "result-1", tradingProcess: "3C52", noticeTitle: "某项目中标结果" },
+  ];
+  const got = M.parseYgpListRows(rows, M.ADAPTERS.guangdong);
+  assert.equal(got.length, 1);
+  assert.equal(got[0].title, "隆城花园老旧小区整治工程招标公告");
+  assert.match(got[0].url, /#\/new\/jygg\/v3\/A\?/);
+  assert.match(got[0].url, /noticeId=normal-1/);
+  assert.equal(M.buildYgpDetailUrl({ ...base, noticeId: "" }), "");
+});
+
+test("广东详情解析精确字段并选取正式招标文件", () => {
+  assert.equal(M.parseYgpJsonText("2049752546398429185"), "2049752546398429185");
+  const row = {
+    edition: "v3", noticeSecondType: "A", noticeSecondTypeDesc: "工程建设", projectType: "A02", regionCode: "440400", siteCode: "440400",
+    noticeId: "detail-1", projectCode: "E4404000001006053001", tradingProcess: "3C14", noticeTitle: "隆城花园老旧小区整治工程招标公告", projectOwner: "珠海市香洲区吉大街道办事处",
+  };
+  const richtext = `<table><tr><th>工期（交货期）</th><td>360个日历天</td></tr><tr><th>招标项目实施（交货）地点</th><td>珠海市香洲区</td></tr><tr><th>资金来源</th><td>全部使用财政性资金</td></tr><tr><th>招标范围及规模</th><td>改造17个小区，整治面积75064.60㎡。具体招标内容包括施工图纸及清单范围内全部施工。</td></tr></table>`;
+  const data = { title: row.noticeTitle, tradingNoticeColumnModelList: [
+    { richtext, noticeFileBOList: null },
+    { richtext: "", noticeFileBOList: [
+      { fileName: "公告盖章文件.pdf", rowGuid: "notice", flowId: "1" },
+      { fileName: "正式招标文件.pdf", rowGuid: "pdf", flowId: "2" },
+      { fileName: "正式招标文件.docx", rowGuid: "docx", flowId: "3" },
+    ] },
+  ] };
+  const out = M.parseYgpDetailPayload(data, row, M.ADAPTERS.guangdong, { title: row.noticeTitle, url: M.buildYgpDetailUrl(row) });
+  assert.equal(out.projectSite, "珠海市香洲区");
+  assert.equal(out.duration, "360个日历天");
+  assert.match(out.scale, /75064.60㎡/);
+  assert.match(out.scope, /施工图纸及清单/);
+  assert.equal(out._ygpAttachment.fileName, "正式招标文件.pdf");
+  assert.match(out.docLink, /\/pdf\?2$/);
+});
+
+test("广东招标文件补抽区分保证金、现行评标办法与定性满分", () => {
+  const zhuhai = M.extractYgpAttachmentFields("投标保证金金额 ■ [500000]元。 本项目采用定性评审项目，评标内容为经济标、技术标。");
+  assert.equal(zhuhai.bond, "50");
+  assert.equal(zhuhai.evaluation, "定性评审（经济标、技术标）");
+  assert.equal(zhuhai.fullScore, "不适用（定性评审）");
+  const tancun = M.extractYgpAttachmentFields("本项目不要求投标人递交投标保证金。第三章 评标办法（综合评估法）。投标人总得分满分为100分。");
+  assert.equal(tancun.bond, 0);
+  assert.equal(tancun.evaluation, "综合评估法");
+  assert.equal(tancun.fullScore, "100");
+  const kemu = M.extractYgpAttachmentFields("原文：本次评标采用综合评估法。条款号：1 现文：本项目采用评定分离办法，其中评标阶段采用“有限数量制”评标法。投标人总得分（最高100.5分）。");
+  assert.equal(kemu.evaluation, "评定分离（有限数量制评标法）");
+  assert.equal(kemu.fullScore, "100.5");
 });
 
 test("标标通兼容版固定生成 4 个 sheet 和 16 列", () => {

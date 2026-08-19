@@ -1,4 +1,4 @@
-# 招标公告实时状态总账（2026-08-15）
+# 招标公告实时状态总账（2026-08-15 快照；广东更新至 2026-08-19）
 
 > 本表只记录招标公告（`zb`）的实时窗口结果，不包含候选人/中标/合同阶段。每次采集的 sidecar 才是单次运行的机器真相；这里是便于人审和 PR 追踪的当前快照。
 >
@@ -24,7 +24,7 @@
 | henan | `CONNECTED_NO_RECENT_DATA` | 0 | 90/365 仍 0 | `henan.run-report.json`, `henan-90d`, `henan-365d` | 文件索引级限制仍保留 |
 | hubei | `VERIFIED_RECORD` | 3 | — | `hubei.run-report.json` | 武汉另有城市筛选证据 |
 | hunan | `VERIFIED_RECORD` | 3 | — | `hunan.run-report.json` | 官方 REST |
-| guangdong | `FAILED` | — | 未执行扩大 | `guangdong-cooldown-v1.run-report.json` | 官方接口首个请求 429/60000ms 冷却；manual_observation |
+| guangdong | `VERIFIED_RECORD` | 3 | 3 天广州3、珠海3 | `2026-08-19_project18实时验收/*.run-report.json` | `3C14` 纯招标；公开详情与附件链接；大文件/验证码单独记附件信号 |
 | guangxi | `VERIFIED_RECORD` | 3 | — | `guangxi.run-report.json` | HTTP 官方入口 |
 | hainan | `VERIFIED_RECORD` | 3 | — | `hainan.run-report.json` | 多栏目拆轮后有记录 |
 | chongqing | `VERIFIED_RECORD` | 3 | — | `chongqing.run-report.json` | Nuxt SSR |
@@ -72,9 +72,9 @@
 
 ## 汇总
 
-- `VERIFIED_RECORD`：53 个（新增城市级 nanjing/huizhou/zhongshan/jinan/wuhan）
+- `VERIFIED_RECORD`：54 个（广东 2026-08-19 复测转正）
 - `CONNECTED_NO_RECENT_DATA`：7 个（河北、黑龙江、河南、陕西、兵团、定西、苏州）
-- `FAILED`：2 个（广东官方 429；宜宾 allowNoUrl 无直链形态）
+- `FAILED`：1 个（宜宾 allowNoUrl 无直链形态）
 - `BROWSER_REQUIRED`：本轮未新增；Chrome CDP 未连接，不能宣称浏览器路径可用。
 
 外部完整人读报告与逐次 XLSX/CSV/sidecar 位于 GOAL evidence 目录；本表不复制业务数据，也不把空结果写成 0 条历史事实。

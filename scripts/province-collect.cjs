@@ -8,6 +8,7 @@
 //   node province-collect.cjs -p shandong -d 30 --no-detail                # 只抓列表层，不进详情页
 require("dns").setDefaultResultOrder("ipv4first");
 const fs = require("fs");
+const os = require("os");
 const zlib = require("zlib");
 const path = require("path");
 const { execFile, execFileSync } = require("child_process");
@@ -148,8 +149,14 @@ const fetch = httpFetch;
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 // ---- 省级平台 adapter 注册表（每省一个，定义列表URL + 解析规则 + 可选详情解析）----
-// 广东（粤公平）逐地市循环用的城市代码表（省级 440000 返回 0，须逐地市）
-const GD_CITIES = ["440100","440200","440300","440400","440500","440600","440700","440800","440900","441200","441300","441400","441500","441600","441700","441800","441900","442000","445100","445200","445300"];
+// 广东（粤公平）逐地市循环用的唯一城市真相源（省级 440000 返回 0，须逐地市）。
+const GD_CITY_TARGETS = [
+  ["广州市","440100"],["韶关市","440200"],["深圳市","440300"],["珠海市","440400"],["汕头市","440500"],
+  ["佛山市","440600"],["江门市","440700"],["湛江市","440800"],["茂名市","440900"],["肇庆市","441200"],
+  ["惠州市","441300"],["梅州市","441400"],["汕尾市","441500"],["河源市","441600"],["阳江市","441700"],
+  ["清远市","441800"],["东莞市","441900"],["中山市","442000"],["潮州市","445100"],["揭阳市","445200"],["云浮市","445300"],
+].map(([name, code]) => ({ name, code }));
+const GD_CITIES = GD_CITY_TARGETS.map((x) => x.code);
 
 // 北京 中标/结果/合同 栏目列表解析：与招标公告栏目（divtitlejy+list-times1）不同，
 // 中标栏目列表项用 class="jylist" + class="list-times2"，故单列一个宽容解析（同时兼容两种 class）。
@@ -741,15 +748,18 @@ const ADAPTERS = {
   },
   // ===== 广东（粤公平 · 2026-08-12 集成 · 独立 API，非 EPoint）=====
   // 数据源: POST https://ygp.gdzwfw.gov.cn/ggzy-portal/search/v2/items （SPA 内部接口）
-  // 详情正文/附件需 SPA 内部交易环节码，列表接口不暴露 → 本 adapter 仅列表层（no detail），诚实不抓详情。
-  // 限流防护: 内置 429/5xx 指数退避 + 自适应降速（移植自 ygp-collect.cjs）。
+  // 官方前端公开详情接口：singleNode + detail；附件元数据来自 noticeFileBOList。
+  // 限流防护: 内置 429/5xx 指数退避 + 自适应降速；验证码只记录，不绕过。
   guangdong: {
     name: "广东省公共资源交易平台（粤公平）",
     verified: true,
     kind: "ygp",
-    cities: GD_CITIES, // 粤公平"省级(440000)"返回 0，须逐 21 地市循环取全省
+    cities: GD_CITIES,
+    cityCodes: GD_CITY_TARGETS,
     category: "A", // A=工程建设
-    defaultType: "", // 粤公平标题已含类型，交由 inferType 归类
+    tradingProcess: "3C14", // 招标公告、资格预审公告；zb 再以公告性质+标题守卫剔除资审/更正
+    defaultType: "招标公告",
+    attachmentFields: ["controlPrice", "budget", "bond", "scale", "scope", "evaluation", "fullScore"],
     // ---- B 阶段（2026-08-15 深挖）：粤公平 trading-type 用 tradingProcess 隔离：候选=3C51(中标候选人公示,5798条)/结果=3C52(中标结果,3814条)；
     //   3C53~3C60 实测均 0 条 → 无独立合同公示栏目，诚实不配 contract；列表 row 无 winner/winPrice（详情需 SPA 内部码）→ 诚实空；
     //   owner/partyA 改取 row.projectOwner（原映射漏该字段致招标人恒空）。 ----
@@ -3751,14 +3761,12 @@ async function probeAllEvidence(kw = "管网") {
 
 // ---- 广东（粤公平）列表接口（独立 API，非 EPoint）----
 // POST https://ygp.gdzwfw.gov.cn/ggzy-portal/search/v2/items
-// 详情正文需 SPA 内部交易环节码，列表接口不暴露 → 仅列表层；限流 429/5xx 指数退避 + 自适应降速。
+// 详情正文走官方 singleNode/detail 公开接口；限流 429/5xx 指数退避 + 自适应降速。
 // 注意：粤公平 siteCode="440000"(省级) 实际返回 0，"全省"需逐地市循环（广州/深圳/珠海…各自有效）。
 const YGP_API = "https://ygp.gdzwfw.gov.cn/ggzy-portal/search/v2/items";
 let _ygpDelay = 350;
 // 粤公平列表 row 结构化字段映射。
-// 背景：粤公平详情需 SPA 内部码、列表层不暴露 URL（ygpList 设 url:""），故厚字段只能从列表 row 直接取。
-// 字段名待 IP 限流解除后探明 row 结构校准；键不存在/为空则留空，绝不伪造（guard 保证：rr 无该键即 no-op）。
-// 2026-08-14 reference 已确认"粤公平返回 100% 结构化含全厚字段"，故映射属安全补齐，非猜测捏造。
+// 列表 row 只先填其明确提供的薄字段；详情精确标签随后非空覆盖。键不存在则留空，绝不猜测。
 function mapYgpRow(rr) {
   if (!rr || typeof rr !== "object") return {};
   const g = (...keys) => {
@@ -4903,13 +4911,66 @@ async function yibinList(ad, page, args) {
   }).filter(x => x.title);
 }
 
-async function ygpFetchPage(siteCode, secondType, keyword, pn, tradingProcess) {
+function ygpDateStamp(date, endOfDay) {
+  const y = date.getFullYear(), m = String(date.getMonth() + 1).padStart(2, "0"), d = String(date.getDate()).padStart(2, "0");
+  return `${y}${m}${d}${endOfDay ? "235959" : "000000"}`;
+}
+
+function buildYgpDetailUrl(rr) {
+  const edition = String(rr && rr.edition || "").trim();
+  const tradingType = String(rr && rr.noticeSecondType || "").trim();
+  const noticeId = String(rr && rr.noticeId || "").trim();
+  const projectCode = String(rr && rr.projectCode || "").trim();
+  const bizCode = String(rr && rr.tradingProcess || "").trim();
+  const siteCode = String(rr && (rr.regionCode || rr.siteCode) || "").trim();
+  const classify = String(rr && rr.projectType || "").trim();
+  if (!edition || !tradingType || !noticeId || !projectCode || !bizCode || !siteCode || !classify) return "";
+  const q = new URLSearchParams({
+    noticeId, projectCode, bizCode, siteCode,
+    publishDate: String(rr.publishDate || ""),
+    source: String(rr.pubServicePlat || "广东省公共资源交易平台"),
+    titleDetails: String(rr.noticeSecondTypeDesc || "工程建设"),
+    classify,
+  });
+  return `https://ygp.gdzwfw.gov.cn/ggzy-portal/#/new/jygg/${encodeURIComponent(edition)}/${encodeURIComponent(tradingType)}?${q.toString()}`;
+}
+
+function parseYgpListRows(rows, ad) {
+  const all = [];
+  for (const rr of Array.isArray(rows) ? rows : []) {
+    const title = String(rr.noticeTitle || "").replace(/<\/?em[^>]*>/gi, "").trim();
+    if (!title) continue;
+    if (!ad.stageKey) {
+      if (String(rr.tradingProcess || "") !== "3C14") continue;
+      if (String(rr.noticeNature || "") !== "正常公告") continue;
+      if (/资格预审|资审公告|补充公告|更正公告|澄清|答疑|延期|终止|流标|废标|中标候选|中标结果/.test(title)) continue;
+    }
+    const d = String(rr.publishDate || "");
+    const date = d.length >= 8 ? `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}` : "";
+    all.push({
+      url: buildYgpDetailUrl(rr),
+      title,
+      date,
+      cityHint: rr.siteName || rr.regionName || "",
+      cityWeak: rr.regionName || "",
+      summary: "",
+      _ygpRow: rr,
+      ...mapYgpRow(rr),
+    });
+  }
+  return all;
+}
+
+async function ygpFetchPage(siteCode, secondType, keyword, pn, tradingProcess, args, ad) {
+  const end = new Date();
+  const start = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  start.setDate(start.getDate() - Math.max(0, Number(args.days || 30) - 1));
   const body = {
     type: "trading-type", openConvert: false,
     keyword: keyword || "",
     siteCode, secondType,
-    tradingProcess: tradingProcess || "", thirdType: "[]", projectType: "",
-    publishStartTime: "", publishEndTime: "",
+    tradingProcess: tradingProcess || "", thirdType: "[]", projectType: ad.projectType || "",
+    publishStartTime: ygpDateStamp(start, false), publishEndTime: ygpDateStamp(end, true),
     pageNo: pn, pageSize: 50,
   };
   for (let attempt = 0; attempt <= 6; attempt++) {
@@ -4950,31 +5011,148 @@ async function ygpFetchPage(siteCode, secondType, keyword, pn, tradingProcess) {
 async function ygpList(ad, page, args) {
   // 框架按 page 分页；粤公平"全省"需逐地市聚合，故 page1 一次性取回全部地市数据，page>1 返回空（防重复）
   if (page > 1) return [];
-  const cities = ad.cities && ad.cities.length ? ad.cities : GD_CITIES;
+  const cities = resolveYgpCityTargets(args);
   const all = [];
-  for (const sc of cities) {
+  for (const city of cities) {
     for (let pn = 1; pn <= 20; pn++) {
-      const rows = await ygpFetchPage(sc, ad.category || "A", args.keyword || "", pn, ad.tradingProcess || "");
+      const rows = await ygpFetchPage(city.code, ad.category || "A", args.keyword || "", pn, ad.tradingProcess || "", args, ad);
       if (!rows.length) break;
-      for (const rr of rows) {
-        const d = String(rr.publishDate || "");
-        const date = d.length >= 8 ? `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}` : "";
-        all.push({
-          url: "", // 粤公平详情需 SPA 内部码，列表层不暴露 → 诚实留空
-          title: String(rr.noticeTitle || "").replace(/<\/?em[^>]*>/gi, "").trim(),
-          date,
-          cityHint: rr.regionName || "",
-          cityWeak: "",
-          summary: "",
-          // 列表 row 结构化字段直接挂到 item（广东无详情页，厚字段只能从 row 取）；
-          // collectProvince 在 rec 构造后会 merge 列表层字段。键不存在则 mapYgpRow 留空。
-          ...mapYgpRow(rr),
-        });
-      }
+      all.push(...parseYgpListRows(rows, ad));
+      if (hasReachedLimit(all.length, args.limit)) return all;
       if (rows.length < 50) break;
     }
   }
   return all;
+}
+
+const YGP_DETAIL_API = "https://ygp.gdzwfw.gov.cn/ggzy-portal/center/apis/trading-notice/new";
+const YGP_FILE_API = "https://ygp.gdzwfw.gov.cn/ggzy-portal/base/sys-file/download";
+
+function unwrapYgpPayload(value) {
+  if (value && typeof value === "object" && Object.prototype.hasOwnProperty.call(value, "errcode")) {
+    if (Number(value.errcode) !== 0) throw new Error(`YGP errcode=${value.errcode} ${value.errmsg || ""}`);
+    return value.data;
+  }
+  return value;
+}
+
+function parseYgpJsonText(raw) {
+  const text = String(raw || "").trim();
+  if (/^\d{15,}$/.test(text)) return text; // nodeId 超过 JS safe integer，必须保留原始十进制字符串
+  return unwrapYgpPayload(JSON.parse(text));
+}
+
+async function ygpGetJson(url, source = "ygp-detail") {
+  if (_ygpDelay > 0) await sleep(Math.min(_ygpDelay, 3000));
+  const r = await fetch(url, { headers: { "User-Agent": UA_STR, "Referer": "https://ygp.gdzwfw.gov.cn/", "Accept": "application/json, text/plain, */*" } });
+  const raw = typeof r.arrayBuffer === "function" ? Buffer.from(await r.arrayBuffer()).toString("utf8") : await r.text();
+  if (r.status === 429) {
+    if (global.__RUN_REPORT) global.__RUN_REPORT.rate_limits.push({ status: 429, source });
+    throw new Error(`${source} HTTP 429`);
+  }
+  if (!r.ok) throw new Error(`${source} HTTP ${r.status}`);
+  return parseYgpJsonText(raw);
+}
+
+function ygpNormalizeHtml(html) {
+  return String(html || "")
+    .replace(/&#x0*d;|&#13;/gi, "\n")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&ldquo;|&rdquo;/gi, '"')
+    .replace(/&lsquo;|&rsquo;/gi, "'");
+}
+
+function ygpTablePairs(html) {
+  const out = {};
+  for (const rows of tableRows(html || "")) {
+    for (const row of rows) {
+      for (let i = 0; i < row.length - 1; i++) {
+        const label = String(row[i] || "").replace(/[：:]$/, "").replace(/\s+/g, "").trim();
+        if (!label) continue;
+        const value = String(row[i + 1] || "").replace(/\s+/g, " ").trim();
+        if (value && !out[label]) out[label] = value;
+      }
+    }
+  }
+  return out;
+}
+
+function ygpPair(pairs, labels) {
+  for (const label of labels) {
+    if (pairs[label]) return pairs[label];
+    const key = Object.keys(pairs).find((k) => k.includes(label));
+    if (key && pairs[key]) return pairs[key];
+  }
+  return "";
+}
+
+function ygpFileExt(name) {
+  return ((String(name || "").match(/\.(pdf|docx|doc|zip)$/i) || [])[1] || "").toLowerCase();
+}
+
+function selectYgpTenderAttachment(sections, row) {
+  const files = (Array.isArray(sections) ? sections : []).flatMap((s) => Array.isArray(s.noticeFileBOList) ? s.noticeFileBOList : []);
+  const candidates = files.filter((f) => /招标文件|采购文件/.test(String(f.fileName || "")) && ygpFileExt(f.fileName));
+  const rank = { pdf: 0, docx: 1, doc: 2, zip: 3 };
+  candidates.sort((a, b) => (rank[ygpFileExt(a.fileName)] ?? 9) - (rank[ygpFileExt(b.fileName)] ?? 9));
+  const chosen = candidates[0];
+  if (!chosen || !chosen.rowGuid) return { chosen: null, candidates: files.map((f) => ({ fileName: f.fileName || "", rowGuid: f.rowGuid || "", flowId: f.flowId || "" })) };
+  const edition = String(row.edition || "v3");
+  const flowId = String(chosen.flowId || "");
+  const encoded = encodeURIComponent(String(chosen.rowGuid));
+  return {
+    chosen: {
+      fileName: String(chosen.fileName || ""), rowGuid: String(chosen.rowGuid), flowId, edition,
+      downloadUrl: `${YGP_FILE_API}/${encodeURIComponent(edition)}/${encoded}?${encodeURIComponent(flowId)}`,
+      sizeUrl: `${YGP_FILE_API}/size/${encodeURIComponent(edition)}/${encoded}?${encodeURIComponent(flowId)}`,
+      precheckUrl: `${YGP_FILE_API}/precheck/${encoded}`,
+    },
+    candidates: candidates.map((f) => ({ fileName: f.fileName || "", rowGuid: f.rowGuid || "", flowId: f.flowId || "", ext: ygpFileExt(f.fileName) })),
+  };
+}
+
+function parseYgpDetailPayload(data, row, ad, item) {
+  const sections = data && Array.isArray(data.tradingNoticeColumnModelList) ? data.tradingNoticeColumnModelList : [];
+  const html = ygpNormalizeHtml(sections.map((s) => s.richtext || "").filter(Boolean).join("\n"));
+  const generic = extractDetail(ad, html, item || { title: data && data.title || row.noticeTitle || "", url: buildYgpDetailUrl(row) }, "");
+  const pairs = ygpTablePairs(html);
+  const attachment = selectYgpTenderAttachment(sections, row);
+  const out = {
+    ...generic,
+    title: String(data && data.title || generic.title || row.noticeTitle || "").trim(),
+    projectCode: String(row.projectCode || generic.projectCode || ""),
+    projectSite: ygpPair(pairs, ["招标项目实施（交货）地点", "工程地点", "建设地点"]) || generic.projectSite || "",
+    bidOpen: ygpPair(pairs, ["开标时间", "投标文件截止时间"]) || generic.bidOpen || "",
+    funding: ygpPair(pairs, ["资金来源"]) || generic.funding || "",
+    duration: ygpPair(pairs, ["工期（交货期）", "计划工期", "工期"]) || generic.duration || "",
+    qualification: ygpPair(pairs, ["投标人资格要求", "投标资格能力要求（包括但不限于资质人员、业绩等要求）"]) || generic.qualification || "",
+    performance: ygpPair(pairs, ["投标人业绩要求", "业绩要求"]) || generic.performance || "",
+    consortium: ygpPair(pairs, ["是否接受联合体投标"]) || generic.consortium || "",
+    owner: String(row.projectOwner || ygpPair(pairs, ["招标人（异议受理部门）", "招标人"]) || generic.owner || ""),
+    agency: ygpPair(pairs, ["招标代理机构"]) || generic.agency || "",
+    contact: ygpPair(pairs, ["招标人联系人"]) || generic.contact || "",
+    phone: ygpPair(pairs, ["联系电话"]) || generic.phone || "",
+    docLink: attachment.chosen ? attachment.chosen.downloadUrl : (generic.docLink || ""),
+    _ygpAttachment: attachment.chosen ? { ...attachment.chosen, noticeId: String(row.noticeId || ""), candidates: attachment.candidates } : null,
+  };
+  return out;
+}
+
+async function ygpDetail(ad, item, args) {
+  const row = item && item._ygpRow;
+  if (!row) return {};
+  const single = new URL(`${YGP_DETAIL_API}/singleNode`);
+  for (const [k, v] of Object.entries({ siteCode: row.regionCode || row.siteCode, tradingType: row.noticeSecondType, bizCode: row.tradingProcess, classify: row.projectType })) single.searchParams.set(k, String(v || ""));
+  const nodeId = await ygpGetJson(single.href, "ygp-singleNode");
+  if (!nodeId) throw new Error("ygp singleNode 为空");
+  const detail = new URL(`${YGP_DETAIL_API}/detail`);
+  for (const [k, v] of Object.entries({ nodeId, version: row.edition || "v3", tradingType: row.noticeSecondType, noticeId: row.noticeId, bizCode: row.tradingProcess, projectCode: row.projectCode, siteCode: row.regionCode || row.siteCode })) detail.searchParams.set(k, String(v || ""));
+  const data = await ygpGetJson(detail.href, "ygp-detail");
+  const out = parseYgpDetailPayload(data || {}, row, ad, item);
+  if (out.title && item.title && normalizeArea(out.title) !== normalizeArea(item.title) && !out.title.includes(item.title) && !item.title.includes(out.title)) {
+    throw new Error("ygp 详情标题与列表不一致");
+  }
+  return out;
 }
 
 // ---- 共享：限流防护（礼貌延迟 + 指数退避 + 429处理 + 全局自适应降速）----
@@ -5073,8 +5251,33 @@ async function fetchBuffer(url, delay = 500) {
 // 遇数据描述符（compSize=0）即停，避免错位；ZIP64 不处理。失败按诚实政策留空。
 function readZipEntries(buf) {
   const out = [];
-  let off = 0;
   try {
+    // 优先中央目录：真实招标 ZIP 常使用 data descriptor，本地头 compSize=0；中央目录仍有准确尺寸/偏移。
+    let eocd = -1;
+    for (let i = Math.max(0, buf.length - 0x10016); i <= buf.length - 22; i++) {
+      if (buf.readUInt32LE(i) === 0x06054b50) eocd = i;
+    }
+    if (eocd >= 0) {
+      const count = Math.min(buf.readUInt16LE(eocd + 10), 2000);
+      let off = buf.readUInt32LE(eocd + 16);
+      for (let n = 0; n < count && off + 46 <= buf.length && buf.readUInt32LE(off) === 0x02014b50; n++) {
+        const method = buf.readUInt16LE(off + 10);
+        const compSize = buf.readUInt32LE(off + 20);
+        const nameLen = buf.readUInt16LE(off + 28), extraLen = buf.readUInt16LE(off + 30), commentLen = buf.readUInt16LE(off + 32);
+        const localOff = buf.readUInt32LE(off + 42);
+        const name = buf.slice(off + 46, off + 46 + nameLen).toString("utf8");
+        if (localOff + 30 <= buf.length && buf.readUInt32LE(localOff) === 0x04034b50) {
+          const localNameLen = buf.readUInt16LE(localOff + 26), localExtraLen = buf.readUInt16LE(localOff + 28);
+          const dataOff = localOff + 30 + localNameLen + localExtraLen;
+          if (compSize <= PDF_MAX_BYTES && dataOff + compSize <= buf.length) out.push({ name, method, data: buf.slice(dataOff, dataOff + compSize) });
+        }
+        off += 46 + nameLen + extraLen + commentLen;
+      }
+      if (out.length) return out;
+    }
+
+    // 兼容无中央目录的极简包。
+    let off = 0;
     while (off + 4 <= buf.length && buf.readUInt32LE(off) === 0x04034b50) {
       const method = buf.readUInt16LE(off + 8);
       const compSize = buf.readUInt32LE(off + 18);
@@ -5093,6 +5296,9 @@ function readZipEntries(buf) {
 function inflateEntry(e) {
   if (e.method === 0) return e.data;
   // 2026-08-16 V4A：解压输出上限 64MB——zip 炸弹/异常 docx 可把几 KB 压缩流膨胀到 GB 级 OOM
+  if (e.method === 8) {
+    try { return zlib.inflateRawSync(e.data, { maxOutputLength: 64 * 1024 * 1024 }); } catch { return null; }
+  }
   try { return zlib.inflateSync(e.data, { maxOutputLength: 64 * 1024 * 1024 }); } catch { return null; }
 }
 
@@ -5119,7 +5325,7 @@ function parseAttachmentBuffer(buf, depth = 0) {
   if (depth > 3) return { text: "", note: "嵌套压缩超 3 层，停止解包" }; // 2026-08-16 V4A：递归深度上限
   const magic = buf.slice(0, 4).toString("latin1");
   if (magic === "%PDF") {
-    const r = pdfToText(buf);
+    const r = pdfToTextForAttachment(buf);
     return { text: r.text, note: r.note };
   }
   if (magic === "PK\x03\x04" || magic === "PK\x05\x06" || magic === "PK\x07\x08") {
@@ -5129,6 +5335,34 @@ function parseAttachmentBuffer(buf, depth = 0) {
     try { return parseAttachmentBuffer(zlib.gunzipSync(buf, { maxOutputLength: 64 * 1024 * 1024 }), depth + 1); } catch { }
   }
   return { text: "", note: "不支持的附件类型（非 PDF/Word/Zip），按诚实政策留空" };
+}
+
+function attachmentTextScore(text) {
+  const s = String(text || "");
+  const labels = (s.match(/投标保证金|保证金金额|评标办法|评标方法|定性评审|综合评估法|有限数量制|满分|总得分|招标范围|建设规模/g) || []).length;
+  const common = (s.match(/招标文件|投标人|招标人|评标委员会/g) || []).length;
+  return labels * 20 + Math.min(common, 50);
+}
+
+function pdfToTextForAttachment(buf) {
+  const native = pdfToText(buf);
+  // 珠海等 PDF 的复合字体会让零依赖提取器“有文本但关键标签乱码”。仅在标签分低时尝试本机可选 pdfplumber；
+  // Python/模块不存在就无声回退，仍保持零配置可运行与诚实留空。
+  if (attachmentTextScore(native.text) >= 60) return native;
+  const temp = path.join(os.tmpdir(), `bid-collect-attach-${process.pid}-${Date.now()}.pdf`);
+  try {
+    fs.writeFileSync(temp, buf);
+    const py = [
+      "import sys,pdfplumber",
+      "p=pdfplumber.open(sys.argv[1])",
+      "print('\\n'.join((page.extract_text() or '') for page in p.pages))",
+      "p.close()",
+    ].join(";");
+    const text = execFileSync("python", ["-X", "utf8", "-c", py, temp], { encoding: "utf8", timeout: 30000, maxBuffer: 64 * 1024 * 1024, windowsHide: true, stdio: ["ignore", "pipe", "ignore"] }).trim();
+    if (text && attachmentTextScore(text) > attachmentTextScore(native.text)) return { text, pages: native.pages, hasTextLayer: true, note: "文本型 PDF，已用可选 pdfplumber 增强提取" };
+  } catch { /* 可选增强不可用，保留零依赖结果 */ }
+  finally { try { fs.unlinkSync(temp); } catch {} }
+  return native;
 }
 
 // 附件取文：先 GET，若是文件直解；若是 EPoint 形态 B 的 JS 下载页（<form method=post>），
@@ -5170,14 +5404,106 @@ async function fetchAndParseAttachment(docLink, delay) {
   return parseAttachmentBuffer(buf);
 }
 
-async function enrichFromAttachment(rec, args) {
+function missingAttachmentField(rec, key) {
+  return rec[key] === "" || rec[key] == null;
+}
+
+function attachmentSignal(args, rec, status, extra = {}) {
+  const signal = { notice_id: rec._ygpAttachment && rec._ygpAttachment.noticeId || "", title: rec.title || "", status, ...extra };
+  if (args._run && Array.isArray(args._run.attachments)) args._run.attachments.push(signal);
+  rec._attachNote = status;
+  return signal;
+}
+
+function moneyWanFromAttachment(value) {
+  const m = String(value || "").replace(/[,，\s]/g, "").match(/(\d+(?:\.\d+)?)(万元|万|元)/);
+  if (!m) return "";
+  const n = Number(m[1]);
+  if (!Number.isFinite(n) || n < 0) return "";
+  return String(Math.round((m[2] === "元" ? n / 10000 : n) * 10000) / 10000);
+}
+
+function extractYgpAttachmentFields(text) {
+  const raw = String(text || "").replace(/\u0000/g, " ");
+  const flat = flatten(raw);
+  const current = [];
+  const currentRe = /现文\s*[:：]\s*([\s\S]{1,2000}?)(?=条款号\s*[:：]|原文\s*[:：]|$)/g;
+  let cm;
+  while ((cm = currentRe.exec(raw))) current.push(cm[1]);
+  const priority = current.join("\n") + "\n" + raw;
+  const out = {};
+
+  const noBond = /(?:本项目不要求(?:投标人)?递交投标保证金|本项目无投标保证金|■\s*不要求(?:投标保证金)?)/.test(priority);
+  if (noBond) out.bond = 0;
+  else {
+    const bm = priority.match(/(?:投标保证金(?:金额)?|保证金金额)[\s\S]{0,120}?(?:■|☑)?\s*[\[【]?\s*(\d+(?:\.\d+)?)\s*[\]】]?\s*(万元|万|元)/);
+    if (bm) out.bond = moneyWanFromAttachment(bm[1] + bm[2]);
+  }
+
+  let m = priority.match(/评标阶段采用[“\"]([^”\"]{2,30})[”\"]评标法/);
+  if (m) out.evaluation = `评定分离（${m[1]}评标法）`;
+  if (!out.evaluation && (m = priority.match(/本次评标采用\s*([^。；;]{2,30}?法)/))) out.evaluation = m[1].trim();
+  if (!out.evaluation && (m = priority.match(/评标办法[（(]([^）)]{2,30}?法)[）)]/))) out.evaluation = m[1].trim();
+  if (!out.evaluation && /采用定性评审项目|本项目采用定性评审/.test(priority)) {
+    out.evaluation = /经济标[\s\S]{0,80}技术标|技术标[\s\S]{0,80}经济标/.test(priority) ? "定性评审（经济标、技术标）" : "定性评审";
+  }
+
+  if ((m = priority.match(/(?:最高|满分为|总得分满分为)\s*([0-9]+(?:\.[0-9]+)?)\s*分/))) out.fullScore = m[1];
+  else if ((m = priority.match(/投标人总得分[（(]最高\s*([0-9]+(?:\.[0-9]+)?)\s*分[）)]/))) out.fullScore = m[1];
+  else if (out.evaluation && out.evaluation.startsWith("定性评审") && /定性评审/.test(priority)) out.fullScore = "不适用（定性评审）";
+
+  const project = extractProjectContent("", raw, flat);
+  if (project.scale) out.scale = project.scale;
+  if (project.scope) out.scope = project.scope;
+  return out;
+}
+
+async function ygpAttachmentJson(url, args) {
+  if (args.delay) await sleep(Math.min(args.delay, 3000));
+  const r = await fetch(url, { headers: { "User-Agent": UA_STR, "Referer": "https://ygp.gdzwfw.gov.cn/", "Accept": "application/json" } });
+  const raw = typeof r.arrayBuffer === "function" ? Buffer.from(await r.arrayBuffer()).toString("utf8") : await r.text();
+  if (r.status === 429) return { ok: false, status: "ATTACHMENT_DAILY_LIMIT", message: "HTTP 429" };
+  if (!r.ok) return { ok: false, status: "ATTACHMENT_DOWNLOAD_FAILED", message: `HTTP ${r.status}` };
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch { return { ok: false, status: "ATTACHMENT_PARSE_FAILED", message: "非 JSON 响应" }; }
+  if (parsed && typeof parsed === "object" && Object.prototype.hasOwnProperty.call(parsed, "errcode") && Number(parsed.errcode) !== 0) {
+    const message = String(parsed.errmsg || "");
+    return { ok: false, status: /验证码/.test(message) ? "ATTACHMENT_CAPTCHA_REQUIRED" : /次数|上限/.test(message) ? "ATTACHMENT_DAILY_LIMIT" : "ATTACHMENT_DOWNLOAD_FAILED", message };
+  }
+  return { ok: true, data: unwrapYgpPayload(parsed) };
+}
+
+async function enrichYgpAttachment(rec, args, ad) {
+  if (!args.attach || !rec._ygpAttachment || !rec.docLink) return;
+  const file = rec._ygpAttachment;
+  const sizeRep = await ygpAttachmentJson(file.sizeUrl, args);
+  if (!sizeRep.ok) { attachmentSignal(args, rec, sizeRep.status, { file_name: file.fileName, message: sizeRep.message }); return; }
+  const size = Number(sizeRep.data || 0);
+  if (size > PDF_MAX_BYTES) { attachmentSignal(args, rec, "ATTACHMENT_TOO_LARGE", { file_name: file.fileName, size_bytes: size }); return; }
+  const pre = await ygpAttachmentJson(file.precheckUrl, args);
+  if (!pre.ok) { attachmentSignal(args, rec, pre.status, { file_name: file.fileName, size_bytes: size, message: pre.message }); return; }
+  if (pre.data && (pre.data.needCaptcha || pre.data.allow === false)) {
+    const status = Number(pre.data.count || 0) >= Number(pre.data.maxPerDay || Infinity) ? "ATTACHMENT_DAILY_LIMIT" : "ATTACHMENT_CAPTCHA_REQUIRED";
+    attachmentSignal(args, rec, status, { file_name: file.fileName, size_bytes: size });
+    return;
+  }
+  const parsed = await fetchAndParseAttachment(file.downloadUrl, args.delay);
+  if (!parsed.text) { attachmentSignal(args, rec, /验证码/.test(parsed.note || "") ? "ATTACHMENT_CAPTCHA_REQUIRED" : "ATTACHMENT_PARSE_FAILED", { file_name: file.fileName, size_bytes: size, message: parsed.note || "" }); return; }
+  const fields = extractYgpAttachmentFields(parsed.text);
+  const filled = [];
+  for (const key of ad.attachmentFields || []) {
+    if (!missingAttachmentField(rec, key) || fields[key] === "" || fields[key] == null) continue;
+    rec[key] = fields[key]; filled.push(key);
+  }
+  attachmentSignal(args, rec, filled.length ? "ATTACHMENT_ENRICHED" : "ATTACHMENT_NO_FIELDS", { file_name: file.fileName, size_bytes: size, fields: filled.join(",") });
+}
+
+async function enrichFromAttachment(rec, args, ad) {
   if (!args.attach) return;
   if (!rec.docLink) return;
   if (rec._pdfNote) return;                           // 浙江等 PDF 正文模式：money 已自 pdfText 抽取，勿重复下载
-  const need = [];
-  if (!rec.controlPrice) need.push("controlPrice");
-  if (!rec.budget) need.push("budget");
-  if (!rec.bond) need.push("bond");
+  const configured = ad && Array.isArray(ad.attachmentFields) ? ad.attachmentFields : ["controlPrice", "budget", "bond"];
+  const need = configured.filter((key) => missingAttachmentField(rec, key));
   if (!need.length) return;
   try {
     const { text, note } = await fetchAndParseAttachment(rec.docLink, args.delay);
@@ -5192,6 +5518,13 @@ async function enrichFromAttachment(rec, args) {
     if (!rec.controlPrice) { const v = grabMoneyWan(text, ["招标控制价", "控制价", "最高投标限价", "最高限价", "预算金额", "预算价", "合同估算价"]); if (v) { rec.controlPrice = v; filled.push("controlPrice"); } }
     if (!rec.budget) { const v = grabBudgetWan(flatten(text)); if (v) { rec.budget = v; filled.push("budget"); } }
     if (!rec.bond) { const v = grabMoneyWan(text, ["投标保证金", "保证金"]); if (v) { rec.bond = v; filled.push("bond"); } }
+    if (need.includes("scale") || need.includes("scope")) {
+      const p = extractProjectContent("", text, flatten(text));
+      if (need.includes("scale") && p.scale) { rec.scale = p.scale; filled.push("scale"); }
+      if (need.includes("scope") && p.scope) { rec.scope = p.scope; filled.push("scope"); }
+    }
+    if (need.includes("evaluation")) { const v = grabEvaluation(text); if (v) { rec.evaluation = v; filled.push("evaluation"); } }
+    if (need.includes("fullScore")) { const v = grabFullScore(text, flatten(text)); if (v) { rec.fullScore = v; filled.push("fullScore"); } }
     if (filled.length) {
       rec._attachNote = "已从附件补抽:" + filled.join("/");
       console.error("[attach] ✓", rec._attachNote, "| 控制价:", rec.controlPrice || "-", "概算:", rec.budget || "-", "保证金:", rec.bond || "-", "|", (rec.title || "").slice(0, 24));
@@ -6695,8 +7028,7 @@ function matchesCityFilter(cityArg, candidates) {
 // 服务端逐城市循环的目标解析（扩展① · 2026-08-15）：
 // 现状（已真机实测，见 CITY_LOOP_AUDIT.md）：标准 EPoint(getFullTextDataNew) 忽略 xiaqucode；
 // 河南 getPageInfoListNewYzm 仅认 4100(全省)/410000(混合子集)，逐地市 GB 码全部返回 0。
-// 故目前无任何 adapter 声明 cityCodes → 本函数恒返回 null（回落默认全省 + 客户端 --city 过滤）。
-// 本函数是为"未来某省若真支持服务端城市码"预留的通用结构，逻辑已单测；现在保持惰性、零副作用。
+// 广东粤公平已验证 siteCode，故声明 cityCodes；其余未验证 adapter 仍保持惰性回落。
 //   --city <本省内地市>  → 仅该地市（需 adapter 声明 cityCodes 才生效）
 //   其余 → 返回 null，走默认单轮全省
 function resolveCityTargets(ad, args) {
@@ -6710,6 +7042,33 @@ function resolveCityTargets(ad, args) {
     if (part) return [part];
   }
   return null;
+}
+
+function resolveYgpCityTargets(args) {
+  if (!args.city || normalizeArea(args.city) === "全省") return GD_CITY_TARGETS;
+  const targets = [];
+  let fallback = false;
+  for (const raw of args.city.split(/[,，、]/).map((s) => s.trim()).filter(Boolean)) {
+    const want = normalizeArea(raw);
+    let found = GD_CITY_TARGETS.find((c) => normalizeArea(c.name) === want || normalizeArea(c.name).includes(want) || want.includes(normalizeArea(c.name)));
+    if (!found) {
+      const parents = [];
+      for (const [pref, districts] of Object.entries(PREFECTURE_DISTRICTS)) {
+        if (!districts.some((d) => normalizeArea(d) === want || normalizeArea(d).includes(want))) continue;
+        const city = GD_CITY_TARGETS.find((c) => normalizeArea(c.name) === normalizeArea(pref));
+        if (city) parents.push(city);
+      }
+      if (parents.length === 1) found = parents[0];
+    }
+    if (!found) { fallback = true; break; }
+    if (!targets.some((x) => x.code === found.code)) targets.push(found);
+  }
+  if (fallback || !targets.length) {
+    const run = global.__RUN_REPORT;
+    if (run && Array.isArray(run.city_filters)) run.city_filters.push({ status: "CITY_SERVER_FILTER_FALLBACK", city: args.city });
+    return GD_CITY_TARGETS;
+  }
+  return targets;
 }
 
 // 按项目性质分 sheet（对标标标通：房建市政/水利/公路/其他）
@@ -6965,6 +7324,10 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
             for (const [k, v] of Object.entries(df)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
             if (rec.docLink && /downloadurl|%7[Bb]|%7[Dd]|[\{\}]/i.test(rec.docLink)) rec.docLink = "";
             rec.url = normUrl(item.url, ad);
+          } else if (ad.kind === "ygp") {
+            const dt = await ygpDetail(ad, item, args);
+            for (const [k, v] of Object.entries(dt)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
+            rec.url = item.url;
           } else if (ad.kind === "hn") {
             // 湖南详情走结构化 JSON 接口（列表 url 是 SPA hash 路由，HTML 渲染拿不到正文）
             const dt = await hnDetail(ad, item);
@@ -7061,7 +7424,11 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
           // 缺口一（统一出口）：HTML 未载控制价/概算/保证金时，从招标文件附件补抽。
           // 原先仅通用 HTML 分支调用；bespoke 详情分支（ah/xz/hn/yn/hb/gz/nmg/gs）的片段同样可能带附件，
           // 统一放在 try 尾部后全路径同享（--attach 门禁不变，docLink 为空/已解析过则安全 no-op）
-          await enrichFromAttachment(rec, args);
+          if (ad.kind === "ygp") await enrichYgpAttachment(rec, args, ad);
+          else await enrichFromAttachment(rec, args, ad);
+          if (rec._projectContentNote && args._run && Array.isArray(args._run.project_content)) {
+            args._run.project_content.push({ title: rec.title, project_code: rec.projectCode || "", status: rec._projectContentNote });
+          }
         } catch (e) {
           if (args._run) args._run.errors.push({ code: "DETAIL_FETCH_OR_PARSE", url: item.url, message: String(e && e.message || e) });
           console.error("[detail] FAIL", item.url.slice(0, 60), e.message);
@@ -7273,7 +7640,7 @@ function resolveOutputPaths(args) {
  try {
   let ad, result; // 2026-08-16 V4A：提升到 try 外——FATAL 补写需要（原版 catch 访问不到已采结果）
   const args = parseArgs(process.argv.slice(2));
-  args._run = { errors: [], auth_walls: [], rate_limits: [], transport_errors: [] };
+  args._run = { errors: [], auth_walls: [], rate_limits: [], transport_errors: [], attachments: [], project_content: [], city_filters: [] };
   global.__RUN_REPORT = args._run;
   global.__RESEARCH = !!args.dumpText;
   if (!args.province && !args.probeAll) { console.error("用法: node province-collect.cjs -p <省份> [-c 城市/区县[,城市]] -k <关键词> -d <天数> [--stage zb|candidate|result|contract] [--delay 800] [--csv] [--xlsx|--no-xlsx] [--xlsx-layout full29|biaobiaotong16|project18] [--no-detail] [--out 文件] [--limit N] [--probe] [--probe-all] [--verify]"); process.exit(1); }
@@ -7324,7 +7691,7 @@ function resolveOutputPaths(args) {
     }
     const reportPath = writeRunReport(xlsxPath || mdPath, buildRunReport(args.province, ad, result, args, {
       errors: args._run.errors,
-      signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors },
+      signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, city_filters: args._run.city_filters },
       output: { markdown: mdPath, xlsx: xlsxPath, csv: csvPath },
     }));
     if (reportPath) console.error("运行报告:", reportPath);
@@ -7347,7 +7714,7 @@ function resolveOutputPaths(args) {
       fs.writeFileSync(mdPath, buildMarkdown(args.province, safeAd, safeResult, args));
       writeRunReport(mdPath, buildRunReport(args.province, safeAd, safeResult, args, {
         errors: args._run.errors,
-        signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors },
+        signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, city_filters: args._run.city_filters },
         output: { markdown: mdPath, xlsx: null, csv: null },
       }));
       console.error("FATAL 补写: 已采 " + safeResult.length + " 条与 run-report 保全至", mdPath);
@@ -7359,5 +7726,5 @@ function resolveOutputPaths(args) {
 })();
 
 
-module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, PROJECT18_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, extractDetail, extractProjectContent, xlsxColumnWidths, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseNanjingPayload, nanjingDetail, parseHuizhouHtml, parseHuizhouSearchJsonp, normalizeHuizhouUrl, huizhouDetail, parseZhongshanPayload, zhongshanControlPrice, zhongshanDetail, parseJinanPayload, jinanDetail, parseWuhanHtml, wuhanDetail, parseQingdaoHtml, parseStrongTableFields, qingdaoDetail, parseShenzhenList, parseBgTableFields, exactMoneyWan,
+module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, PROJECT18_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, resolveYgpCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, extractDetail, extractProjectContent, xlsxColumnWidths, buildYgpDetailUrl, parseYgpListRows, unwrapYgpPayload, parseYgpJsonText, selectYgpTenderAttachment, parseYgpDetailPayload, extractYgpAttachmentFields, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseNanjingPayload, nanjingDetail, parseHuizhouHtml, parseHuizhouSearchJsonp, normalizeHuizhouUrl, huizhouDetail, parseZhongshanPayload, zhongshanControlPrice, zhongshanDetail, parseJinanPayload, jinanDetail, parseWuhanHtml, wuhanDetail, parseQingdaoHtml, parseStrongTableFields, qingdaoDetail, parseShenzhenList, parseBgTableFields, exactMoneyWan,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, cqList, tjList, nmgList, lnList, gsList };
