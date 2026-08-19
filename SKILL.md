@@ -25,7 +25,7 @@ description: 从中国大陆 31 个省级行政区及新疆生产建设兵团的
 - `UNVERIFIED`：尚未进行本省现场验证，由逐省 reference/验证记录维护。
 - `BROWSER_REQUIRED`：静态方式确实不可用，需要人工浏览器路径；不得因本机偶尔可达而省略此标记。
 
-sidecar 保存 `snapshot_at`、参数、来源、记录数量、状态和错误摘要；Excel/CSV 继续只放业务字段。
+sidecar 保存 `snapshot_at`、参数、来源、记录数量、状态、错误摘要、`code_commit` 与 `code_dirty`；Excel/CSV 继续只放业务字段。`code_dirty=true` 表示运行时包含未提交修改，不能只凭 commit 复现。
 
 ## 开始前
 
@@ -106,20 +106,22 @@ node scripts/province-collect.cjs -p 浙江 -k 管网 -d 365 --verify
 - XLSX 与 CSV 不是同一列集。预算 `budget` 与控制价 `controlPrice` 是两个事实，禁止合并。
 - 输出层清理 `undefined`、`null`、`NaN` 和未渲染 `{{downloadurl}}`；合法数值 `0` 不会被当成缺失。
 
-## 43 个 adapter 与家族（32 省级 + 11 城市级）
+## 62 个 adapter 与家族（32 省级 + 30 城市级）
 
-代码内 `ADAPTERS` 是 adapter 清单真相源，当前 43 个键：
+代码内 `ADAPTERS` 是 adapter 清单真相源，当前 62 个键：
 
 ```text
 beijing tianjin hebei shanxi neimenggu liaoning jilin heilongjiang
 shanghai jiangsu zhejiang anhui fujian jiangxi shandong henan
 hubei hunan guangdong guangxi hainan chongqing sichuan guizhou
 yunnan xizang shaanxi gansu qinghai ningxia xinjiang xinjiangbt
-anyang dingxi changzhou yichang linyi yantai wuxi quanzhou
-yueyang zunyi yibin
+anyang dingxi changzhou luoyang zhengzhou mianyang qinhuangdao nantong
+nanjing huizhou zhongshan jinan wuhan
+suzhou xuzhou yichang linyi yantai wuxi quanzhou
+yueyang zunyi yibin hefei wenzhou ningbo jiaxing weifang qingdao shenzhen
 ```
 
-城市级 adapter（独立市级平台，`-p` 中文市名可用）：anyang/changzhou（EPoint 同构）、yichang（EpointWebBuilder 变体）、linyi/yantai（EPoint 双层包装）、wuxi（webBuilder AJAX）、quanzhou（Java .do·http）、yueyang（静态 CMS·GBK）、zunyi（贵州省平台视角）、yibin（筑龙 SPA·无直链）、dingxi（停更样本）。探测与接入总账见 [`reference/CITY_PLATFORMS.md`](reference/CITY_PLATFORMS.md)。城市级接入不改变 32 省语义——总账与逐省 reference 以省级为准，城市级单独计行。
+城市级 adapter（独立市级平台，`-p` 中文市名可用）：anyang/changzhou/luoyang/zhengzhou（EPoint 同构）、mianyang（静态列表+关系接口）、qinhuangdao（静态 HTML，深页验证码边界）、nantong（EWB-FRONT）、nanjing（webdb 双栏目）、huizhou（广东政府 JSONP）、zhongshan（pageList API）、jinan（建设工程 search.do）、wuhan（静态 CMS 查询+结构化详情）、suzhou（静态 SSR webBuilder）、xuzhou（EPoint new API）、yichang/weifang（EpointWebBuilder 变体）、linyi/yantai（EPoint 双层包装）、qingdao（ASP.NET MVC SSR）、shenzhen（CMS trade API）、hefei（webBuilder Service）、wenzhou（JPaas CMS + PDF 详情）、ningbo（websiteapi SPA + 匿名访客 token）、jiaxing（JPaas CMS + HTML 详情）、wuxi（webBuilder AJAX）、quanzhou（Java .do·http）、yueyang（静态 CMS·GBK）、zunyi（贵州省平台视角）、yibin（筑龙 SPA·无直链）、dingxi（停更样本）。探测与接入总账见 [`reference/CITY_PLATFORMS.md`](reference/CITY_PLATFORMS.md)。城市级接入不改变 32 省语义——总账与逐省 reference 以省级为准，城市级单独计行。
 
 家族包括 `epoint`、`epointX`、HTML SSR、TRS、粤公平 API 及各省 bespoke REST/POST。具体端点、阶段、限制与复采命令维护在每省 reference 和 `reference/FAMILY_INDEX.md`；城市入口口径见 [`reference/CITY_ENTRY_INDEX.md`](reference/CITY_ENTRY_INDEX.md)。
 

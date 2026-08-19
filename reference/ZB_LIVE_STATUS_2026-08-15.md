@@ -41,21 +41,39 @@
 | anyang | `VERIFIED_RECORD` | 2 | — | `anyang-zb-30d.run-report.json` | 锁定 `001001002`/`001002002` 后近 30 天复验，2/2 均为招标公告 |
 | dingxi | `CONNECTED_NO_RECENT_DATA` | 0 | 365 仍 0 | `dingxi-365d.run-report.json` | 城市级（infodate 排序变体）：可达 total=4621 但源站 2023-04 后停更，非近期数据源 |
 | changzhou | `VERIFIED_RECORD` | 3 | — | `changzhou2.run-report.json` | 城市级独立平台（V5 探测接入）：近 30 天 3/3，控制价/招标人厚字段命中 |
-| suzhou | `VERIFIED_RECORD` | 3 | — | `suzhou_e2e3.run-report.json` | 城市级独立平台（V5 批次3）：静态 SSR webBuilder，区县级 city，控制价/招标人/工期厚字段命中 |
+| luoyang | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/luoyang.run-report.json` | 标准 EPoint；锁 `003001002` 工程招标公告；HTTP 官方入口 |
+| zhengzhou | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/zhengzhou.run-report.json` | 标准 EPoint；排除 `004001` 混入的招标计划/采购意向 |
+| mianyang | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/mianyang.run-report.json` | 静态列表+关系接口；精确选择 `001001` 招标公告；附件验证码不绕过 |
+| qinhuangdao | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/qinhuangdao.run-report.json` | 静态近期页；排除资格预审/变更；深页验证码边界保留 |
+| nantong | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/nantong-v2.run-report.json` | EWB-FRONT；严格阶段三字段；剔除已作废并清理 `[新]` |
+| nanjing | `VERIFIED_RECORD` | 2 | 30 天 2，停止扩大 | `city-batch2-release/nanjing.run-report.json` | 服务类/工程类双栏目；`status.error` 下解析 custom；排除澄清/资审 |
+| huizhou | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `city-batch2-release/huizhou.run-report.json` | 官方广东政府 JSONP；8 栏目地区映射；过滤废止/过期 |
+| zhongshan | `VERIFIED_RECORD` | 3 | 30/90 天 0，365 天 3 | `city-batch2-release/zhongshan-365.run-report.json` | `nodeId=58`；补充公告过滤；控制价公式末值；附件验证码留空 |
+| jinan | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `city-batch2-release/jinan-v2.run-report.json` | 建设工程 search.do 锁招标公告；详情预检排除资格预审；table_one 精确主体和金额 |
+| wuhan | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `city-batch2-release/wuhan-v2.run-report.json` | `channelId=160`；详情预检排除资格预审；页内重复去重 |
+| suzhou | `CONNECTED_NO_RECENT_DATA` | 0 | 30/90/365 天均 0 | `city-retest-01/batch-summary.json` | 接口成功；历史 VERIFIED 路由证据保留，当前窗口空不冒充有记录 |
+| xuzhou | `VERIFIED_RECORD` | 3 | 30 天 0，90 天 3 | `xuzhou-api-90d-v2/xuzhou.run-report.json` | 城市级独立平台：EPoint new API；禁用静态分页断层；16 列回源复验 |
 | yichang | `VERIFIED_RECORD` | 3 | — | `b2_yichang.run-report.json` | 城市级（EpointWebBuilder 变体）（V5 批次2 侦察接入） |
 | linyi | `VERIFIED_RECORD` | 3 | — | `b2_linyi.run-report.json` | 城市级（EPoint 双层包装）（V5 批次2 侦察接入） |
-| yantai | `VERIFIED_RECORD` | 3 | — | `b2_yantai.run-report.json` | 城市级（EPoint 双层包装）（V5 批次2 侦察接入） |
+| yantai | `VERIFIED_RECORD` | 2 | — | `city-semantic-retest-luna/batch-summary.json` | 锁 `003001003`/`003002002` 后复验；2/2 为招标/采购公告，无合同/中标结果 |
+| hefei | `VERIFIED_RECORD` | 2 | — | `hefei-sol-30d-v2/hefei.run-report.json` | 锁 `002001001` + 合肥行政区守卫；排除铜陵/芜湖/广德等异地项目 |
+| wenzhou | `VERIFIED_RECORD` | 1 | 30 天 0，90 天 1 | `wenzhou-sol-90d-v2/wenzhou.run-report.json` | 锁温州市主站 `col1229696276`；官方 CMS 列表 + PDF 详情；16 列回源复验 |
+| ningbo | `VERIFIED_RECORD` | 2 | 30 天 2，停止扩大 | `ningbo-sol-30d-v2/ningbo.run-report.json` | 锁 `020105` 招标公告；websiteapi SPA 匿名访客 token；2/2 官方详情回源复验 |
+| jiaxing | `VERIFIED_RECORD` | 1 | 30 天 1，停止扩大 | `jiaxing-sol-30d-v2/jiaxing.run-report.json` | 锁建设工程 `col1229743509` 招标公告；JPaas 列表 + HTML 详情；16 列回源复验 |
+| weifang | `VERIFIED_RECORD` | 3 | 30 天 0，90 天 3 | `city-expansion-sol/weifang-90-v3.run-report.json` | 锁 `007001001`；修复官方 `:8082` 详情端口保留；标题/日期/链接/地区齐全 |
+| qingdao | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `city-expansion-sol/qingdao-v2.run-report.json` | 锁官方 `0-0-0` 招标公告；结构化详情覆盖工程造价等字段 |
+| shenzhen | `VERIFIED_RECORD` | 1 | 30 天 1，停止扩大 | `city-expansion-sol/shenzhen-v2.run-report.json` | CMS API 日期拆窗；严格只收 noticeTypeName=招标公告；静态详情可达 |
 | wuxi | `VERIFIED_RECORD` | 3 | — | `b2_wuxi.run-report.json` | 城市级（webBuilder AJAX）（V5 批次2 侦察接入） |
 | quanzhou | `VERIFIED_RECORD` | 3 | — | `b2_quanzhou.run-report.json` | 城市级（Java .do·http）（V5 批次2 侦察接入） |
 | yueyang | `VERIFIED_RECORD` | 2 | — | `b2_yueyang.run-report.json` | 城市级（静态 CMS·GBK）（V5 批次2 侦察接入） |
-| zunyi | `VERIFIED_RECORD` | 3 | — | `b2_zunyi.run-report.json` | 城市级（贵州省平台视角过滤）（V5 批次2 侦察接入） |
+| zunyi | `VERIFIED_RECORD` | 3 | — | `city-semantic-retest-luna/batch-summary.json` | 只收 `announcement=交易公告`；3/3 无答疑、澄清或更正 |
 | yibin | `FAILED` | 3 | — | `b2_yibin.run-report.json` | 城市级（筑龙 SPA）：3 条真实记录无详情直链，FAILED 系 allowNoUrl 诚实判定非采集失败（V5 批次2 侦察接入） |
 
 
 ## 汇总
 
-- `VERIFIED_RECORD`：36 个（含城市级 anyang/changzhou/suzhou/yichang/linyi/yantai/wuxi/quanzhou/yueyang/zunyi）
-- `CONNECTED_NO_RECENT_DATA`：6 个（河北、黑龙江、河南、陕西、兵团、定西）
+- `VERIFIED_RECORD`：53 个（新增城市级 nanjing/huizhou/zhongshan/jinan/wuhan）
+- `CONNECTED_NO_RECENT_DATA`：7 个（河北、黑龙江、河南、陕西、兵团、定西、苏州）
 - `FAILED`：2 个（广东官方 429；宜宾 allowNoUrl 无直链形态）
 - `BROWSER_REQUIRED`：本轮未新增；Chrome CDP 未连接，不能宣称浏览器路径可用。
 
