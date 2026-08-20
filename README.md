@@ -27,6 +27,8 @@ WorkBuddy 技能：跨省公共资源交易平台招投标公告采集器。覆�
 ## 架构
 
 - `scripts/province-collect.cjs` —— 主采集器（CLI：`node province-collect.cjs -p <adapter> -k 管网 --detail -d 30 --csv`）。
+- `PROJECT18_CAPABILITIES.json` —— 62×17 字段能力机器真相源；运行状态不在这里维护。
+- `scripts/project18-capabilities.cjs` —— 能力矩阵校验与 `COVERAGE_MATRIX.md` 投影生成器。
 - `scripts/ygp-collect.cjs` —— 广东粤公平（ygp）独立 API 采集器。
 - `scripts/domains-31.csv` —— 31 省交易平台权威域名清单。
 - `reference/CITY_ENTRY_INDEX.md` —— 32 省城市/区县入口口径与已实测样本。
@@ -52,7 +54,9 @@ node scripts/province-collect.cjs -p anhui -d 30 --limit 20 --detail \
 
 `biaobiaotong16` 固定生成 `房建市政 / 水利 / 公路 / 其他项目` 4 个 sheet，并严格使用参考工作簿的 16 列顺序；工作簿内置表头样式、列宽、自动换行、首行冻结和筛选。
 
-指定 `--out` 时同时生成同目录 `<输出文件名>.run-report.json`，记录 `snapshot_at`、来源、参数、数量、状态和错误；空结果标为 `CONNECTED_NO_RECENT_DATA`，不与 `FAILED` 混淆。
+指定 `--out` 时同时生成同目录 `<输出文件名>.run-report.json`，记录 `snapshot_at`、来源、参数、数量、状态和错误；空结果标为 `CONNECTED_NO_RECENT_DATA`，不与 `FAILED` 混淆。sidecar v1 兼容追加 `field_stats`，逐字段记录样本数、填充/空值和 `list/detail/attachment` 来源层；单次运行不会自动修改能力矩阵。
+
+字段能力以 `PROJECT18_CAPABILITIES.json` 为准，`reference/COVERAGE_MATRIX.md` 只是人读投影。已验证状态必须引用干净代码证据；`code_dirty=true` 的 run-report 不能转正能力。当前全国推进允许 `FIELD_UNVERIFIED`，最终门禁才要求全部形成诚实终态。
 
 ## 阶段选择
 
@@ -76,6 +80,8 @@ node scripts/province-collect.cjs -p hainan -c "海口,文昌" -k 管网 -d 30 -
 
 ```bash
 node --check scripts/province-collect.cjs
+node --check scripts/project18-capabilities.cjs
+node scripts/project18-capabilities.cjs --check
 node scripts/self-test.cjs
 ```
 

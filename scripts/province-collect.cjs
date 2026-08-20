@@ -5493,7 +5493,9 @@ async function enrichYgpAttachment(rec, args, ad) {
   const filled = [];
   for (const key of ad.attachmentFields || []) {
     if (!missingAttachmentField(rec, key) || fields[key] === "" || fields[key] == null) continue;
-    rec[key] = fields[key]; filled.push(key);
+    rec[key] = fields[key];
+    markFieldSource(rec, key, "attachment");
+    filled.push(key);
   }
   attachmentSignal(args, rec, filled.length ? "ATTACHMENT_ENRICHED" : "ATTACHMENT_NO_FIELDS", { file_name: file.fileName, size_bytes: size, fields: filled.join(",") });
 }
@@ -5515,16 +5517,16 @@ async function enrichFromAttachment(rec, args, ad) {
     }
     // 只记录「真实补到的字段」，不夸大（此前用 need=补抽前为空的字段列表，会写成未补到的字段）
     const filled = [];
-    if (!rec.controlPrice) { const v = grabMoneyWan(text, ["招标控制价", "控制价", "最高投标限价", "最高限价", "预算金额", "预算价", "合同估算价"]); if (v) { rec.controlPrice = v; filled.push("controlPrice"); } }
+    if (!rec.controlPrice) { const v = grabMoneyWan(text, ["招标控制价", "控制价", "最高投标限价", "最高限价", "预算金额", "预算价", "合同估算价"]); if (v) { rec.controlPrice = v; markFieldSource(rec, "controlPrice", "attachment"); filled.push("controlPrice"); } }
     if (!rec.budget) { const v = grabBudgetWan(flatten(text)); if (v) { rec.budget = v; filled.push("budget"); } }
-    if (!rec.bond) { const v = grabMoneyWan(text, ["投标保证金", "保证金"]); if (v) { rec.bond = v; filled.push("bond"); } }
+    if (!rec.bond) { const v = grabMoneyWan(text, ["投标保证金", "保证金"]); if (v) { rec.bond = v; markFieldSource(rec, "bond", "attachment"); filled.push("bond"); } }
     if (need.includes("scale") || need.includes("scope")) {
       const p = extractProjectContent("", text, flatten(text));
-      if (need.includes("scale") && p.scale) { rec.scale = p.scale; filled.push("scale"); }
-      if (need.includes("scope") && p.scope) { rec.scope = p.scope; filled.push("scope"); }
+      if (need.includes("scale") && p.scale) { rec.scale = p.scale; markFieldSource(rec, "scale", "attachment"); filled.push("scale"); }
+      if (need.includes("scope") && p.scope) { rec.scope = p.scope; markFieldSource(rec, "scope", "attachment"); filled.push("scope"); }
     }
-    if (need.includes("evaluation")) { const v = grabEvaluation(text); if (v) { rec.evaluation = v; filled.push("evaluation"); } }
-    if (need.includes("fullScore")) { const v = grabFullScore(text, flatten(text)); if (v) { rec.fullScore = v; filled.push("fullScore"); } }
+    if (need.includes("evaluation")) { const v = grabEvaluation(text); if (v) { rec.evaluation = v; markFieldSource(rec, "evaluation", "attachment"); filled.push("evaluation"); } }
+    if (need.includes("fullScore")) { const v = grabFullScore(text, flatten(text)); if (v) { rec.fullScore = v; markFieldSource(rec, "fullScore", "attachment"); filled.push("fullScore"); } }
     if (filled.length) {
       rec._attachNote = "已从附件补抽:" + filled.join("/");
       console.error("[attach] ✓", rec._attachNote, "| 控制价:", rec.controlPrice || "-", "概算:", rec.budget || "-", "保证金:", rec.bond || "-", "|", (rec.title || "").slice(0, 24));
@@ -7110,6 +7112,81 @@ const PROV_ALIAS = {
   青岛: "qingdao", // 城市级 adapter（山东青岛官方 ASP.NET MVC 招标公告列表）
   深圳: "shenzhen", // 城市级 adapter（广东深圳官方 CMS trade API）
 };
+
+// project18 字段能力审计口径。字段来源只进入 run-report，不进入 XLSX/CSV/Markdown。
+const PROJECT18_AUDIT_FIELDS = [
+  "publishDate", "region", "bidOpen", "title", "scale", "scope", "funding", "duration",
+  "qualification", "performance", "controlPrice", "bond", "evaluation", "consortium",
+  "fullScore", "url", "docLink",
+];
+const LIST_AUDIT_FIELDS = new Set(["publishDate", "region", "title", "url"]);
+
+function auditedFieldValue(rec, field) {
+  if (!rec) return "";
+  if (field === "publishDate") return rec.date;
+  if (field === "region") return rec.city;
+  return rec[field];
+}
+
+function isFilledFieldValue(value) {
+  if (value === null || value === undefined) return false;
+  if (typeof value === "number") return Number.isFinite(value);
+  const text = String(value).trim();
+  return text !== "" && !/^(?:undefined|null|nan)$/i.test(text);
+}
+
+function ensureFieldSources(rec) {
+  if (!rec._fieldSources) {
+    Object.defineProperty(rec, "_fieldSources", { value: {}, enumerable: false, writable: true, configurable: true });
+  }
+  return rec._fieldSources;
+}
+
+function markFieldSource(rec, field, source) {
+  if (!PROJECT18_AUDIT_FIELDS.includes(field) || !["list", "detail", "attachment"].includes(source)) return;
+  if (!isFilledFieldValue(auditedFieldValue(rec, field))) return;
+  ensureFieldSources(rec)[field] = source;
+}
+
+function captureAuditedFields(rec) {
+  return Object.fromEntries(PROJECT18_AUDIT_FIELDS.map((field) => [field, auditedFieldValue(rec, field)]));
+}
+
+function initializeListFieldSources(rec) {
+  for (const field of PROJECT18_AUDIT_FIELDS) {
+    if (isFilledFieldValue(auditedFieldValue(rec, field))) markFieldSource(rec, field, "list");
+  }
+}
+
+function markChangedDetailSources(rec, before) {
+  const sources = ensureFieldSources(rec);
+  for (const field of PROJECT18_AUDIT_FIELDS) {
+    const value = auditedFieldValue(rec, field);
+    if (!isFilledFieldValue(value) || sources[field] === "attachment") continue;
+    if (!isFilledFieldValue(before[field]) || String(before[field]) !== String(value)) sources[field] = "detail";
+  }
+}
+
+function buildFieldStats(rows, args = {}) {
+  const records = Array.isArray(rows) ? rows : [];
+  const stats = {};
+  for (const field of PROJECT18_AUDIT_FIELDS) {
+    const entry = { samples: records.length, filled: 0, empty: 0, provisional: records.length < 20, sources: { list: 0, detail: 0, attachment: 0 } };
+    for (const rec of records) {
+      const value = auditedFieldValue(rec, field);
+      if (!isFilledFieldValue(value)) { entry.empty++; continue; }
+      entry.filled++;
+      const explicit = rec._fieldSources && rec._fieldSources[field];
+      const source = ["list", "detail", "attachment"].includes(explicit)
+        ? explicit
+        : (LIST_AUDIT_FIELDS.has(field) || !args.detail ? "list" : "detail");
+      entry.sources[source]++;
+    }
+    stats[field] = entry;
+  }
+  return stats;
+}
+
 async function collectProvince(prov0, args) {
   const prov = ADAPTERS[prov0] ? prov0 : (PROV_ALIAS[prov0] || prov0);
   let ad = ADAPTERS[prov];
@@ -7303,6 +7380,8 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
         const v = item[k];
         if (v !== undefined && v !== null && String(v).trim() !== "") rec[k] = v;
       }
+      initializeListFieldSources(rec);
+      const beforeDetail = captureAuditedFields(rec);
       if (args.detail && item.url) {
         try {
           if (args.stage && args.stage !== "zb") {
@@ -7434,9 +7513,11 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
           console.error("[detail] FAIL", item.url.slice(0, 60), e.message);
         }
       }
+      markChangedDetailSources(rec, beforeDetail);
       // 地区是业务表硬字段：优先保留列表/详情的精确区县，其次从已知行政区词表识别，
       // 最后只回退到该官方 adapter 的明确管辖区（省/市），不臆造更细粒度城市。
       rec.city = resolveRecordRegion(ad, rec);
+      if (!rec._fieldSources.region) markFieldSource(rec, "region", "list");
       result.push(rec);
     }
     if (stop) break;
@@ -7602,6 +7683,7 @@ function buildRunReport(prov, ad, result, args, meta = {}) {
       xlsx_layout: args.xlsxLayout || "biaobiaotong16",
     },
     counts: { total: rows.length, verified_records: real.length },
+    field_stats: buildFieldStats(rows, args),
     output: meta.output || null,
     code_commit: resolveCodeCommit(),
     code_dirty: resolveCodeDirty(),
@@ -7726,5 +7808,5 @@ function resolveOutputPaths(args) {
 })();
 
 
-module.exports = { ADAPTERS, PROV_ALIAS, XLSX_HEADER, BIAOBIAOTONG_HEADER, PROJECT18_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, resolveYgpCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, extractDetail, extractProjectContent, xlsxColumnWidths, buildYgpDetailUrl, parseYgpListRows, unwrapYgpPayload, parseYgpJsonText, selectYgpTenderAttachment, parseYgpDetailPayload, extractYgpAttachmentFields, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseNanjingPayload, nanjingDetail, parseHuizhouHtml, parseHuizhouSearchJsonp, normalizeHuizhouUrl, huizhouDetail, parseZhongshanPayload, zhongshanControlPrice, zhongshanDetail, parseJinanPayload, jinanDetail, parseWuhanHtml, wuhanDetail, parseQingdaoHtml, parseStrongTableFields, qingdaoDetail, parseShenzhenList, parseBgTableFields, exactMoneyWan,
+module.exports = { ADAPTERS, PROV_ALIAS, PROJECT18_AUDIT_FIELDS, XLSX_HEADER, BIAOBIAOTONG_HEADER, PROJECT18_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, resolveYgpCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, extractDetail, extractProjectContent, auditedFieldValue, isFilledFieldValue, ensureFieldSources, markFieldSource, buildFieldStats, xlsxColumnWidths, buildYgpDetailUrl, parseYgpListRows, unwrapYgpPayload, parseYgpJsonText, selectYgpTenderAttachment, parseYgpDetailPayload, extractYgpAttachmentFields, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseNanjingPayload, nanjingDetail, parseHuizhouHtml, parseHuizhouSearchJsonp, normalizeHuizhouUrl, huizhouDetail, parseZhongshanPayload, zhongshanControlPrice, zhongshanDetail, parseJinanPayload, jinanDetail, parseWuhanHtml, wuhanDetail, parseQingdaoHtml, parseStrongTableFields, qingdaoDetail, parseShenzhenList, parseBgTableFields, exactMoneyWan,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, cqList, tjList, nmgList, lnList, gsList };

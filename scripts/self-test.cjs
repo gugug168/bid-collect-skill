@@ -6,6 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const M = require(path.join(__dirname, "province-collect.cjs"));
 const SKILL_ROOT = process.env.BID_COLLECT_SKILL_ROOT ? path.resolve(process.env.BID_COLLECT_SKILL_ROOT) : path.join(__dirname, "..");
+const CAP = require(path.join(SKILL_ROOT, "scripts", "project18-capabilities.cjs"));
 
 const tests = [];
 function test(name, fn) { tests.push({ name, fn }); }
@@ -785,6 +786,54 @@ test("运行报告区分真实记录、空窗口与失败", () => {
   assert.equal(sourced.source.base, "https://official.example");
   const failed = M.buildRunReport("guangdong", M.ADAPTERS.guangdong, [], { province: "guangdong", days: 30, detail: false }, { errors: [{ code: "FATAL" }], signals: { rate_limits: [{ status: 429 }] } });
   assert.equal(failed.status, "FAILED");
+});
+
+test("run-report v1 追加17字段 field_stats 且来源不污染业务记录", () => {
+  const filled = {
+    date: "2026-08-20", city: "珠海市", title: "示例招标公告", url: "https://official.example/1",
+    scale: "改造面积1000平方米", bond: 0, docLink: "https://official.example/file.pdf",
+  };
+  M.markFieldSource(filled, "publishDate", "list");
+  M.markFieldSource(filled, "region", "list");
+  M.markFieldSource(filled, "title", "list");
+  M.markFieldSource(filled, "url", "list");
+  M.markFieldSource(filled, "scale", "detail");
+  M.markFieldSource(filled, "bond", "attachment");
+  M.markFieldSource(filled, "docLink", "detail");
+  assert.doesNotMatch(JSON.stringify(filled), /_fieldSources/);
+  const report = M.buildRunReport("guangdong", M.ADAPTERS.guangdong, [filled, {}], { province: "guangdong", days: 30, detail: true });
+  assert.equal(report.schema_version, "bid-collect.run-report.v1");
+  assert.deepEqual(M.PROJECT18_AUDIT_FIELDS, ["publishDate", "region", "bidOpen", "title", "scale", "scope", "funding", "duration", "qualification", "performance", "controlPrice", "bond", "evaluation", "consortium", "fullScore", "url", "docLink"]);
+  assert.equal(Object.keys(report.field_stats).length, 17);
+  assert.deepEqual(report.field_stats.publishDate, { samples: 2, filled: 1, empty: 1, provisional: true, sources: { list: 1, detail: 0, attachment: 0 } });
+  assert.deepEqual(report.field_stats.scale, { samples: 2, filled: 1, empty: 1, provisional: true, sources: { list: 0, detail: 1, attachment: 0 } });
+  assert.deepEqual(report.field_stats.bond, { samples: 2, filled: 1, empty: 1, provisional: true, sources: { list: 0, detail: 0, attachment: 1 } });
+});
+
+test("project18 能力真相源覆盖62×17并锁定干净证据", () => {
+  const file = path.join(SKILL_ROOT, "PROJECT18_CAPABILITIES.json");
+  assert.ok(fs.existsSync(file));
+  const doc = JSON.parse(fs.readFileSync(file, "utf8"));
+  const validation = CAP.validateCapabilities(doc);
+  assert.deepEqual(validation.errors, []);
+  assert.equal(validation.adapter_count, 62);
+  assert.equal(validation.field_count, 17);
+  assert.equal(validation.cells, 1054);
+  assert.equal(validation.unverified, 1037);
+  assert.equal(CAP.projectionMatches(doc), true);
+  for (const field of doc.audited_fields) assert.notEqual(doc.adapters.guangdong.fields[field].status, "FIELD_UNVERIFIED");
+  for (const evidence of Object.values(doc.evidence)) assert.equal(evidence.code_dirty, false);
+});
+
+test("脏证据不能支撑已验证字段且完整门禁拒绝未验收矩阵", () => {
+  const doc = CAP.createInitialCapabilities();
+  doc.evidence[doc.adapters.guangdong.fields.title.evidence_id].code_dirty = true;
+  const dirty = CAP.validateCapabilities(doc);
+  assert.equal(dirty.ok, false);
+  assert.ok(dirty.errors.some((error) => /dirty evidence/.test(error)));
+  const incomplete = CAP.validateCapabilities(CAP.createInitialCapabilities(), { requireComplete: true });
+  assert.equal(incomplete.ok, false);
+  assert.ok(incomplete.errors.some((error) => /FIELD_UNVERIFIED/.test(error)));
 });
 
 test("详情标题覆盖列表层截断值", () => {

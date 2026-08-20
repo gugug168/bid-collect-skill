@@ -1,4 +1,81 @@
-# 16 列（zb 招标公告）详情抽取基线表
+# project18（zb 招标公告）字段能力与历史基线
+
+<!-- PROJECT18_CAPABILITIES:BEGIN -->
+## project18 字段能力矩阵（机器真相源投影）
+
+> 本节由 `PROJECT18_CAPABILITIES.json` 生成，不在 Markdown 中手工维护。运行状态仍以 `ZB_LIVE_STATUS` 为准。
+
+- 审计范围：62 adapter × 17 字段 = 1054 个状态格。
+- 状态代码：VL=FIELD_VERIFIED_LIST；VD=FIELD_VERIFIED_DETAIL；VA=FIELD_VERIFIED_ATTACHMENT；PU=FIELD_PRESENT_UNPARSED；ND=FIELD_NOT_DISCLOSED；NS=FIELD_NO_SAMPLE；R=FIELD_RESTRICTED；OCR=FIELD_OCR_REQUIRED；BR=FIELD_BROWSER_REQUIRED；F=FIELD_FAILED；U=FIELD_UNVERIFIED
+
+| adapter | publishDate | region | bidOpen | title | scale | scope | funding | duration | qualification | performance | controlPrice | bond | evaluation | consortium | fullScore | url | docLink |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| shandong | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| jiangsu | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| zhejiang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| hainan | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| heilongjiang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| suzhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| xuzhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| anyang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| changzhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| luoyang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| zhengzhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| mianyang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| qinhuangdao | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| nantong | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| nanjing | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| huizhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| zhongshan | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| jinan | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| wuhan | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| yichang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| weifang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| qingdao | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| shenzhen | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| linyi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| yantai | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| hefei | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| wenzhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| ningbo | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| jiaxing | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| wuxi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| quanzhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| yueyang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| zunyi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| yibin | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| dingxi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| guangdong | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | VA | VA | VD | VA | VL | VD |
+| henan | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| anhui | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| sichuan | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| xinjiangbt | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| xizang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| shaanxi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| ningxia | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| xinjiang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| jiangxi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| hunan | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| guangxi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| chongqing | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| guizhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| yunnan | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| hubei | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| jilin | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| fujian | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| beijing | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| tianjin | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| shanxi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| hebei | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| neimenggu | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| liaoning | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| gansu | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| shanghai | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| qinghai | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+
+<!-- PROJECT18_CAPABILITIES:END -->
+
+## 历史16列基线（非机器真相源）
 
 > Goal v2 配套基线（2026-08-15）。范围：**仅 zb 阶段 16 列**（标标通 schema），**B阶段 暂缓**。
 > "16列现状"标 `待真机` 者，由任务 #110/#111 真机实测后回填填充率；本表为静态基线（代码 kind + FAMILY_INDEX 主表状态）。

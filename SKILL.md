@@ -25,7 +25,14 @@ description: 从中国大陆 31 个省级行政区及新疆生产建设兵团的
 - `UNVERIFIED`：尚未进行本省现场验证，由逐省 reference/验证记录维护。
 - `BROWSER_REQUIRED`：静态方式确实不可用，需要人工浏览器路径；不得因本机偶尔可达而省略此标记。
 
-sidecar 保存 `snapshot_at`、参数、来源、记录数量、状态、错误摘要、`code_commit` 与 `code_dirty`；Excel/CSV 继续只放业务字段。`code_dirty=true` 表示运行时包含未提交修改，不能只凭 commit 复现。
+sidecar 保存 `snapshot_at`、参数、来源、记录数量、状态、错误摘要、`code_commit` 与 `code_dirty`；v1 兼容追加 `field_stats`，对 project18 的17个业务字段记录 `samples/filled/empty`、小样本 provisional 标记及 `list/detail/attachment` 来源层。内部 `_fieldSources` 不进入 Excel、CSV 或 Markdown。`code_dirty=true` 表示运行时包含未提交修改，不能只凭 commit 复现，也不能据此把字段能力转正。
+
+### 字段能力与运行状态分层
+
+- `PROJECT18_CAPABILITIES.json` 是字段能力机器真相源，覆盖 62 adapter × 17 字段；每格必须有状态、`evidence_id` 和 `verified_at`。
+- `reference/COVERAGE_MATRIX.md` 只作为机器真相源的人读投影；使用 `node scripts/project18-capabilities.cjs --render` 更新，不手改投影区。
+- `reference/ZB_LIVE_STATUS_2026-08-15.md` 继续只记录采集运行状态；不得用一次 `VERIFIED_RECORD` 自动替换字段能力状态。
+- 阶段批次允许保留 `FIELD_UNVERIFIED`；全国收口运行 `node scripts/project18-capabilities.cjs --require-complete`，确保 1,054 格都有诚实终态。
 
 ## 开始前
 
@@ -33,6 +40,7 @@ sidecar 保存 `snapshot_at`、参数、来源、记录数量、状态、错误�
 
 ```powershell
 node scripts/self-test.cjs
+node scripts/project18-capabilities.cjs --check
 ```
 
 必须看到 `SELF_TEST … passed`（以 scripts/self-test.cjs 实际用例数为准）。失败时先修门禁，不开始批量联网。
