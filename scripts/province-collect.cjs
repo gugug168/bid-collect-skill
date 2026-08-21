@@ -2378,6 +2378,8 @@ function cleanProjectContent(value) {
   if (nextSection >= 4) v = v.slice(0, nextSection).trim();
   const numberedSection = v.search(/\s*\d+\.\d+\.?\s*(?:工程建设地点|工程建设规模|招标范围和内容|招标范围|建筑安装工程费|招标控制价|工期要求|质量要求)\s*[:：]/);
   if (numberedSection >= 4) v = v.slice(0, numberedSection).trim();
+  const tenderAmountTail = v.search(/\s*[，,；;]?\s*(?:其中\s*[，,]?\s*□?\s*建筑面积|本次招标建安工程造价)/);
+  if (tenderAmountTail >= 4) v = v.slice(0, tenderAmountTail).trim();
   return v.slice(0, 500);
 }
 
@@ -7271,7 +7273,7 @@ function resolveRecordRegion(ad, rec) {
   // “公共资源交易部/中心”等是发布机构，不是项目地区。此时保守回退到 adapter 明确管辖区，
   // 避免跨多城市项目从标题中随意挑一个城市。
   if (listed && /公共资源交易(?:部|中心|平台|服务中心)|交易服务(?:部|中心)|招标投标管理/.test(listed)) return jurisdictionFromAdapter(ad);
-  if (listed && !extractKnownArea(listed) && /(?:污水处理厂|水厂|医院|学校|研究院|项目|管道|桩号)/.test(listed)) return jurisdictionFromAdapter(ad);
+  if (listed && !extractKnownArea(listed) && /(?:污水处理厂|水厂|医院|学校|研究院|项目|管道|管网|桩号)/.test(`${listed} ${rec && rec.title || ""}`)) return jurisdictionFromAdapter(ad);
   if (listed && !/^\d{6}$/.test(listed)) return listed;
   const fromText = extractKnownArea(`${rec && rec.projectSite || ""} ${rec && rec.title || ""}`);
   return fromText || jurisdictionFromAdapter(ad);

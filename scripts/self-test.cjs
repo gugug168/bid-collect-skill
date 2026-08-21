@@ -205,6 +205,9 @@ test("B1 关键词与项目内容守卫拒绝非招标阶段、章节标题和�
   assert.match(section.scope, /DN1500管道18公里/);
   assert.doesNotMatch(section.scope, /施工工期/);
   assert.equal(M.resolveRecordRegion(M.ADAPTERS.changzhou, { city: "社渚污水处理厂", title: "配套管网工程" }), "常州市");
+  assert.equal(M.resolveRecordRegion(M.ADAPTERS.changzhou, { city: "大唐至金花河南（华城路路南）", title: "热力管网桩号5101工程" }), "常州市");
+  const cleanScope = M.extractProjectContent("", "招标范围：新建DN1500管道18公里，其中，□建筑面积㎡。本次招标建安工程造价704万元。", "");
+  assert.equal(cleanScope.scope, "新建DN1500管道18公里");
   const perfNoise = M.extractDetail({}, "<p>业绩要求：的企业或者项目负责人仅可选1项</p>", { title: "示例招标公告", url: "https://example.invalid/b1" }, "");
   assert.equal(perfNoise.performance, "");
   const zero = M.extractDetail({}, "<p>工程概算38624万元，其中建安工程造价30632万元。</p><p>本次招标建安工程造价0.0000万元。</p>", { title: "浙江供水工程招标公告", url: "https://example.invalid/zj" }, "");
