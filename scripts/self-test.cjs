@@ -819,9 +819,11 @@ test("project18 能力真相源覆盖62×17并锁定干净证据", () => {
   assert.equal(validation.adapter_count, 62);
   assert.equal(validation.field_count, 17);
   assert.equal(validation.cells, 1054);
-  assert.equal(validation.unverified, 1037);
+  assert.equal(validation.unverified, 918);
   assert.equal(CAP.projectionMatches(doc), true);
-  for (const field of doc.audited_fields) assert.notEqual(doc.adapters.guangdong.fields[field].status, "FIELD_UNVERIFIED");
+  for (const adapter of ["guangdong", "hunan", "hubei", "guizhou", "yunnan", "neimenggu", "tianjin", "jilin"]) {
+    for (const field of doc.audited_fields) assert.notEqual(doc.adapters[adapter].fields[field].status, "FIELD_UNVERIFIED", `${adapter}.${field}`);
+  }
   for (const evidence of Object.values(doc.evidence)) assert.equal(evidence.code_dirty, false);
 });
 
@@ -834,6 +836,23 @@ test("脏证据不能支撑已验证字段且完整门禁拒绝未验收矩阵",
   const incomplete = CAP.validateCapabilities(CAP.createInitialCapabilities(), { requireComplete: true });
   assert.equal(incomplete.ok, false);
   assert.ok(incomplete.errors.some((error) => /FIELD_UNVERIFIED/.test(error)));
+});
+
+test("能力 evidence 支持按状态分组更新且拒绝重复字段", () => {
+  const doc = CAP.createInitialCapabilities();
+  const evidenceId = "fixture:test-grouped";
+  const fixture = {
+    evidence: { [evidenceId]: { kind: "fixture", path: "reference/evidence/guangdong-project18-gold.json", code_commit: "91877ccf73f0d5b1f10f200c9ee0c216c5ae77d2", code_dirty: false } },
+    capability_updates: {
+      hunan: { evidence_id: evidenceId, verified_at: "2026-08-21T22:00:00+08:00", statuses: { FIELD_VERIFIED_LIST: ["title", "url"], FIELD_NOT_DISCLOSED: ["fullScore"] } },
+    },
+  };
+  CAP.applyEvidenceUpdates(doc, fixture);
+  assert.equal(doc.adapters.hunan.fields.title.status, "FIELD_VERIFIED_LIST");
+  assert.equal(doc.adapters.hunan.fields.fullScore.status, "FIELD_NOT_DISCLOSED");
+  const duplicated = JSON.parse(JSON.stringify(fixture));
+  duplicated.capability_updates.hunan.statuses.FIELD_VERIFIED_DETAIL = ["title"];
+  assert.throws(() => CAP.applyEvidenceUpdates(CAP.createInitialCapabilities(), duplicated), /duplicate grouped field/);
 });
 
 test("详情标题覆盖列表层截断值", () => {

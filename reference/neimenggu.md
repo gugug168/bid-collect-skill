@@ -1,10 +1,13 @@
 # 内蒙古自治区 采集参考
 
 > 数据源 adapter：`neimenggu` · kind=`nmg` · 验证状态：**✅ 已打通（厚字段可重复采集）**
-> 最后验证：2026-08-14（全量实测矩阵 + 单省复测）
+> 最后验证：2026-08-21（A1 project18 clean evidence）
 
 ## 机制
 TRS 引擎：`getPublishResourceDealContent?sourceDataKey=` 公开 JSON 详情（nmgDetail）。
+
+## 2026-08-21 A1 project18 结论
+默认请求固定 `noticeTypeName=招标公告`，并在客户端二次拒绝更正/结果；行业分类串不再冒充招标范围。17字段终态为 VL=4、VD=8、ND=3、R=2，无 `FIELD_UNVERIFIED`。样本未披露可用 scale/scope/performance，保证金与满分因文件可得性收口为受限。
 
 ## 2026-08-14 验证结论
 ✅ **公开 JSON 详情**：nmgDetail 15/15 命中；注意过滤 1970 脏开标时间（源数据异常）。

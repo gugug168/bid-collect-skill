@@ -1,10 +1,13 @@
 # 云南省 采集参考
 
 > 数据源 adapter：`yunnan` · kind=`yn` · 验证状态：**✅ 已打通（厚字段可重复采集）**
-> 最后验证：2026-08-14（全量实测矩阵 + 单省复测）
+> 最后验证：2026-08-21（A1 project18 clean evidence）
 
 ## 机制
 bespoke `ynDetail`：`findZbggByGuid?guid=`；注意 `code` 为字符串 `"1"`。
+
+## 2026-08-21 A1 project18 结论
+管网3条+非管网1条 clean 复测；建设规模尾部 GUID 已清理。17字段终态为 VL=4、VD=11、R=2，无 `FIELD_UNVERIFIED`。evaluation/fullScore 位于附件层，但本批出现 HTTP 0、不支持文件形态或无直链，按受限而非未披露收口。
 
 ## 2026-08-14 验证结论
 ✅ **厚字段已打通**：`--detail` 触发后，owner/agency/controlPrice/funding/bidOpen/duration/qualification/consortium/contact/phone/docLink 等稳定抽取（2026-08-14 实测 18/20 列 100% 命中，缺失列即上方"诚实留空"字段，非失败）。 2026-08 前期实测：owner/控制价/开标/资质/联合体/docLink 全命中。
