@@ -57,8 +57,8 @@ test("招标公告实时状态总账覆盖全部 62 个 adapter", () => {
   const rows = [...text.matchAll(/^\| ([a-z][a-z0-9]+) \|/gm)].map((m) => m[1]).filter((adapter) => M.ADAPTERS[adapter]);
   assert.equal(new Set(rows).size, 62);
   assert.deepEqual([...new Set(rows)].sort(), Object.keys(M.ADAPTERS).sort());
-  assert.match(text, /`VERIFIED_RECORD`：54 个/);
-  assert.match(text, /`CONNECTED_NO_RECENT_DATA`：7 个/);
+  assert.match(text, /`VERIFIED_RECORD`：55 个/);
+  assert.match(text, /`CONNECTED_NO_RECENT_DATA`：6 个/);
   assert.match(text, /`FAILED`：1 个/);
 });
 
@@ -819,9 +819,10 @@ test("project18 能力真相源覆盖62×17并锁定干净证据", () => {
   assert.equal(validation.adapter_count, 62);
   assert.equal(validation.field_count, 17);
   assert.equal(validation.cells, 1054);
-  assert.equal(validation.unverified, 918);
+  assert.equal(validation.unverified, 799);
   assert.equal(CAP.projectionMatches(doc), true);
-  for (const adapter of ["guangdong", "hunan", "hubei", "guizhou", "yunnan", "neimenggu", "tianjin", "jilin"]) {
+  for (const adapter of ["guangdong", "hunan", "hubei", "guizhou", "yunnan", "neimenggu", "tianjin", "jilin",
+    "anhui", "xizang", "gansu", "liaoning", "fujian", "chongqing", "henan"]) {
     for (const field of doc.audited_fields) assert.notEqual(doc.adapters[adapter].fields[field].status, "FIELD_UNVERIFIED", `${adapter}.${field}`);
   }
   for (const evidence of Object.values(doc.evidence)) assert.equal(evidence.code_dirty, false);
@@ -923,6 +924,79 @@ test("A1 贵州附件 GUID 使用官方 preview 路由而非不存在的根路�
   for (const adapter of ["guizhou", "yunnan", "neimenggu"]) {
     assert.deepEqual(M.ADAPTERS[adapter].attachmentFields, ["controlPrice", "budget", "bond", "scale", "scope", "evaluation", "fullScore"]);
   }
+});
+
+test("A2 安徽保证金账户不冒充金额且HTML引号实体正确解码", () => {
+  const account = M.extractDetail({}, "<p>13.投标保证金账户 户名：某中心 子账号1：187252403508 开户银行：中国银行</p>", { title: "公告", url: "https://example.invalid/ah" }, "");
+  assert.equal(account.bond, "");
+  const amount = M.extractDetail({}, "<p>投标保证金金额：3万元</p>", { title: "公告", url: "https://example.invalid/ah2" }, "");
+  assert.equal(amount.bond, "3");
+  assert.equal(M.htmlToText("杜集&ldquo;五七&rdquo;干校&mdash;修缮"), "杜集“五七”干校—修缮");
+});
+
+test("A2 工程概况精确归scale且名称标签不污染scope", () => {
+  const out = M.extractProjectContent("", "2.项目概况与招标范围 工程概况：主要对中心城区排水管网雨污分流改造，新建管道总长约126千米。 2.1工程名称：某高速公路项目。", "");
+  assert.match(out.scale, /126千米/);
+  assert.equal(out.scope, "");
+  const heading = M.extractProjectContent("", "招标范围：2.1项目概况", "招标范围：2.1项目概况");
+  assert.equal(heading.scope, "");
+});
+
+test("A2 福建详情签名响应映射结构化字段和公告正文", () => {
+  const meta = { BaseInfo: { NOTICE_NAME: "福建某管网监理招标公告", TENDER_PROJECT_CODE: "E3501", AREANAME: "沙县", BID_OPEN_TIME: "2026-09-04 09:00:00", CONTRACT_RECKON_PRICE: 11.66, TENDERER_NAME: "某建设局", TENDER_AGENCY_NAME: "某代理公司", LIMITE_TIME: "365" } };
+  const content = { Contents: "<p>建设规模：改造供水管网12公里。</p><p>招标范围：施工全过程监理服务。</p><p>招标控制价：11.66万元。</p>", Attachment: [{ Url: "/download/file.pdf" }] };
+  const out = M.mapFjDetailPayload(meta, content, { title: "列表标题", url: "https://ggzyfw.fujian.gov.cn/#/business/detail" }, M.ADAPTERS.fujian);
+  assert.equal(out.title, "福建某管网监理招标公告");
+  assert.equal(out.projectCode, "E3501");
+  assert.equal(out.bidOpen, "2026-09-04 09:00");
+  assert.equal(out.controlPrice, "11.66");
+  assert.equal(out.duration, "365日历天");
+  assert.match(out.scale, /12公里/);
+  assert.match(out.scope, /监理服务/);
+  assert.equal(out.docLink, "https://ggzyfw.fujian.gov.cn/download/file.pdf");
+});
+
+test("A2 福建金额单位、零工期、业绩空值与包含关系scope均诚实处理", () => {
+  const html = [
+    "<p>工程建设规模：本项目供电容量3600KVA，建安投资约494万元。</p>",
+    "<p>招标范围和内容：本项目供电容量3600KVA，建安投资约494万元。本项目所涉及的正式用电及配套设施，包括但不限于施工安装、系统调试和送电手续。</p>",
+    "<p>用于确定类似工程业绩的相关数据：无；</p>",
+    "<p>招标控制价：17522440元。</p>",
+    "<p>工期要求：总工期为90个日历天。</p>",
+  ].join("");
+  const meta = { BaseInfo: { PRICE_UNIT: "0", CONTRACT_RECKON_PRICE: 17522440, LIMITE_TIME: "0" } };
+  const out = M.mapFjDetailPayload(meta, { Contents: html }, { title: "福建施工公告", url: "https://example.invalid/fj" }, M.ADAPTERS.fujian);
+  assert.equal(out.controlPrice, "1752.244");
+  assert.equal(out.duration, "90个日历天");
+  assert.equal(out.performance, "不要求");
+  assert.match(out.scope, /正式用电及配套设施/);
+
+  const pending = M.mapFjDetailPayload(
+    { BaseInfo: { PRICE_UNIT: "0", CONTRACT_RECKON_PRICE: 4940000, LIMITE_TIME: "60" } },
+    { Contents: "<p>工程建设规模：供电容量3600KVA，建安投资约494万元。</p><p>招标控制价：（招标人最迟应在投标截止时间10日前发布）元。</p>" },
+    { title: "控制价待发布公告", url: "https://example.invalid/fj-pending" },
+    M.ADAPTERS.fujian,
+  );
+  assert.equal(pending.controlPrice, "");
+});
+
+test("A2 辽宁发布机构不冒充地区、甘肃行政代码转人读地区", () => {
+  assert.equal(M.resolveRecordRegion(M.ADAPTERS.liaoning, { city: "公共资源交易部", title: "跨市高速公路项目" }), "辽宁省");
+  assert.equal(M.normalizeGsCityName("620101"), "兰州市");
+  assert.equal(M.normalizeGsCityName("永登县"), "永登县");
+  const detail = M.extractDetail({}, "<p>资金来源：来源于一般债券资金</p><p>工期：为540天</p><p>类似工程业绩：QSJD-1</p>", { title: "测试公告", url: "https://example.invalid/a2" }, "");
+  assert.equal(detail.funding, "一般债券资金");
+  assert.equal(detail.duration, "540天");
+  assert.equal(detail.performance, "");
+});
+
+test("A2 河南无复选框的分标段企业业绩提取完整条款", () => {
+  const html = "<p>3.3业绩要求：3.3.1企业类似工程业绩：一标段：投标人自2023年1月1日以来已完成单项合同金额1300万元及以上的类似装饰装修工程业绩一项。二标段：投标人已完成单项合同金额1100万元及以上的类似工程业绩一项。</p><p>3.3.2项目经理类似工程业绩：另有要求。</p>";
+  const out = M.extractDetail({}, html, { title: "河南装修工程招标公告", url: "https://example.invalid/henan" }, "");
+  assert.match(out.performance, /一标段/);
+  assert.match(out.performance, /1300万元/);
+  assert.match(out.performance, /二标段/);
+  assert.doesNotMatch(out.performance, /项目经理类似工程业绩/);
 });
 
 test("XLSX 行宽与 schema 一致且脏哨兵不出现在单元格", () => {

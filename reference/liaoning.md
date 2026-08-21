@@ -1,27 +1,21 @@
-# 辽宁省 采集参考
+# 辽宁省采集参考
 
-> 数据源 adapter：`liaoning` · kind=`ln` · 验证状态：**✅ 已打通（厚字段可重复采集）**
-> 最后验证：2026-08-14（全量实测矩阵 + 单省复测）
+> adapter：`liaoning` · kind=`ln` · 验证状态：**✅ VERIFIED_RECORD** · 最后验证：2026-08-21（A2 project18 clean evidence）
 
 ## 机制
-TRS 引擎：`was5/web/search` JSONP；详情走通用 HTML 抓取。
 
-## 2026-08-14 验证结论
-✅ **开箱即用**：TRS 族，列表 `url` 即详情页，通用 HTML 抓取命中；本次管网仅 1 条（-d 120 窗口偏少)，机制无回归。注意 `perpage≤20`（≥25 触发反爬占位页）。
+官方入口：[辽宁省公共资源交易网](https://ggzy.ln.gov.cn)。TRS `was5/web/search` 列表锁定工程建设招标公告，详情走官方 HTML。`perpage` 必须不高于20；发布机构名不得冒充项目地区。
+
+## A2 project18 结论
+
+雨污分流工程及跨市高速机电监理各1条通过干净代码复测。已修复 `公共资源交易部` 污染地区、`2.1项目概况` 污染招标范围、代码式条目污染业绩和“为540天”前缀。17字段终态为 VL=3、VD=8、ND=3、R=3，无 `FIELD_UNVERIFIED`。本批没有可独立确认的 scope、performance、controlPrice；保证金、满分和文件直链按受限收口。
+
+机器证据：`reference/evidence/a2-structured-project18-20260821.json`。
 
 ## 可重复采集命令
-```bash
-HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p liaoning -k 管网 --detail -d 120 --csv -o out/liaoning.csv
+
+```powershell
+node scripts/province-collect.cjs -p liaoning -k 管网 -d 30 --stage zb --limit 3 --xlsx-layout project18 --attach --csv -o out/liaoning.xlsx
 ```
 
-## 诚实留空字段（源页无则空，绝不伪造）
-performance / fullScore（源页普遍无评分细则/业绩要求，全省一致诚实留空）；projectSite / city / type 依省而异（源页无则空）
-
-## 中标/合同阶段（B 阶段 · Goal v1）
-
-本省的 `--stage candidate|result|contract`（中标候选/结果/合同）**待逐省枚举端点，尚未配置 `stages`**。
-原因：B 阶段栏目码因省而异，盲推会把错类目当中标候选（浙江 `002001003` 实证=开标记录）。
-状态与正确做法见 `FAMILY_INDEX.md` §3.1「其余 26 省 B 阶段现状」。
-
-## 家族与通用纪律
-见 `FAMILY_INDEX.md`（家族总览 + 代理/鉴权/mustache 脏值拦截/去重坍缩等通用提醒）。
+只验收 `zb`；空字段与解析失败必须分开记录。

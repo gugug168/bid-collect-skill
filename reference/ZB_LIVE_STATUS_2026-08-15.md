@@ -1,4 +1,4 @@
-# 招标公告实时状态总账（2026-08-15 快照；广东更新至 2026-08-19）
+# 招标公告实时状态总账（基线 2026-08-15；广东更新至 2026-08-19；A1/A2 更新至 2026-08-21）
 
 > 本表只记录招标公告（`zb`）的实时窗口结果，不包含候选人/中标/合同阶段。每次采集的 sidecar 才是单次运行的机器真相；这里是便于人审和 PR 追踪的当前快照。
 >
@@ -11,29 +11,29 @@
 | hebei | `CONNECTED_NO_RECENT_DATA` | 0 | 90/365 仍 0 | `hebei.run-report.json`, `hebei-90d`, `hebei-365d` | 不升级为失败 |
 | shanxi | `VERIFIED_RECORD` | 3 | — | `shanxi.run-report.json` | PDF/列表入口可达 |
 | neimenggu | `VERIFIED_RECORD` | 3 | — | `neimenggu.run-report.json` | 官方 JSON 详情 |
-| liaoning | `VERIFIED_RECORD` | 1 | — | `liaoning.run-report.json` | 30 天仅 1 条，按规则停止 |
+| liaoning | `VERIFIED_RECORD` | 1 | — | `reference/evidence/a2-structured-project18-20260821.json` | 管网1+非管网1条干净复测；发布机构不再冒充地区 |
 | jilin | `VERIFIED_RECORD` | 1 | — | `jilin.run-report.json` | 30 天仅 1 条，按规则停止 |
 | heilongjiang | `CONNECTED_NO_RECENT_DATA` | 0 | 90/365 仍 0 | `heilongjiang.run-report.json`, `heilongjiang-90d`, `heilongjiang-365d` | 旧快照曾需 400 天，当前窗口仍无记录 |
 | shanghai | `VERIFIED_RECORD` | 3 | — | `shanghai.run-report.json` | DNS→curl 兜底后有记录 |
 | jiangsu | `VERIFIED_RECORD` | 3 | — | `jiangsu.run-report.json` | 徐州另有城市筛选证据 |
 | zhejiang | `VERIFIED_RECORD` | 3 | — | `zhejiang.run-report.json` | 官方 URL 齐全 |
-| anhui | `VERIFIED_RECORD` | 3 | — | `anhui-detail-v2.run-report.json` | 详情标题修复后复验 |
-| fujian | `VERIFIED_RECORD` | 3 | — | `fujian.run-report.json` | 官方列表/壳页 |
+| anhui | `VERIFIED_RECORD` | 3 | — | `reference/evidence/a2-structured-project18-20260821.json` | 管网3+非管网1条；保证金账户噪声已修复 |
+| fujian | `VERIFIED_RECORD` | 3 | — | `reference/evidence/a2-structured-project18-20260821.json` | 官方签名详情API；管网3+学校1条干净复测 |
 | jiangxi | `VERIFIED_RECORD` | 3 | — | `jiangxi.run-report.json` | TLS→curl 兜底 |
 | shandong | `VERIFIED_RECORD` | 3 | — | `shandong.run-report.json` | 现网已返回真实记录 |
-| henan | `CONNECTED_NO_RECENT_DATA` | 0 | 90/365 仍 0 | `henan.run-report.json`, `henan-90d`, `henan-365d` | 文件索引级限制仍保留 |
+| henan | `VERIFIED_RECORD` | 1 | 管网30/90天0；365天深页TLS失败 | `reference/evidence/a2-structured-project18-20260821.json` | 无关键词复扫命中1条，不冒充管网样本；附件需验证码 |
 | hubei | `VERIFIED_RECORD` | 3 | — | `hubei.run-report.json` | 武汉另有城市筛选证据 |
 | hunan | `VERIFIED_RECORD` | 3 | — | `hunan.run-report.json` | 官方 REST |
 | guangdong | `VERIFIED_RECORD` | 3 | 3 天广州3、珠海3 | `2026-08-19_project18实时验收/*.run-report.json` | `3C14` 纯招标；公开详情与附件链接；大文件/验证码单独记附件信号 |
 | guangxi | `VERIFIED_RECORD` | 3 | — | `guangxi.run-report.json` | HTTP 官方入口 |
 | hainan | `VERIFIED_RECORD` | 3 | — | `hainan.run-report.json` | 多栏目拆轮后有记录 |
-| chongqing | `VERIFIED_RECORD` | 3 | — | `chongqing.run-report.json` | Nuxt SSR |
+| chongqing | `VERIFIED_RECORD` | 3 | — | `reference/evidence/a2-structured-project18-20260821.json` | 管网3+非管网1条；Nuxt SSR详情复测 |
 | sichuan | `VERIFIED_RECORD` | 3 | — | `sichuan.run-report.json` | EPoint |
 | guizhou | `VERIFIED_RECORD` | 3 | — | `guizhou.run-report.json` | 官方 REST |
 | yunnan | `VERIFIED_RECORD` | 3 | — | `yunnan-detail-v3.run-report.json` | guid→官方详情 URL 修复后通过 |
-| xizang | `VERIFIED_RECORD` | 3 | — | `xizang.run-report.json` | projectCode 详情 |
+| xizang | `VERIFIED_RECORD` | 3 | — | `reference/evidence/a2-structured-project18-20260821.json` | 管网3+非管网1条；projectCode详情复测 |
 | shaanxi | `CONNECTED_NO_RECENT_DATA` | 0 | 90/365 仍 0 | `shaanxi-v2.run-report.json`, `shaanxi-90d`, `shaanxi-365d` | 既有登录墙证据仍保留 |
-| gansu | `VERIFIED_RECORD` | 3 | — | `gansu.run-report.json` | 双分支详情 |
+| gansu | `VERIFIED_RECORD` | 3 | — | `reference/evidence/a2-structured-project18-20260821.json` | 管网3+非管网1条；文件入口HTML壳单独记受限 |
 | qinghai | `VERIFIED_RECORD` | 3 | — | `qinghai.run-report.json` | EPointX |
 | ningxia | `VERIFIED_RECORD` | 3 | — | `ningxia.run-report.json` | EPointX |
 | xinjiang | `VERIFIED_RECORD` | 3 | — | `xinjiang.run-report.json` | EPointX |
@@ -72,8 +72,8 @@
 
 ## 汇总
 
-- `VERIFIED_RECORD`：54 个（广东 2026-08-19 复测转正）
-- `CONNECTED_NO_RECENT_DATA`：7 个（河北、黑龙江、河南、陕西、兵团、定西、苏州）
+- `VERIFIED_RECORD`：55 个（河南以无关键词官方招标公告样本转正，未冒充管网命中）
+- `CONNECTED_NO_RECENT_DATA`：6 个（河北、黑龙江、陕西、兵团、定西、苏州）
 - `FAILED`：1 个（宜宾 allowNoUrl 无直链形态）
 - `BROWSER_REQUIRED`：本轮未新增；Chrome CDP 未连接，不能宣称浏览器路径可用。
 
