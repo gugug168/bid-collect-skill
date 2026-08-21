@@ -2237,6 +2237,14 @@ function grabQualification(text, flat) {
   return phrase;
 }
 
+function cleanQualificationOutput(value) {
+  let v = String(value || "").trim();
+  if (/^1\s*[.、]\s*资质等级及范围[：:]/.test(v) && /企业要求\s*[:：]/.test(v)) v = v.split(/企业要求\s*[:：]/, 2)[1].trim();
+  const tail = v.search(/(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取)/);
+  if (tail >= 12) v = v.slice(0, tail).trim();
+  return v;
+}
+
 function numFrom(s) {
   if (!s) return "";
   const m = s.replace(/,/g, "").match(/(\d+(?:\.\d+)?)/);
@@ -2592,7 +2600,7 @@ function extractDetail(ad, html, item, pdfText) {
     funding: grabBoth(text, flat, FUND_LABELS, 2).replace(/^(?:来源于|来自|于)(?=.{2})/, ""),
     duration: grabDuration(text, flat),
     // v4 增补：浙江 PDF 用「①设计资质：… ②施工资质：…」「资格条件：」表述，无"资质要求"字样
-    qualification: grabQualification(text, flat),
+    qualification: cleanQualificationOutput(grabQualification(text, flat)),
     performance: grabPerformance(text, flat),
     controlPrice: controlWan,
     // 概算/估算单独记录，绝不冒充控制价（见 grabBudgetWan 注释）
@@ -7275,7 +7283,9 @@ function resolveRecordRegion(ad, rec) {
   // “公共资源交易部/中心”等是发布机构，不是项目地区。此时保守回退到 adapter 明确管辖区，
   // 避免跨多城市项目从标题中随意挑一个城市。
   if (listed && /公共资源交易(?:部|中心|平台|服务中心)|交易服务(?:部|中心)|招标投标管理/.test(listed)) return jurisdictionFromAdapter(ad);
-  if (listed && !extractKnownArea(listed) && /(?:污水处理厂|水厂|医院|学校|研究院|项目|管道|管网|桩号)/.test(`${listed} ${rec && rec.title || ""}`)) return jurisdictionFromAdapter(ad);
+  const listedArea = listed ? extractKnownArea(listed) : "";
+  if (listedArea) return listedArea;
+  if (listed && /(?:污水处理厂|水厂|医院|学校|研究院|项目|管道|管网|桩号)/.test(`${listed} ${rec && rec.title || ""}`)) return jurisdictionFromAdapter(ad);
   if (listed && !/^\d{6}$/.test(listed)) return listed;
   const fromText = extractKnownArea(`${rec && rec.projectSite || ""} ${rec && rec.title || ""}`);
   return fromText || jurisdictionFromAdapter(ad);

@@ -206,6 +206,7 @@ test("B1 关键词与项目内容守卫拒绝非招标阶段、章节标题和�
   assert.doesNotMatch(section.scope, /施工工期/);
   assert.equal(M.resolveRecordRegion(M.ADAPTERS.changzhou, { city: "社渚污水处理厂", title: "配套管网工程" }), "常州市");
   assert.equal(M.resolveRecordRegion(M.ADAPTERS.changzhou, { city: "大唐至金花河南（华城路路南）", title: "热力管网桩号5101工程" }), "常州市");
+  assert.equal(M.resolveRecordRegion(M.ADAPTERS.changzhou, { city: "常州市新北区新桥街道秀水河路11号", title: "科创中心设计" }), "常州市");
   const cleanScope = M.extractProjectContent("", "招标范围：新建DN1500管道18公里，其中，□建筑面积㎡。本次招标建安工程造价704万元。", "");
   assert.equal(cleanScope.scope, "新建DN1500管道18公里");
   const perfNoise = M.extractDetail({}, "<p>业绩要求：的企业或者项目负责人仅可选1项</p>", { title: "示例招标公告", url: "https://example.invalid/b1" }, "");
@@ -216,6 +217,9 @@ test("B1 关键词与项目内容守卫拒绝非招标阶段、章节标题和�
   const serviceScope = M.extractProjectContent("", "2.6设计及相关服务范围：本次招标包括初步设计、施工图设计及后续服务。", "");
   assert.match(serviceScope.scope, /初步设计/);
   assert.equal(M.extractProjectContent("", "发包内容：合同估算价（万元）", "发包内容：合同估算价（万元）").scope, "");
+  const qual = M.extractDetail({}, "<p>资质要求：1.资质等级及范围：2.项目负责人资质类别和等级：3.本次招标不接受联合体投标。4.其它要求：企业要求：具有市政公用工程施工总承包一级资质。四、投标1.投标截止时间：2026年9月1日。</p>", { title: "浙江工程招标公告", url: "https://example.invalid/qual" }, "");
+  assert.match(qual.qualification, /市政公用工程施工总承包一级/);
+  assert.doesNotMatch(qual.qualification, /投标截止时间/);
   const zero = M.extractDetail({}, "<p>工程概算38624万元，其中建安工程造价30632万元。</p><p>本次招标建安工程造价0.0000万元。</p>", { title: "浙江供水工程招标公告", url: "https://example.invalid/zj" }, "");
   assert.equal(zero.controlPrice, "");
 });
