@@ -166,6 +166,31 @@ test("深圳列表严格只收 noticeTypeName=招标公告，保留官方地区�
   assert.match(got[0].url, /contentId=20584564&channelId=2851$/);
   assert.equal(M.exactMoneyWan("2369.89万元"), "2369.89");
   assert.equal(M.exactMoneyWan("66042741.73元"), "6604.274173");
+  assert.equal(M.parseShenzhenList({ data: { content: [{ id: 3, channelId: 2851, noticeTypeName: "招标公告", noticeTitle: "某项目资格预审公告", releaseTime: "2026-08-18" }] } }, ad).length, 0);
+});
+
+test("A3 城市结构化详情拒绝金额尾噪声、评审模板、空标签与跨章节资质", () => {
+  assert.equal(M.cleanA3ScopeAmountTail("施工图及工程量清单范围内全部施工。 12833928.83"), "施工图及工程量清单范围内全部施工。");
+  assert.equal(M.cleanA3ScopeAmountTail("道路、排水及绿化工程。本次招标建安工程造价22427185元。"), "道路、排水及绿化工程。");
+  assert.equal(M.cleanQingdaoPerformance("企业业绩评审、获得奖项评审、项目管理班子成员配备情况评审", ""), "");
+  assert.equal(M.cleanQingdaoPerformance("", "本项目资格审查阶段无业绩要求。"), "不要求");
+  assert.equal(M.cleanNanjingQualification("具有建筑垃圾运输资格。4.招标文件的获取"), "具有建筑垃圾运输资格。");
+  assert.equal(M.cleanNanjingQualification("具有工程设计综合甲级资质。业绩要求：承担过涉铁工程设计项目。"), "具有工程设计综合甲级资质。");
+  assert.deepEqual(M.shenzhenProjectContent({}), { scale: "", scope: "" });
+  assert.deepEqual(M.shenzhenProjectContent({ "本次招标面积": "12000平方米", "本次招标内容": "施工图范围内全部施工" }), { scale: "12000平方米", scope: "施工图范围内全部施工" });
+  assert.equal(M.qualitativeFullScore("定性评审法"), "不适用（定性评审）");
+  assert.equal(M.qualitativeFullScore("综合评估法"), "");
+  assert.equal(M.ningboExactDuration("施工期的现场配合服务等"), "");
+  assert.equal(M.ningboExactDuration("工期要求：总工期为270日历天"), "270日历天");
+
+  const jinan = M.jinanDetail("<p>1.项目名称:示例</p><p>4.计划工期:240</p><p>5.质量要求:合格</p><p>1、本次招标要求潜在投标人应当同时具备工程勘察乙级和工程设计甲级资质，具备承担本项目的能力。</p><p>2、投标人拟派项目负责人须注册。</p><p>4、业绩要求：投标人承担过单项合同100万元以上类似工程。</p><p>5、信誉要求：良好。</p>", { title: "济南示例招标公告", url: "https://example.invalid/jinan" }, "");
+  assert.equal(jinan.duration, "240");
+  assert.match(jinan.qualification, /工程勘察乙级/);
+  assert.doesNotMatch(jinan.qualification, /投标人拟派/);
+  assert.match(jinan.performance, /100万元/);
+
+  const zhongshan = M.zhongshanDetail("<table><tr><td>投标资格能力要求</td><td>工程勘察综合甲级资质；工程设计市政行业甲级资质</td></tr></table>", { title: "中山示例招标公告", url: "https://example.invalid/zs" }, "");
+  assert.match(zhongshan.qualification, /工程勘察综合甲级/);
 });
 
 test("洛阳与郑州复用标准 EPoint 并锁定城市招标公告边界", () => {
@@ -819,10 +844,11 @@ test("project18 能力真相源覆盖62×17并锁定干净证据", () => {
   assert.equal(validation.adapter_count, 62);
   assert.equal(validation.field_count, 17);
   assert.equal(validation.cells, 1054);
-  assert.equal(validation.unverified, 799);
+  assert.equal(validation.unverified, 680);
   assert.equal(CAP.projectionMatches(doc), true);
   for (const adapter of ["guangdong", "hunan", "hubei", "guizhou", "yunnan", "neimenggu", "tianjin", "jilin",
-    "anhui", "xizang", "gansu", "liaoning", "fujian", "chongqing", "henan"]) {
+    "anhui", "xizang", "gansu", "liaoning", "fujian", "chongqing", "henan",
+    "qingdao", "wuhan", "jinan", "ningbo", "zhongshan", "nanjing", "shenzhen"]) {
     for (const field of doc.audited_fields) assert.notEqual(doc.adapters[adapter].fields[field].status, "FIELD_UNVERIFIED", `${adapter}.${field}`);
   }
   for (const evidence of Object.values(doc.evidence)) assert.equal(evidence.code_dirty, false);
