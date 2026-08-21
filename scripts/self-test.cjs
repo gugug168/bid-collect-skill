@@ -215,6 +215,7 @@ test("B1 关键词与项目内容守卫拒绝非招标阶段、章节标题和�
   assert.doesNotMatch(perf.performance, /证明材料需提供/);
   const serviceScope = M.extractProjectContent("", "2.6设计及相关服务范围：本次招标包括初步设计、施工图设计及后续服务。", "");
   assert.match(serviceScope.scope, /初步设计/);
+  assert.equal(M.extractProjectContent("", "发包内容：合同估算价（万元）", "发包内容：合同估算价（万元）").scope, "");
   const zero = M.extractDetail({}, "<p>工程概算38624万元，其中建安工程造价30632万元。</p><p>本次招标建安工程造价0.0000万元。</p>", { title: "浙江供水工程招标公告", url: "https://example.invalid/zj" }, "");
   assert.equal(zero.controlPrice, "");
 });
