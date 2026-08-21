@@ -2237,9 +2237,12 @@ function grabQualification(text, flat) {
   return phrase;
 }
 
-function cleanQualificationOutput(value) {
+function cleanQualificationOutput(value, source = "") {
   let v = String(value || "").trim();
-  if (/^1\s*[.、]\s*资质等级及范围[：:]/.test(v) && /企业要求\s*[:：]/.test(v)) v = v.split(/企业要求\s*[:：]/, 2)[1].trim();
+  if (/^1\s*[.、]\s*资质等级及范围[：:]/.test(v)) {
+    const recovered = String(source || "").match(/企业要求\s*[:：]\s*([\s\S]{10,800}?)(?=(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取)|$)/)?.[1] || "";
+    if (recovered) v = cleanVal(recovered.replace(/[\r\n]+/g, " "));
+  }
   const tail = v.search(/(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取)/);
   if (tail >= 12) v = v.slice(0, tail).trim();
   return v;
@@ -2600,7 +2603,7 @@ function extractDetail(ad, html, item, pdfText) {
     funding: grabBoth(text, flat, FUND_LABELS, 2).replace(/^(?:来源于|来自|于)(?=.{2})/, ""),
     duration: grabDuration(text, flat),
     // v4 增补：浙江 PDF 用「①设计资质：… ②施工资质：…」「资格条件：」表述，无"资质要求"字样
-    qualification: cleanQualificationOutput(grabQualification(text, flat)),
+    qualification: cleanQualificationOutput(grabQualification(text, flat), text),
     performance: grabPerformance(text, flat),
     controlPrice: controlWan,
     // 概算/估算单独记录，绝不冒充控制价（见 grabBudgetWan 注释）
