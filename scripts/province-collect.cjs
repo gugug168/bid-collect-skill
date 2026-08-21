@@ -2384,12 +2384,13 @@ const PROJECT_SPLIT_MARKERS = ["具体招标内容包括", "具体招标内容",
 function cleanProjectContent(value) {
   let v = String(value || "").replace(/^[\s\[【]+|[\s\]】]+$/g, "").replace(/\s+/g, " ").trim();
   v = v.replace(/^为\s*/, "").trim();
+  v = v.replace(/^\d+\s*[;；]\s*(?=\S{4})/, "").trim();
   // 云南等结构化详情会把记录 GUID 拼在建设规模正文尾部；仅清理独立 UUID 尾段，不碰项目编号正文。
   v = v.replace(/(?<![0-9a-f])[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "").trim();
   if (!v || PROJECT_TAIL_ONLY.test(v)) return "";
   if (/^(?:(?:\d+(?:\.\d+)*)[、.．]?\s*)?(?:投资规模|建设规模|工程规模|项目规模|项目概况|工程概况|标段概况|标段名称|供货期[（(]?天[）)]?|服务期[（(]?天[）)]?|项目编号|招标编号|标段编号|交易编号)$/.test(v)) return "";
   if (/^(?:\d+(?:\.\d+)+\s*)?(?:(?:招标)?项目(?:或标段)?名称|标段名称|工程名称)\s*[:：]/.test(v)) return "";
-  if (/^(?:\d+(?:\.\d+)+\s*)?(?:工程建设地点|建设地点|项目地点)\s*[:：]/.test(v)) return "";
+  if (/^(?:\d+(?:\.\d+)*[.、．]?\s*)?(?:工程建设地点|建设地点|项目地点|招标项目所在实施地区)\s*[:：]/.test(v)) return "";
   if (/^[\/／]\s*[，,；;]?\s*(?:工程建设地点|建设地点|项目地点)\s*[:：]/.test(v)) return "";
   if (/^(?:工程|服务|货物)-/.test(v) && (v.match(/-/g) || []).length >= 2) return "";
   if (/^[A-Za-z]{2,}[A-Za-z0-9_.\-/]{4,}$/.test(v)) return "";
@@ -2399,7 +2400,7 @@ function cleanProjectContent(value) {
   if (tail >= 12) v = v.slice(0, tail + 1).trim();
   const nextSection = v.search(/(?:(?:\d+(?:\.\d+)*)[、.．]\s*|\s+)(?:投标人|申请人|供应商)资格要求/);
   if (nextSection >= 4) v = v.slice(0, nextSection).trim();
-  const numberedSection = v.search(/\s*\d+\.\d+\.?\s*(?:工程建设地点|工程建设规模|招标范围和内容|招标范围|建筑安装工程费|招标控制价|工期要求|质量要求|标段划分)\s*[:：]/);
+  const numberedSection = v.search(/\s*\d+\.\d+\.?\s*(?:工程建设地点|工程建设规模|招标范围和内容|招标范围|建筑安装工程费|招标控制价|最高投标限价|工期要求|服务期限|质量要求|标段划分)\s*[:：]/);
   if (numberedSection >= 4) v = v.slice(0, numberedSection).trim();
   const tenderAmountTail = v.search(/\s*[，,；;]?\s*(?:其中\s*[，,]?\s*□?\s*建筑面积|本次招标建安工程造价)/);
   if (tenderAmountTail >= 4) v = v.slice(0, tenderAmountTail).trim();

@@ -233,6 +233,10 @@ test("B2 拒绝标段划分、未勾选业绩模板与引用式规模", () => {
   assert.equal(multi.performance, "");
   assert.equal(M.extractProjectContent("", "建设规模：同施工五、六标段的建设规模", "").scale, "");
   assert.equal(M.extractProjectContent("", "招标范围：供货期（天）", "").scope, "");
+  assert.equal(M.extractProjectContent("", "招标范围：1.招标项目所在实施地区：新疆生产建设兵团·一师", "").scope, "");
+  const luoyangScope = M.extractProjectContent("", "招标范围：项目规划红线内所有设计。2.4最高投标限价：170万元 2.5服务期限：25日历天", "");
+  assert.equal(luoyangScope.scope, "项目规划红线内所有设计。");
+  assert.equal(M.extractProjectContent("", "建设规模：1;道路硬化24301平方米", "").scale, "道路硬化24301平方米");
   const funding = M.extractDetail({}, "<p>资金来源：为市财政资金35%，企业自筹65%，项目已具备招标条件，现公开招标</p>", { title: "郑州供水工程招标公告", url: "https://example.invalid/zz" }, "");
   assert.equal(funding.funding, "市财政资金35%，企业自筹65%");
 });
