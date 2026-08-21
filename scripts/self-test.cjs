@@ -210,6 +210,11 @@ test("B1 关键词与项目内容守卫拒绝非招标阶段、章节标题和�
   assert.equal(cleanScope.scope, "新建DN1500管道18公里");
   const perfNoise = M.extractDetail({}, "<p>业绩要求：的企业或者项目负责人仅可选1项</p>", { title: "示例招标公告", url: "https://example.invalid/b1" }, "");
   assert.equal(perfNoise.performance, "");
+  const perf = M.extractDetail({}, "<p>具有与本工程相类似项目的设计业绩：自2023年1月1日以来，承担过管道长度700m以上且DN1400以上的给水工程设计项目。证明材料需提供中标通知书和合同。</p>", { title: "江苏设计招标公告", url: "https://example.invalid/js" }, "");
+  assert.match(perf.performance, /管道长度700m以上/);
+  assert.doesNotMatch(perf.performance, /证明材料需提供/);
+  const serviceScope = M.extractProjectContent("", "2.6设计及相关服务范围：本次招标包括初步设计、施工图设计及后续服务。", "");
+  assert.match(serviceScope.scope, /初步设计/);
   const zero = M.extractDetail({}, "<p>工程概算38624万元，其中建安工程造价30632万元。</p><p>本次招标建安工程造价0.0000万元。</p>", { title: "浙江供水工程招标公告", url: "https://example.invalid/zj" }, "");
   assert.equal(zero.controlPrice, "");
 });
