@@ -1,7 +1,7 @@
 # 宁波市采集参考（城市级 · websiteapi SPA）
 
-> 数据源 adapter：`ningbo` · kind=`ningbo` · 验证状态：**✅ VERIFIED_RECORD（2026-08-18 实时复测）**
-> 最后验证：2026-08-18（30 天“管网”2 条，已满足 1–3 条停止条件；Sol 实测）
+> 数据源 adapter：`ningbo` · kind=`ningbo` · 验证状态：**✅ VERIFIED_RECORD（2026-08-21 A3）**
+> 最后验证：2026-08-21（管网1条+居住用房EPC+O 1条）
 
 ## 机制
 官方入口：https://jyxt.zwb.ningbo.gov.cn:4011/website/home 。前端以北京时间 `YYYY-MM-DD H:mm:ss` 连续 Base64 两次生成匿名访客 token；adapter 显式按 UTC+8 生成，默认零配置。列表调用 `/websiteapi/articleList`，栏目锁定官方 `getCmsType` 返回的 `020105=招标公告`；详情调用 `/websiteapi/getArticle/`，公开链接使用 `/website/announcementDetails` 并保留官方 `:4011` 端口。
@@ -12,6 +12,10 @@
 ✅ 2026-08-18 实测：近 30 天“管网”取得 2 条真实招标公告，分别来自奉化区和高新区。2/2 标题、发布日期、官方详情链接、地区四个硬字段齐全；源页可提取开标时间、资金来源、工期、市政资质、控制价、联合体、招标人、代理机构、联系人和招标文件。第二条含两个标段，控制价按标段合并保留；源页未披露的业绩、保证金、评标办法、满分标准保持空白。
 
 机器证据：`ningbo-sol-30d-v2/ningbo.run-report.json`（以最终复采目录为准）。
+
+## 2026-08-21 A3 project18 结论
+
+已清除 scope 尾部建安造价，且源页没有明确工期时不再把“施工期现场配合服务”写入 duration。17字段终态为 VL=4、VD=10、R=3，无 `FIELD_UNVERIFIED`。公开招标文件链接可写业务表，但附件下载端口本次 HTTP 0，保证金、评标办法和满分按受限收口。机器证据更新为 `reference/evidence/a3-city-structured-project18-20260821.json`。
 
 ## 可重复采集命令
 ```powershell

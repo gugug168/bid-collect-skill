@@ -1,0 +1,96 @@
+{
+  "schema_version": "project18-evidence.v1",
+  "batch": "A3",
+  "stage": "zb",
+  "verified_at": "2026-08-21T23:28:11+08:00",
+  "code_dirty": false,
+  "evidence": {
+    "fixture:a3-qingdao-project18": {"kind":"fixture","path":"reference/evidence/a3-city-structured-project18-20260821.json","code_commit":"dc12d1ed57ddcdea54369c7a7a2a423ef5100532","code_dirty":false},
+    "fixture:a3-wuhan-project18": {"kind":"fixture","path":"reference/evidence/a3-city-structured-project18-20260821.json","code_commit":"dc12d1ed57ddcdea54369c7a7a2a423ef5100532","code_dirty":false},
+    "fixture:a3-jinan-project18": {"kind":"fixture","path":"reference/evidence/a3-city-structured-project18-20260821.json","code_commit":"f2a482c4bf96befa9c3790e9e60923bb63cf7a6e","code_dirty":false},
+    "fixture:a3-ningbo-project18": {"kind":"fixture","path":"reference/evidence/a3-city-structured-project18-20260821.json","code_commit":"dc12d1ed57ddcdea54369c7a7a2a423ef5100532","code_dirty":false},
+    "fixture:a3-zhongshan-project18": {"kind":"fixture","path":"reference/evidence/a3-city-structured-project18-20260821.json","code_commit":"dc12d1ed57ddcdea54369c7a7a2a423ef5100532","code_dirty":false},
+    "fixture:a3-nanjing-project18": {"kind":"fixture","path":"reference/evidence/a3-city-structured-project18-20260821.json","code_commit":"dc12d1ed57ddcdea54369c7a7a2a423ef5100532","code_dirty":false},
+    "fixture:a3-shenzhen-project18": {"kind":"fixture","path":"reference/evidence/a3-city-structured-project18-20260821.json","code_commit":"a71ebf0c5ea61729c24b7c18de933c47dfab1a4c","code_dirty":false}
+  },
+  "samples": {
+    "qingdao": [
+      {"kind":"pipe","title":"新区老旧排水管网提升改造工程（一期）（施工）（评定分离）","official_url":"https://ggzy.qingdao.gov.cn/TradeDetals-ZtbShow/182790-5021-0-0-0/ac2dabfa-983e-4c25-bfc4-483086c9c5dd"},
+      {"kind":"general","title":"全国重点镇泊里镇驻地村庄改造项目二期（信阳一村、信阳二村、信阳三村）（电梯采购与安装）（暂估价）（二次招标）","official_url":"https://ggzy.qingdao.gov.cn/TradeDetals-ZtbShow/182963-5021-0-0-0/e9bf20dc-16a1-451d-9711-7ebd62b2f94b"}
+    ],
+    "wuhan": [
+      {"kind":"pipe","title":"东湖高新区市政供水管网完善工程（一期）初步设计","official_url":"https://ggzyfw.wuhan.gov.cn/whggzy/jygkgy/1029455.jhtml"},
+      {"kind":"general","title":"郭徐岭A区新建道路工程监理","official_url":"https://ggzyfw.wuhan.gov.cn/whggzy/jygkgy/1029828.jhtml"}
+    ],
+    "jinan": [
+      {"kind":"pipe","title":"济南热力集团有限公司2025年供热管网工程项目梓东大道黄河二道坝断点连接工程总承包(EPC）招标公告","official_url":"https://jnggzy.jinan.gov.cn/jnggzyztb/front/showNotice.do?iid=26CB7411CE24083C2874C8B4F6CBD3B4&isnew=1&xuanxiang=%E6%8B%9B%E6%A0%87%E5%85%AC%E5%91%8A"},
+      {"kind":"general","title":"国家级园区明水经济开发区龙山创新港产业园基础设施建设项目规划三路工程全过程工程咨询招标公告","official_url":"https://jnggzy.jinan.gov.cn/jnggzyztb/front/showNotice.do?iid=FF29ED72E7B0CC84F0EC82247827837A&isnew=1&xuanxiang=%E6%8B%9B%E6%A0%87%E5%85%AC%E5%91%8A"}
+    ],
+    "ningbo": [
+      {"kind":"pipe","title":"宁南产业园区基础设施提升工程六期项目-方欣路（恒发路-儒江路）道路工程和奉化主城区北部区块宁南产业区地下管网综合改造提升一期工程-方欣路（恒发路-儒江路）道路工程地下管网综合改造提升工程（施工）项目招标公告","official_url":"https://jyxt.zwb.ningbo.gov.cn:4011/website/announcementDetails?article_ID=9437011&code=020105&project_ID=ff8080819eb60650019ec93c0f232966&project_NO=A3302830400026707001&isShowTypeSteps=true"},
+      {"kind":"general","title":"南滨江路南侧、东旱门路东侧地块居住用房建设项目EPC（设计、采购、施工）+O（代建管理、销售管理）招标公告","official_url":"https://jyxt.zwb.ningbo.gov.cn:4011/website/announcementDetails?article_ID=9443206&code=020105&project_ID=A3302810380026492003&project_NO=A3302810380026492003&isShowTypeSteps=true"}
+    ],
+    "zhongshan": [
+      {"kind":"pipe365","title":"港口镇地下排水管网提质增效工程设计","official_url":"https://www.zsjypt.cn/artical/58/247459"},
+      {"kind":"general","title":"中山市港口镇水生态修复与基础设施完善工程勘察设计","official_url":"https://www.zsjypt.cn/artical/58/250432"}
+    ],
+    "nanjing": [
+      {"kind":"pipe","title":"(市交易中心) 雨花台区农花河流域排水防涝综合整治（雨污水管网改造）工程渣土运输处置招标公告","official_url":"https://njggzy.nanjing.gov.cn/njweb/fjsz/068001/068001001/20260817/8f482033-60f8-4866-8ab3-60b9bf4560c5.html"},
+      {"kind":"general","title":"(六合分中心) 机场快速路（浦六路至站前路）项目勘察设计招标公告","official_url":"https://njggzy.nanjing.gov.cn/njweb/fjsz/068001/068001001/20260821/a5a9bb4a-7e8d-45e1-8c0d-989e3064feea.html"}
+    ],
+    "shenzhen": [
+      {"kind":"pipe","title":"龙华能源生态园全厂天燃气管网设计、供货、安装、调试及验收工程（重新招标）","official_url":"https://new.szggzy.com/jygg/details.html?contentId=20574026&channelId=2851"},
+      {"kind":"general","title":"站南居住用地01-05等地块配套工程一标段（不含场平及附属工程）设计","official_url":"https://new.szggzy.com/jygg/details.html?contentId=20592727&channelId=2851"}
+    ]
+  },
+  "terminal_notes": {
+    "qingdao": {"duration":"四条结构化详情均未披露精确工期","bond":"文件下载入口返回HTML壳，金额补抽受限","fullScore":"评分总分位于不可静态解析文件"},
+    "wuhan": {"scale":"四条详情未提供独立建设规模字段","funding":"详情表格未披露资金来源","controlPrice":"详情仅披露投资额，不冒充控制价","bond":"无公开文件直链","fullScore":"评分文件无公开直链","docLink":"招标文件需交易系统获取"},
+    "jinan": {"bond":"公告无公开文件直链","evaluation":"评标办法位于交易文件","fullScore":"评分细则位于交易文件","docLink":"需登录交易系统下载ztbml文件"},
+    "ningbo": {"bond":"公开附件下载端口HTTP 0，未补出保证金","evaluation":"公开附件下载端口HTTP 0，未补出评标办法","fullScore":"公开附件下载端口HTTP 0，未补出评分总分"},
+    "zhongshan": {"performance":"四条样本未披露独立企业业绩要求","bond":"招标文件下载需验证码","evaluation":"评标办法位于验证码文件","fullScore":"评分细则位于验证码文件","docLink":"静态方式不绕验证码"},
+    "nanjing": {"bond":"公开预览附件未补出保证金，部分请求HTTP 0"},
+    "shenzhen": {"scale":"两条结构化公告的本次招标面积为空","funding":"结构化公告未披露资金来源","docLink":"页面附件不是正式招标文件，正式文件需交易系统；定性评审已写满分不适用"}
+  },
+  "capability_updates": {
+    "qingdao": {"evidence_id":"fixture:a3-qingdao-project18","verified_at":"2026-08-21T23:28:11+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","qualification","performance","controlPrice","evaluation","consortium","docLink"],
+      "FIELD_NOT_DISCLOSED":["duration"],
+      "FIELD_RESTRICTED":["bond","fullScore"]
+    }},
+    "wuhan": {"evidence_id":"fixture:a3-wuhan-project18","verified_at":"2026-08-21T23:28:11+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","title","scope","duration","qualification","performance","evaluation","consortium"],
+      "FIELD_NOT_DISCLOSED":["scale","funding","controlPrice"],
+      "FIELD_RESTRICTED":["bond","fullScore","docLink"]
+    }},
+    "jinan": {"evidence_id":"fixture:a3-jinan-project18","verified_at":"2026-08-21T23:28:11+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","consortium"],
+      "FIELD_RESTRICTED":["bond","evaluation","fullScore","docLink"]
+    }},
+    "ningbo": {"evidence_id":"fixture:a3-ningbo-project18","verified_at":"2026-08-21T23:28:11+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","consortium","docLink"],
+      "FIELD_RESTRICTED":["bond","evaluation","fullScore"]
+    }},
+    "zhongshan": {"evidence_id":"fixture:a3-zhongshan-project18","verified_at":"2026-08-21T23:28:11+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","controlPrice","consortium"],
+      "FIELD_NOT_DISCLOSED":["performance"],
+      "FIELD_RESTRICTED":["bond","evaluation","fullScore","docLink"]
+    }},
+    "nanjing": {"evidence_id":"fixture:a3-nanjing-project18","verified_at":"2026-08-21T23:28:11+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","evaluation","consortium","fullScore","docLink"],
+      "FIELD_RESTRICTED":["bond"]
+    }},
+    "shenzhen": {"evidence_id":"fixture:a3-shenzhen-project18","verified_at":"2026-08-21T23:28:11+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scope","duration","qualification","performance","controlPrice","bond","evaluation","consortium","fullScore"],
+      "FIELD_NOT_DISCLOSED":["scale","funding"],
+      "FIELD_RESTRICTED":["docLink"]
+    }}
+  }
+}
