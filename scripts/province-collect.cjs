@@ -2226,7 +2226,7 @@ function numFrom(s) {
 // 调研证据（北京/山西/黑龙江/安徽/西藏 5 省真实详情页）：这些字段 90%+ 公告正文都有，但此前通用 extractDetail 不抽。
 const CODE_LABELS = ["项目编号", "招标项目编号", "标段编号", "交易项目编号", "项目代码", "招标编号", "标段号", "招标项目代码", "采购项目编号", "项目序号"];
 const METHOD_LABELS = ["招标方式", "招标组织形式", "采购方式", "发包方式"];
-const SCALE_LABELS = ["本次招标规模", "建设规模", "工程规模", "项目规模"];
+const SCALE_LABELS = ["本标段工程的主要建设内容", "主要建设内容", "本次招标规模", "建设规模", "工程规模", "项目规模"];
 const SCOPE_LABELS = ["本标段招标范围", "标段招标范围", "招标范围", "招标内容及范围", "招标内容"];
 const AMBIGUOUS_PROJECT_LABELS = ["建设内容", "项目概况", "项目基本情况"];
 const COMBINED_PROJECT_LABEL = /^(?:招标范围及规模|招标范围和规模|建设规模及招标范围|项目概况及招标范围)$/;
@@ -2441,6 +2441,7 @@ function extractProjectContent(html, text, flat) {
 
   scale = cleanProjectContent(scale);
   scope = cleanProjectContent(scope);
+  if (scale && scope && /本标段工程的主要建设内容/.test(scope) && scope.includes(scale)) scope = "";
   if (scale && scope) {
     const a = scale.replace(/[\s，,。；;]/g, "");
     const b = scope.replace(/[\s，,。；;]/g, "");

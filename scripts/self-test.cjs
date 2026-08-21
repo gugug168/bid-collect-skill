@@ -863,6 +863,9 @@ test("A1 项目内容精确标签优先、UUID尾噪声清理且明确免保证�
   const hubei = M.extractProjectContent("", "2. 项目概况与招标范围 2.1 项目名称：电缆采购 2.2 项目概况：项目位于产业园，总建筑面积约5.8万㎡，总投资约3亿元，规划年产高白玻璃砂100万吨。 2.4 招标范围：本次采购全厂电力电缆和控制电缆。", "");
   assert.match(hubei.scale, /5\.8万㎡/);
   assert.match(hubei.scope, /本次采购全厂电力电缆/);
+  const hubeiExact = M.extractProjectContent("", "2.项目概况与招标范围 2.1标段编号：YAA010079 2.2本标段工程的主要建设内容：对一楼产品推广展览中心进行装饰装修，包含电气、暖通、消防等配套工程。", "");
+  assert.match(hubeiExact.scale, /装饰装修/);
+  assert.equal(hubeiExact.scope, "");
   const noBond = M.extractDetail({}, "<p>本项目不收取投标保证金。</p>", { title: "示例招标公告", url: "https://example.invalid/a1" }, "");
   assert.equal(noBond.bond, 0);
   const school = M.extractProjectContent("", "项目基本情况：建设学校风雨长廊254米、地面硬化3100平方米。", "");
