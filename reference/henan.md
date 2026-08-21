@@ -1,33 +1,23 @@
-# 河南省 采集参考
+# 河南省采集参考
 
-> 数据源 adapter：`henan` · kind=`epoint` · 验证状态：**⚠️ 受限源（仅文件索引级，无公告厚字段）**
-> 最后验证：2026-08-15（30→90→365 天管网窗口均无记录）
+> adapter：`henan` · kind=`epoint` · 验证状态：**✅ VERIFIED_RECORD（无关键词样本）** · 最后验证：2026-08-21（A2 project18 clean evidence）
 
 ## 机制
-EPoint 标准 `getFullTextDataNew`，**cnum=001=档案电子件（按文件名）索引**。
 
-## 2026-08-14 验证结论
-⚠️ **文件索引级源，不可用**：河南该实例全文索引是"档案电子件（名称）"（306 万条），records 的 `title`/`linkurl` 恒空（仅文件名），`管网` 等建设关键词检索返回 0；列表面板即"文件索引"而非"公告页"。**定位为 LIST_ONLY/文件索引源，无法抽建设类厚字段公告**，须另寻河南公告页级源（如地市门户）。诚实不伪造详情链接（已 `allowNoUrl`）。
+官方入口：[河南省公共资源交易平台](https://hnsggzyjy.henan.gov.cn)。EPoint 招标公告详情页可公开回读；招标文件下载通过验证码网关，静态采集不绕过。
 
-2026-08-15 通过 sidecar 扩大到 90/365 天仍为 `CONNECTED_NO_RECENT_DATA`；这不改变“文件索引级、不可当公告详情源”的结论。
+## A2 project18 结论
+
+管网关键词30天和90天窗口无记录，365天深页出现 TLS 传输失败；这不等于平台失败。按既定规则执行一次无关键词复扫，取得郑州松苑提升改造真实招标公告并在干净代码上逐字段核对。已修复无复选框的分标段企业业绩只返回标题问题，现保留一、二标段完整金额门槛。
+
+17字段终态为 VL=4、VD=10、R=3，无 `FIELD_UNVERIFIED`。保证金、评标办法和满分位于验证码附件，保持空值并记录 `ATTACHMENT_CAPTCHA_REQUIRED`；不降低公告 `VERIFIED_RECORD` 状态。
+
+机器证据：`reference/evidence/a2-structured-project18-20260821.json`。
 
 ## 可重复采集命令
-```bash
-HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p henan -k 管网 --detail -d 120 --csv -o out/henan.csv
-// （仅文件索引级，0 建设公告，见 verdict）
+
+```powershell
+node scripts/province-collect.cjs -p henan -d 30 --stage zb --limit 1 --xlsx-layout project18 --attach --csv -o out/henan.xlsx
 ```
 
-## 城市/区县筛选（2026-08-16 实测）
-`-c 郑州 --limit 2 --no-detail`（无 `-k` 口径）返回 2/2 条记录（郑州航空工业管理学院…/郑州建瓴置业…项目，标题含筛词）；`-k 管网` 365d 仍 0 条。
-
-## 诚实留空字段（源页无则空，绝不伪造）
-（见 verdict；该源无法提供建设类公告厚字段）
-
-## 中标/合同阶段（B 阶段 · Goal v1）
-
-本省的 `--stage candidate|result|contract`（中标候选/结果/合同）**待逐省枚举端点，尚未配置 `stages`**。
-原因：B 阶段栏目码因省而异，盲推会把错类目当中标候选（浙江 `002001003` 实证=开标记录）。
-状态与正确做法见 `FAMILY_INDEX.md` §3.1「其余 26 省 B 阶段现状」。
-
-## 家族与通用纪律
-见 `FAMILY_INDEX.md`（家族总览 + 代理/鉴权/mustache 脏值拦截/去重坍缩等通用提醒）。
+无关键词样本只证明 adapter 字段能力，不得冒充“管网”关键词命中结果。

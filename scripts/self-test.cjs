@@ -57,8 +57,8 @@ test("招标公告实时状态总账覆盖全部 62 个 adapter", () => {
   const rows = [...text.matchAll(/^\| ([a-z][a-z0-9]+) \|/gm)].map((m) => m[1]).filter((adapter) => M.ADAPTERS[adapter]);
   assert.equal(new Set(rows).size, 62);
   assert.deepEqual([...new Set(rows)].sort(), Object.keys(M.ADAPTERS).sort());
-  assert.match(text, /`VERIFIED_RECORD`：54 个/);
-  assert.match(text, /`CONNECTED_NO_RECENT_DATA`：7 个/);
+  assert.match(text, /`VERIFIED_RECORD`：55 个/);
+  assert.match(text, /`CONNECTED_NO_RECENT_DATA`：6 个/);
   assert.match(text, /`FAILED`：1 个/);
 });
 
@@ -819,9 +819,10 @@ test("project18 能力真相源覆盖62×17并锁定干净证据", () => {
   assert.equal(validation.adapter_count, 62);
   assert.equal(validation.field_count, 17);
   assert.equal(validation.cells, 1054);
-  assert.equal(validation.unverified, 918);
+  assert.equal(validation.unverified, 799);
   assert.equal(CAP.projectionMatches(doc), true);
-  for (const adapter of ["guangdong", "hunan", "hubei", "guizhou", "yunnan", "neimenggu", "tianjin", "jilin"]) {
+  for (const adapter of ["guangdong", "hunan", "hubei", "guizhou", "yunnan", "neimenggu", "tianjin", "jilin",
+    "anhui", "xizang", "gansu", "liaoning", "fujian", "chongqing", "henan"]) {
     for (const field of doc.audited_fields) assert.notEqual(doc.adapters[adapter].fields[field].status, "FIELD_UNVERIFIED", `${adapter}.${field}`);
   }
   for (const evidence of Object.values(doc.evidence)) assert.equal(evidence.code_dirty, false);

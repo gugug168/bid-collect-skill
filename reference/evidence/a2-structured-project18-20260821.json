@@ -1,0 +1,95 @@
+{
+  "schema_version": "project18-evidence.v1",
+  "batch": "A2",
+  "stage": "zb",
+  "verified_at": "2026-08-21T22:41:39+08:00",
+  "code_dirty": false,
+  "evidence": {
+    "fixture:a2-anhui-project18": {"kind":"fixture","path":"reference/evidence/a2-structured-project18-20260821.json","code_commit":"ad1f2ca845d360987c49d8d880880b6fea65c6ee","code_dirty":false},
+    "fixture:a2-xizang-project18": {"kind":"fixture","path":"reference/evidence/a2-structured-project18-20260821.json","code_commit":"ad1f2ca845d360987c49d8d880880b6fea65c6ee","code_dirty":false},
+    "fixture:a2-gansu-project18": {"kind":"fixture","path":"reference/evidence/a2-structured-project18-20260821.json","code_commit":"ad1f2ca845d360987c49d8d880880b6fea65c6ee","code_dirty":false},
+    "fixture:a2-liaoning-project18": {"kind":"fixture","path":"reference/evidence/a2-structured-project18-20260821.json","code_commit":"ad1f2ca845d360987c49d8d880880b6fea65c6ee","code_dirty":false},
+    "fixture:a2-fujian-project18": {"kind":"fixture","path":"reference/evidence/a2-structured-project18-20260821.json","code_commit":"51a994d0de8ef6b13facea76146537c7ed577377","code_dirty":false},
+    "fixture:a2-chongqing-project18": {"kind":"fixture","path":"reference/evidence/a2-structured-project18-20260821.json","code_commit":"ad1f2ca845d360987c49d8d880880b6fea65c6ee","code_dirty":false},
+    "fixture:a2-henan-project18": {"kind":"fixture","path":"reference/evidence/a2-structured-project18-20260821.json","code_commit":"51a994d0de8ef6b13facea76146537c7ed577377","code_dirty":false}
+  },
+  "samples": {
+    "anhui": [
+      {"kind":"pipe","title":"广德未来科创城污水管网改造及新建工程项目-科技路、昌盛路及周边污水管网改造及新建工程招标公告","official_url":"https://ggzy.ah.gov.cn/jsgc/newDetail?guid=a1f28575-7380-b6d7-f91e-1cfa9a0947ec&tenderProjectType=1&bulletinNature=1"},
+      {"kind":"general","title":"杜集“五七”干校旧址文物保护工程修缮项目招标公告","official_url":"https://ggzy.ah.gov.cn/jsgc/newDetail?guid=52d54ac7-2e55-31e9-693e-8fc82dfe42fd&tenderProjectType=1&bulletinNature=1"}
+    ],
+    "xizang": [
+      {"kind":"pipe","title":"昌都市类乌齐县排水管网改造项目（二次）项目招标公告","official_url":"https://ggzy.xizang.gov.cn/jyxxgcgg/1335463.jhtml"},
+      {"kind":"general","title":"谢通门县达那片区水塘改造建设项目项目招标公告","official_url":"https://ggzy.xizang.gov.cn/jyxxgcgg/1336325.jhtml"}
+    ],
+    "gansu": [
+      {"kind":"pipe","title":"永登县城关镇2026年农村人饮工程管网改造提升工程招标公告","official_url":"https://lzggzyjy.lanzhou.gov.cn/xqfzx/014001/014001001/20260805/736faf5c-843c-4650-a292-2f28c8476118.html"},
+      {"kind":"general","title":"七里河区至城关区热电联产替代燃气锅炉供热干线工程监理","official_url":"https://lzggzyjy.lanzhou.gov.cn/jygk/002001/002001001/20260821/1348bbd5-b23e-4afa-ac9f-afa40fd46859.html"}
+    ],
+    "liaoning": [
+      {"kind":"pipe","title":"新开发银行贷款辽宁省产业转型升级基础设施建设和环境改善项目鞍山市南沙河雨污分流改造工程（一包）：雨水分区6.7.8管网，排口整治改造工程","official_url":"https://ggzy.ln.gov.cn/jyfb/lns/gcjs/zbgg/202608/t20260806_5653713.html"},
+      {"kind":"general","title":"秦皇岛至沈阳高速公路松岭门至沈阳段、丹东至阜新高速公路新民至阜新段机电工程施工监理招标公告","official_url":"https://ggzy.ln.gov.cn/jyfb/lns/gcjs/zbgg/202608/t20260819_5656560.html"}
+    ],
+    "fujian": [
+      {"kind":"pipe","title":"安溪县城东片区排水管网建设与泵站改造项目（砖文片区）（招标公告）","official_url":"https://ggzyfw.fujian.gov.cn/#/business/detail?name=%E5%AE%89%E6%BA%AA%E5%8E%BF%E5%9F%8E%E4%B8%9C%E7%89%87%E6%8E%92%E6%B0%B4%E7%AE%A1%E7%BD%91%E5%BB%BA%E8%AE%BE%E4%B8%8E%E6%B3%B5%E7%AB%99%E6%94%B9%E9%80%A0%E9%A1%B9%E7%9B%AE%EF%BC%88%E7%A0%96%E6%96%87%E7%89%87%E5%8C%BA%EF%BC%89%EF%BC%88%E6%8B%9B%E6%A0%87%E5%85%AC%E5%91%8A%EF%BC%89&cid=285149&type=GCJS"},
+      {"kind":"general","title":"马銮湾新城集美片区柏涛学校变配电增容及正式用电接入工程（施工）","official_url":"https://ggzyfw.fujian.gov.cn/#/business/detail?name=%E9%A9%AC%E9%8A%AE%E6%B9%BE%E6%96%B0%E5%9F%8E%E9%9B%86%E7%BE%8E%E7%89%87%E5%8C%BA%E6%9F%8F%E6%B6%9B%E5%AD%A6%E6%A0%A1%E5%8F%98%E9%85%8D%E7%94%B5%E5%A2%9E%E5%AE%B9%E5%8F%8A%E6%AD%A3%E5%BC%8F%E7%94%A8%E7%94%B5%E6%8E%A5%E5%85%A5%E5%B7%A5%E7%A8%8B%EF%BC%88%E6%96%BD%E5%B7%A5%EF%BC%89&cid=285112&type=GCJS"}
+    ],
+    "chongqing": [
+      {"kind":"pipe","title":"重庆市巴南区龙洲湾片区城市污水管网更新改造工程施工招标公告","official_url":"https://www.cqggzy.com/trade/014001/4304409f-dd7a-4367-a185-d29608977ba8?categoryNum=014001001002"},
+      {"kind":"general","title":"重庆市“两江四岸”治理提升长江南岸线延伸工程巴滨绿岸段（通江公园段提升工程）项目","official_url":"https://www.cqggzy.com/trade/014001/49649c40-68cf-460c-be5d-594e49d57cb7?categoryNum=014001001002"}
+    ],
+    "henan": [
+      {"kind":"general","title":"郑州建瓴置业有限公司松苑项目提升改造工程（公区装修）招标公告","official_url":"https://hnsggzyjy.henan.gov.cn/jyxx/002001/002001001/20260821/1e82c061-de7b-4b86-aa20-4b5c9af87173.html"}
+    ]
+  },
+  "terminal_notes": {
+    "anhui": {"fullScore":"四条公告未公开评分总分，招标文件无公开直链","docLink":"页面未给公开招标文件直链"},
+    "xizang": {"performance":"四条公告未披露可提取企业业绩要求","bond":"保证金金额未在公告公开且无文件直链","evaluation":"评标办法位于交易文件","fullScore":"评分细则位于交易文件","docLink":"无公开文件直链"},
+    "gansu": {"scale":"四条样本正文未披露可用建设规模","performance":"四条样本未披露独立业绩事实","controlPrice":"三条文件入口返回HTML壳，静态附件补抽受限","bond":"三条文件入口返回HTML壳，静态附件补抽受限","evaluation":"评分内容位于受限文件入口","fullScore":"评分内容位于受限文件入口"},
+    "liaoning": {"scope":"两条公告没有可独立确认的本次招标范围，章节标题已拒收","performance":"样本未披露可独立提取的企业业绩事实","controlPrice":"样本公告未披露具体控制价","bond":"无公开文件直链","fullScore":"评分文件无公开直链","docLink":"无公开文件直链"},
+    "fujian": {"evaluation":"详情API未公开评标办法，文件无公开直链","fullScore":"详情API未公开评分总分，文件无公开直链","docLink":"详情API未返回公开招标文件直链"},
+    "chongqing": {"performance":"四条样本公告未披露独立企业业绩要求","bond":"公告未公开金额且无文件直链","fullScore":"评分细则无公开文件直链","docLink":"页面未给公开招标文件直链"},
+    "henan": {"bond":"官方附件下载需验证码，未绕过","evaluation":"评标办法位于验证码附件","fullScore":"评分细则位于验证码附件","pipe_window":"管网关键词30/90天无记录，365天深页出现TLS失败；能力转正仅使用无关键词官方招标公告样本"}
+  },
+  "capability_updates": {
+    "anhui": {"evidence_id":"fixture:a2-anhui-project18","verified_at":"2026-08-21T22:41:39+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","title","scale","scope","funding","duration","qualification","performance","controlPrice","bond","evaluation","consortium"],
+      "FIELD_RESTRICTED":["fullScore","docLink"]
+    }},
+    "xizang": {"evidence_id":"fixture:a2-xizang-project18","verified_at":"2026-08-21T22:41:39+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","controlPrice","consortium"],
+      "FIELD_NOT_DISCLOSED":["performance"],
+      "FIELD_RESTRICTED":["bond","evaluation","fullScore","docLink"]
+    }},
+    "gansu": {"evidence_id":"fixture:a2-gansu-project18","verified_at":"2026-08-21T22:41:39+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","title","url"],
+      "FIELD_VERIFIED_DETAIL":["region","bidOpen","scope","funding","duration","qualification","consortium","docLink"],
+      "FIELD_NOT_DISCLOSED":["scale","performance"],
+      "FIELD_RESTRICTED":["controlPrice","bond","evaluation","fullScore"]
+    }},
+    "liaoning": {"evidence_id":"fixture:a2-liaoning-project18","verified_at":"2026-08-21T22:41:39+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","title","url"],
+      "FIELD_VERIFIED_DETAIL":["region","bidOpen","scale","funding","duration","qualification","evaluation","consortium"],
+      "FIELD_NOT_DISCLOSED":["scope","performance","controlPrice"],
+      "FIELD_RESTRICTED":["bond","fullScore","docLink"]
+    }},
+    "fujian": {"evidence_id":"fixture:a2-fujian-project18","verified_at":"2026-08-21T22:41:39+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","title","url"],
+      "FIELD_VERIFIED_DETAIL":["region","bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","bond","consortium"],
+      "FIELD_RESTRICTED":["evaluation","fullScore","docLink"]
+    }},
+    "chongqing": {"evidence_id":"fixture:a2-chongqing-project18","verified_at":"2026-08-21T22:41:39+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","controlPrice","evaluation","consortium"],
+      "FIELD_NOT_DISCLOSED":["performance"],
+      "FIELD_RESTRICTED":["bond","fullScore","docLink"]
+    }},
+    "henan": {"evidence_id":"fixture:a2-henan-project18","verified_at":"2026-08-21T22:41:39+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","consortium","docLink"],
+      "FIELD_RESTRICTED":["bond","evaluation","fullScore"]
+    }}
+  }
+}
