@@ -972,7 +972,7 @@ test("A2 福建金额单位、零工期、业绩空值与包含关系scope均诚
 
   const pending = M.mapFjDetailPayload(
     { BaseInfo: { PRICE_UNIT: "0", CONTRACT_RECKON_PRICE: 4940000, LIMITE_TIME: "60" } },
-    { Contents: "<p>工程建设规模：供电容量3600KVA。</p><p>招标控制价：（招标人最迟应在投标截止时间10日前发布）元。</p>" },
+    { Contents: "<p>工程建设规模：供电容量3600KVA，建安投资约494万元。</p><p>招标控制价：（招标人最迟应在投标截止时间10日前发布）元。</p>" },
     { title: "控制价待发布公告", url: "https://example.invalid/fj-pending" },
     M.ADAPTERS.fujian,
   );
@@ -987,6 +987,15 @@ test("A2 辽宁发布机构不冒充地区、甘肃行政代码转人读地区",
   assert.equal(detail.funding, "一般债券资金");
   assert.equal(detail.duration, "540天");
   assert.equal(detail.performance, "");
+});
+
+test("A2 河南无复选框的分标段企业业绩提取完整条款", () => {
+  const html = "<p>3.3业绩要求：3.3.1企业类似工程业绩：一标段：投标人自2023年1月1日以来已完成单项合同金额1300万元及以上的类似装饰装修工程业绩一项。二标段：投标人已完成单项合同金额1100万元及以上的类似工程业绩一项。</p><p>3.3.2项目经理类似工程业绩：另有要求。</p>";
+  const out = M.extractDetail({}, html, { title: "河南装修工程招标公告", url: "https://example.invalid/henan" }, "");
+  assert.match(out.performance, /一标段/);
+  assert.match(out.performance, /1300万元/);
+  assert.match(out.performance, /二标段/);
+  assert.doesNotMatch(out.performance, /项目经理类似工程业绩/);
 });
 
 test("XLSX 行宽与 schema 一致且脏哨兵不出现在单元格", () => {

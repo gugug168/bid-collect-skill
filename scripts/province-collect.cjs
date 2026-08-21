@@ -1827,6 +1827,10 @@ function grabPerformance(text, flat) {
       if (isMeaningful(clause, 4)) return clause;
     }
     if (/[R☑√■⊠þ]\s*不要求类似工程业绩/.test(seg)) return "不要求";
+    // 河南等公告不用复选框，标题后直接给出分标段企业业绩条款。
+    // 只在出现合同金额/完成业绩等强语义时采用，避免再次返回光杆小标题。
+    const directClause = cleanVal(seg.replace(/^\s*[:：]\s*/, "").replace(/[\r\n]+/g, " "));
+    if (isMeaningful(directClause, 12) && /合同金额|完成的?.{0,20}(?:工程)?业绩|业绩一项|验收时间/.test(directClause)) return directClause.slice(0, 500);
   }
   // 烟台工程公告的明确空值形态：「3.4 业绩要求：/ 3.5 其他要求」。
   // 斜杠不是缺失，而是发布方明确表示无业绩要求；须在宽松 grab 跨入 3.5 前截住。
@@ -2088,7 +2092,7 @@ function grabDuration(text, flat) {
   const durUnitHit = (s) => DUR_UNIT.test(String(s).replace(/(?:19|20)\d{2}\s*年(?:\s*\d{1,2}\s*月(?:\s*\d{1,2}\s*日)?)?/g, ""));
   // 先取紧邻“计划工期/工期”的数字时间值，避开复合标题“招标范围及标段划分、计划工期”
   // 后面尚有大量复选框时，兜底扫描会把“☑其他：施工图纸……”错当工期（绵阳公路公告实测）。
-  const directRe = /(?:计划工期|工期)\s*(?:要求\s*)?[:：]?\s*(\d+\s*(?:个日历天|日历天|个工作日|工作日|天|个月|月|年))/g;
+  const directRe = /(?:计划工期|总工期|工期)\s*(?:要求\s*)?[:：]?\s*(?:为\s*)?(\d+\s*(?:个日历天|日历天|个工作日|工作日|天|个月|月|年))/g;
   let direct;
   while ((direct = directRe.exec(text))) {
     const candidate = durClean(direct[1]);
@@ -3716,7 +3720,9 @@ function mapFjDetailPayload(meta, content, item, ad) {
     : "";
   const detailText = htmlToText(html);
   const hasExplicitControlPrice = /招标控制价[\s\S]{0,100}?\d+(?:\.\d+)?\s*(?:万元|万|元)/.test(detailText);
-  if (contractWan && out.controlPrice && !hasExplicitControlPrice) out.controlPrice = contractWan;
+  const controlPriceDeferred = /招标控制价[\s\S]{0,120}?(?:最迟应|另行|后续)[\s\S]{0,60}?发布/.test(detailText);
+  if (controlPriceDeferred) out.controlPrice = "";
+  else if (contractWan && out.controlPrice && !hasExplicitControlPrice) out.controlPrice = contractWan;
   if (base.TENDERER_NAME) out.owner = String(base.TENDERER_NAME);
   if (base.TENDER_AGENCY_NAME) out.agency = String(base.TENDER_AGENCY_NAME);
   if (Number(base.LIMITE_TIME) > 0) out.duration = `${Number(base.LIMITE_TIME)}日历天`;
