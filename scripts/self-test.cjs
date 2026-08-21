@@ -181,8 +181,10 @@ test("A3 城市结构化详情拒绝金额尾噪声、评审模板、空标签�
   assert.equal(M.ningboExactDuration("施工期的现场配合服务等"), "");
   assert.equal(M.ningboExactDuration("工期要求：总工期为270日历天"), "270日历天");
 
-  const jinan = M.jinanDetail("<p>1.项目名称:示例</p><p>4.计划工期:240</p><p>5.质量要求:合格</p><p>1、资质要求：工程设计综合甲级资质。4、业绩要求：投标人承担过单项合同100万元以上类似工程。5、信誉要求：良好。</p>", { title: "济南示例招标公告", url: "https://example.invalid/jinan" }, "");
+  const jinan = M.jinanDetail("<p>1.项目名称:示例</p><p>4.计划工期:240</p><p>5.质量要求:合格</p><p>1、本次招标要求潜在投标人应当同时具备工程勘察乙级和工程设计甲级资质，具备承担本项目的能力。</p><p>2、投标人拟派项目负责人须注册。</p><p>4、业绩要求：投标人承担过单项合同100万元以上类似工程。</p><p>5、信誉要求：良好。</p>", { title: "济南示例招标公告", url: "https://example.invalid/jinan" }, "");
   assert.equal(jinan.duration, "240");
+  assert.match(jinan.qualification, /工程勘察乙级/);
+  assert.doesNotMatch(jinan.qualification, /投标人拟派/);
   assert.match(jinan.performance, /100万元/);
 
   const zhongshan = M.zhongshanDetail("<table><tr><td>投标资格能力要求</td><td>工程勘察综合甲级资质；工程设计市政行业甲级资质</td></tr></table>", { title: "中山示例招标公告", url: "https://example.invalid/zs" }, "");

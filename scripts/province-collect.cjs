@@ -4263,7 +4263,10 @@ function jinanDetail(html, item, pdfText) {
   out.phone = String(f["招标单位联系电话"] || f["建设单位联系电话"] || "").trim();
   const duration = detailText.match(/(?:^|\n)\s*\d+\s*[.、．]\s*计划工期\s*[:：]\s*(\d+(?:\.\d+)?)/m)?.[1] || "";
   if (duration) out.duration = duration;
-  out.qualification = cleanNanjingQualification(out.qualification);
+  const qualification = detailText.match(/(?:^|\n)\s*1\s*[.、．]\s*(本次招标要求潜在投标人[\s\S]{10,1000}?)(?=\n\s*2\s*[.、．]\s*投标人拟派)/m)?.[1] || "";
+  out.qualification = qualification
+    ? cleanVal(qualification.replace(/[\r\n]+/g, " ")).slice(0, 500)
+    : cleanNanjingQualification(out.qualification);
   const performance = detailText.match(/(?:^|\n)\s*\d+\s*[.、．]\s*业绩要求\s*[:：]\s*([\s\S]{4,1200}?)(?=\n\s*\d+\s*[.、．]\s*(?:信誉|联合体|其他)要求)/m)?.[1] || "";
   if (performance) out.performance = cleanVal(performance.replace(/[\r\n]+/g, " ")).slice(0, 500);
   out.bidOpen = out.bidOpen || grabDateTime(detailText, ["投标文件的提交截止时间", "投标截止时间", "开标时间"]);
