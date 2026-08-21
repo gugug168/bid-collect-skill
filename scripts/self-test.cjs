@@ -168,6 +168,17 @@ test("深圳列表严格只收 noticeTypeName=招标公告，保留官方地区�
   assert.equal(M.exactMoneyWan("66042741.73元"), "6604.274173");
 });
 
+test("A3 城市结构化详情拒绝金额尾噪声、评审模板、空标签与跨章节资质", () => {
+  assert.equal(M.cleanA3ScopeAmountTail("施工图及工程量清单范围内全部施工。 12833928.83"), "施工图及工程量清单范围内全部施工。");
+  assert.equal(M.cleanA3ScopeAmountTail("道路、排水及绿化工程。本次招标建安工程造价22427185元。"), "道路、排水及绿化工程。");
+  assert.equal(M.cleanQingdaoPerformance("企业业绩评审、获得奖项评审、项目管理班子成员配备情况评审", ""), "");
+  assert.equal(M.cleanQingdaoPerformance("", "本项目资格审查阶段无业绩要求。"), "不要求");
+  assert.equal(M.cleanNanjingQualification("具有建筑垃圾运输资格。4.招标文件的获取"), "具有建筑垃圾运输资格。");
+  assert.equal(M.cleanNanjingQualification("具有工程设计综合甲级资质。业绩要求：承担过涉铁工程设计项目。"), "具有工程设计综合甲级资质。");
+  assert.deepEqual(M.shenzhenProjectContent({}), { scale: "", scope: "" });
+  assert.deepEqual(M.shenzhenProjectContent({ "本次招标面积": "12000平方米", "本次招标内容": "施工图范围内全部施工" }), { scale: "12000平方米", scope: "施工图范围内全部施工" });
+});
+
 test("洛阳与郑州复用标准 EPoint 并锁定城市招标公告边界", () => {
   assert.equal(M.ADAPTERS.luoyang.kind, "epoint");
   assert.equal(M.ADAPTERS.luoyang.keepScheme, true);

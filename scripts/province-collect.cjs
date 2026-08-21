@@ -4230,9 +4230,17 @@ function stripSealNoise(value) {
   return String(value || "").replace(/&&&[^&]+&&&/g, "").replace(/^[为是：:\s]+/, "").trim();
 }
 
+function cleanNanjingQualification(value) {
+  return String(value || "")
+    .replace(/\s*业绩要求\s*[:：][\s\S]*$/i, "")
+    .replace(/\s*\d+\s*[.、．]\s*招标文件的获取[\s\S]*$/i, "")
+    .trim();
+}
+
 function nanjingDetail(html, item, pdfText) {
   const out = extractDetail({}, html, item, pdfText);
   for (const key of ["owner", "agency", "contact", "manager"]) out[key] = stripSealNoise(out[key]);
+  out.qualification = cleanNanjingQualification(out.qualification);
   return out;
 }
 
@@ -4604,9 +4612,25 @@ function exactMoneyWan(value) {
   return String(Number((/万元/.test(raw) ? n : n / 10000).toFixed(6)));
 }
 
+function cleanA3ScopeAmountTail(value) {
+  return String(value || "")
+    .replace(/\s*(?:本次招标)?(?:建安工程造价|最高投标限价|招标控制价|控制价)\s*[:：为约]?[\s\d,.万元元]+[。；;]?\s*$/i, "")
+    .replace(/\s+\d{6,}(?:\.\d+)?\s*$/, "")
+    .trim();
+}
+
+function cleanQingdaoPerformance(value, text) {
+  const raw = String(value || "").trim();
+  const source = String(text || "");
+  if (/(?:本项目)?资格审查阶段无业绩要求|(?:本项目|投标人)?不要求(?:企业|类似)?业绩/.test(source)) return "不要求";
+  if (/评审|评分因素|获得奖项|项目管理班子/.test(raw)) return "";
+  return raw;
+}
+
 function qingdaoDetail(ad, html, item) {
   const out = extractDetail(ad, html, item, "");
   const f = parseStrongTableFields(html);
+  const detailText = htmlToText(html);
   const pageTitle = String(html || "").match(/<div[^>]*class=["'][^"']*\btle\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/i)?.[1];
   if (pageTitle) out.title = htmlToText(pageTitle).replace(/招标公告\s*$/, "").trim();
   if (f["工程地点"]) out.projectSite = f["工程地点"];
@@ -4621,6 +4645,8 @@ function qingdaoDetail(ad, html, item) {
   if (f["招标单位联系人"]) out.contact = f["招标单位联系人"];
   if (f["招标单位联系电话"]) out.phone = f["招标单位联系电话"];
   if (f["项目统一代码（编码）"]) out.projectCode = f["项目统一代码（编码）"];
+  out.scope = cleanA3ScopeAmountTail(out.scope);
+  out.performance = cleanQingdaoPerformance(out.performance, detailText);
   out.duration = f["工期"] || ""; // 无精确字段时不保留通用解析器从违约条款误抓的句子
   return out;
 }
@@ -4723,6 +4749,13 @@ function parseBgTableFields(html) {
   return out;
 }
 
+function shenzhenProjectContent(fields) {
+  return {
+    scale: cleanProjectContent(fields && fields["本次招标面积"] || ""),
+    scope: cleanProjectContent(fields && fields["本次招标内容"] || ""),
+  };
+}
+
 async function shenzhenDetail(ad, item) {
   const r = await fetch(`${ad.base}/cms/api/v1/trade/content/detail?contentId=${encodeURIComponent(item.contentId)}`, {
     headers: { "User-Agent": UA_STR, "Referer": item.url || ad.referer, "Accept": "application/json, text/plain, */*" },
@@ -4739,6 +4772,11 @@ async function shenzhenDetail(ad, item) {
   if (item.owner) out.owner = item.owner;
   if (item.agency) out.agency = item.agency;
   if (item.projectCode) out.projectCode = item.projectCode;
+  // 深圳表格把“本次招标内容/面积”的空单元格保留为标签；通用正文扫描会把下一个标签
+  // “本次招标面积”误当 scope。项目内容只认这两个结构化单元格，空就是源页未披露。
+  const projectContent = shenzhenProjectContent(f);
+  out.scope = projectContent.scope;
+  out.scale = projectContent.scale;
   if (f["工程地址"]) out.projectSite = f["工程地址"];
   if (f["投标文件递交截止时间"]) out.bidOpen = f["投标文件递交截止时间"].slice(0, 16);
   if (f["计划工期"]) out.duration = f["计划工期"];
@@ -5024,6 +5062,7 @@ async function ningboDetail(ad, item) {
   // 平台 content 内保留大量旧模板 HTML 注释；先删注释，避免未选中的资质/联合体/开标块污染抽取。
   const content = String(d.content || "").replace(/<!--[\s\S]*?-->/g, "");
   const out = extractDetail(ad, content, item, "");
+  out.scope = cleanA3ScopeAmountTail(out.scope);
   const detailText = htmlToText(content);
   // 宁波多标段公告会在同一项目页逐段披露建安造价；只取首个数字会把其余标段静默丢失。
   // 单标段继续保持原数值形态，多标段才写成带标段名的可审计文本。
@@ -8022,5 +8061,5 @@ function resolveOutputPaths(args) {
 })();
 
 
-module.exports = { ADAPTERS, PROV_ALIAS, PROJECT18_AUDIT_FIELDS, XLSX_HEADER, BIAOBIAOTONG_HEADER, PROJECT18_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, resolveYgpCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, isStrictZbTitle, extractDetail, extractProjectContent, auditedFieldValue, isFilledFieldValue, ensureFieldSources, markFieldSource, buildFieldStats, xlsxColumnWidths, buildYgpDetailUrl, parseYgpListRows, unwrapYgpPayload, parseYgpJsonText, selectYgpTenderAttachment, parseYgpDetailPayload, extractYgpAttachmentFields, attachmentStatusFromNote, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, guizhouAttachmentUrl, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseNanjingPayload, nanjingDetail, parseHuizhouHtml, parseHuizhouSearchJsonp, normalizeHuizhouUrl, huizhouDetail, parseZhongshanPayload, zhongshanControlPrice, zhongshanDetail, parseJinanPayload, jinanDetail, parseWuhanHtml, wuhanDetail, parseQingdaoHtml, parseStrongTableFields, qingdaoDetail, parseShenzhenList, parseBgTableFields, exactMoneyWan,
+module.exports = { ADAPTERS, PROV_ALIAS, PROJECT18_AUDIT_FIELDS, XLSX_HEADER, BIAOBIAOTONG_HEADER, PROJECT18_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, resolveYgpCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, isStrictZbTitle, extractDetail, extractProjectContent, auditedFieldValue, isFilledFieldValue, ensureFieldSources, markFieldSource, buildFieldStats, xlsxColumnWidths, buildYgpDetailUrl, parseYgpListRows, unwrapYgpPayload, parseYgpJsonText, selectYgpTenderAttachment, parseYgpDetailPayload, extractYgpAttachmentFields, attachmentStatusFromNote, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, guizhouAttachmentUrl, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseNanjingPayload, cleanNanjingQualification, nanjingDetail, parseHuizhouHtml, parseHuizhouSearchJsonp, normalizeHuizhouUrl, huizhouDetail, parseZhongshanPayload, zhongshanControlPrice, zhongshanDetail, parseJinanPayload, jinanDetail, parseWuhanHtml, wuhanDetail, parseQingdaoHtml, parseStrongTableFields, cleanA3ScopeAmountTail, cleanQingdaoPerformance, qingdaoDetail, parseShenzhenList, parseBgTableFields, shenzhenProjectContent, exactMoneyWan,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, fjDetail, mapFjDetailPayload, cqList, tjList, nmgList, lnList, normalizeGsCityName, gsList };
