@@ -1,7 +1,7 @@
 # 常州市 采集参考（城市级 · 独立平台）
 
-> 数据源 adapter：`changzhou` · kind=`epoint` · 验证状态：**✅ 已打通（2026-08-16 V5 探测接入实测）**
-> 最后验证：2026-08-16（zb 近 30 天 3/3 VERIFIED_RECORD，厚字段控制价/招标人直接命中）
+> 数据源 adapter：`changzhou` · kind=`epoint` · 验证状态：**✅ VERIFIED_RECORD（2026-08-22 B1）**
+> 最后验证：2026-08-22（管网3条+科创中心设计1条）
 
 ## 机制
 城市级**独立平台**（常州市公共资源交易中心 https://ggzy.changzhou.gov.cn，江苏省平台不聚合其详情），标准 EPoint `getFullTextDataNew` 同构。两个实例级差异（真机二分定位）：
@@ -12,6 +12,10 @@
 
 ## 验证结论
 ✅ 2026-08-16 实测：`-p changzhou -k 管网 -d 30 --limit 3 --detail` 3/3 VERIFIED_RECORD——控制价 250/2994.43/440 万、招标人、官方详情链接（ggzy.changzhou.gov.cn/jyzx/001001/...）全命中。机器证据：`test-logs/v5-fulltest-2026-08-16/changzhou2.run-report.json`。
+
+## 2026-08-22 B1 project18 结论
+
+已确认服务端 `wd` 会忽略关键词，现强制标题二次过滤；设施/桩号不再冒充地区，业绩残句被拒收，公开附件可补保证金。17字段终态为 VL=3、VD=12、VA=1、R=1，无 `FIELD_UNVERIFIED`。机器证据：`reference/evidence/b1-epoint-project18-20260822.json`。
 
 ## 可重复采集命令
 ```bash

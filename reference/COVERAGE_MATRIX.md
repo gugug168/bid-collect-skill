@@ -11,14 +11,14 @@
 | adapter | publishDate | region | bidOpen | title | scale | scope | funding | duration | qualification | performance | controlPrice | bond | evaluation | consortium | fullScore | url | docLink |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | shandong | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
-| jiangsu | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
-| zhejiang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
-| hainan | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
-| heilongjiang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| jiangsu | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | VD | VD | VD | VL | VD |
+| zhejiang | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | VD |
+| hainan | VL | VL | VD | VD | VD | VD | VD | VD | VD | ND | VD | VD | VD | VD | R | VL | VD |
+| heilongjiang | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS |
 | suzhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
 | xuzhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
-| anyang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
-| changzhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| anyang | VL | VD | VD | VL | VD | VD | VD | VD | VD | ND | VD | R | R | VD | R | VL | VD |
+| changzhou | VL | VD | VD | VL | VD | VD | VD | VD | VD | VD | VD | VA | VD | VD | R | VL | VD |
 | luoyang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
 | zhengzhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
 | mianyang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |

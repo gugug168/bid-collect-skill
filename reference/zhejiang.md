@@ -1,13 +1,17 @@
 # 浙江省 采集参考
 
 > 数据源 adapter：`zhejiang` · kind=`epoint` · 验证状态：**✅ 已打通（厚字段可重复采集）**
-> 最后验证：2026-08-14（全量实测矩阵 + 单省复测）
+> 最后验证：2026-08-22（B1 project18 clean evidence）
 
 ## 机制
 EPoint 标准，cnum=002；日期 webdate（无 infodatepx，须 webdate 排序否则返回 2018 年老公告）。
 
 ## 2026-08-14 验证结论
 ✅ **厚字段已打通**：`--detail` 触发后，owner/agency/controlPrice/funding/bidOpen/duration/qualification/consortium/contact/phone/docLink 等稳定抽取（2026-08-14 实测 18/20 列 100% 命中，缺失列即上方"诚实留空"字段，非失败）。 2026-08-14 矩阵实测 20 条管网 18/20 全命中。
+
+## 2026-08-22 B1 project18 结论
+
+管网3条及水资源配置工程1条完成 PDF 回源。已清除 scale 中“/，建设地点”、scope 尾部建筑面积/建安造价，并把明确 `本次招标建安工程造价0` 留空而非误抽为1万元；占位资格段可恢复真实企业资质。17字段终态为 VL=4、VD=10、R=3，无 `FIELD_UNVERIFIED`。机器证据：`reference/evidence/b1-epoint-project18-20260822.json`。
 
 ## 可重复采集命令
 ```bash
