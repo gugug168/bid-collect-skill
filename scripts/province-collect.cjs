@@ -1477,6 +1477,8 @@ function htmlToText(h) {
           .replace(/<[^>]+>/g, "")
           .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&")
           .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+          .replace(/&ldquo;|&#8220;/gi, "“").replace(/&rdquo;|&#8221;/gi, "”")
+          .replace(/&quot;/gi, '"').replace(/&apos;|&#39;/gi, "'").replace(/&mdash;|&#8212;/gi, "—")
           .replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim();
 }
 
@@ -1758,7 +1760,9 @@ function chineseNumberToNumber(raw) {
 function grabBondWan(text) {
   const raw = String(text || "");
   if (/(?:本项目|本标段)?\s*(?:不收取|无需|不要求|免收|不缴纳|无需缴纳)\s*(?:投标)?保证金|(?:投标)?保证金\s*(?:为|金额为)?\s*0(?:\.0+)?\s*(?:元|万元|万)?/.test(raw)) return 0;
-  return grabMoneyWan(raw, ["投标保证金", "保证金"]);
+  const explicit = raw.match(/(?:投标)?保证金(?:金额|数额)?[\s\S]{0,100}?(?:\d+(?:\.\d+)?|[零〇一二两三四五六七八九十百千万亿壹贰叁肆伍陆柒捌玖拾佰仟萬億元整]+)\s*(?:万元|万|元)/);
+  if (!explicit) return "";
+  return grabMoneyWan(explicit[0], ["投标保证金", "保证金"]);
 }
 
 function grabBudgetWan(text) {
@@ -2226,8 +2230,8 @@ function numFrom(s) {
 // 调研证据（北京/山西/黑龙江/安徽/西藏 5 省真实详情页）：这些字段 90%+ 公告正文都有，但此前通用 extractDetail 不抽。
 const CODE_LABELS = ["项目编号", "招标项目编号", "标段编号", "交易项目编号", "项目代码", "招标编号", "标段号", "招标项目代码", "采购项目编号", "项目序号"];
 const METHOD_LABELS = ["招标方式", "招标组织形式", "采购方式", "发包方式"];
-const SCALE_LABELS = ["本标段工程的主要建设内容", "主要建设内容", "本次招标规模", "建设规模", "工程规模", "项目规模"];
-const SCOPE_LABELS = ["本标段招标范围", "标段招标范围", "招标范围", "招标内容及范围", "招标内容"];
+const SCALE_LABELS = ["本标段工程的主要建设内容", "主要建设内容", "本次招标规模", "建设规模", "工程规模", "项目规模", "工程概况"];
+const SCOPE_LABELS = ["本标段招标范围", "标段招标范围", "招标范围和内容", "招标范围", "招标内容及范围", "招标内容"];
 const AMBIGUOUS_PROJECT_LABELS = ["建设内容", "项目概况", "项目基本情况"];
 const COMBINED_PROJECT_LABEL = /^(?:招标范围及规模|招标范围和规模|建设规模及招标范围|项目概况及招标范围)$/;
 const APPROVAL_LABELS = ["批准文号", "审批文号", "核准文号", "备案号", "项目批准文号", "立项批复", "可研批复"];
@@ -2334,7 +2338,8 @@ function cleanProjectContent(value) {
   v = v.replace(/(?<![0-9a-f])[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "").trim();
   if (!v || PROJECT_TAIL_ONLY.test(v)) return "";
   if (/^(?:投资规模|建设规模|工程规模|项目规模|项目编号|招标编号|标段编号|交易编号)$/.test(v)) return "";
-  if (/^(?:\d+(?:\.\d+)+\s*)?(?:招标)?项目(?:或标段)?名称\s*[:：]/.test(v)) return "";
+  if (/^(?:\d+(?:\.\d+)+\s*)?(?:(?:招标)?项目(?:或标段)?名称|工程名称)\s*[:：]/.test(v)) return "";
+  if (/^(?:\d+(?:\.\d+)+\s*)?(?:工程建设地点|建设地点|项目地点)\s*[:：]/.test(v)) return "";
   if (/^(?:工程|服务|货物)-/.test(v) && (v.match(/-/g) || []).length >= 2) return "";
   if (/^[A-Za-z]{2,}[A-Za-z0-9_.\-/]{4,}$/.test(v)) return "";
   // 仅删除有实质正文后的法律保留尾句，不删除正文中的“以清单为准”等必要描述。
@@ -2342,6 +2347,8 @@ function cleanProjectContent(value) {
   if (tail >= 12) v = v.slice(0, tail + 1).trim();
   const nextSection = v.search(/(?:(?:\d+(?:\.\d+)*)[、.．]\s*|\s+)(?:投标人|申请人|供应商)资格要求/);
   if (nextSection >= 4) v = v.slice(0, nextSection).trim();
+  const numberedSection = v.search(/\s*\d+\.\d+\.?\s*(?:工程建设地点|工程建设规模|招标范围和内容|招标范围|建筑安装工程费|工期要求|质量要求)\s*[:：]/);
+  if (numberedSection >= 4) v = v.slice(0, numberedSection).trim();
   return v.slice(0, 500);
 }
 
@@ -2380,6 +2387,7 @@ function extractProjectContent(html, text, flat) {
   const structured = tableProjectFields(html);
   let scale = structured.scale;
   let scope = structured.scope;
+  let scaleExact = !!structured.scale;
   let note = "";
 
   const combined = structured.combined;
@@ -2417,7 +2425,10 @@ function extractProjectContent(html, text, flat) {
 
   // 正文中的精确标签仍优先于“项目概况/建设内容”等歧义标签。
   // 天津实测同时出现“建设规模为97.966公里”和“项目概况：改造3.69公里”，必须保留前者为 scale。
-  if (!scale) scale = grabProjectValueAll(text, flat, SCALE_LABELS, "scale");
+  if (!scale) {
+    scale = grabProjectValueAll(text, flat, SCALE_LABELS, "scale");
+    if (scale) scaleExact = true;
+  }
   if (!scope) scope = grabProjectValueAll(text, flat, SCOPE_LABELS, "scope");
 
   if (!scale || !scope) {
@@ -2445,7 +2456,10 @@ function extractProjectContent(html, text, flat) {
   if (scale && scope) {
     const a = scale.replace(/[\s，,。；;]/g, "");
     const b = scope.replace(/[\s，,。；;]/g, "");
-    if (a === b || b.includes(a)) { scale = ""; note = note || "PROJECT_CONTENT_DUPLICATE_TO_SCOPE"; }
+    if (a === b || b.includes(a)) {
+      if (scaleExact) { scope = ""; note = note || "PROJECT_CONTENT_DUPLICATE_TO_SCALE"; }
+      else { scale = ""; note = note || "PROJECT_CONTENT_DUPLICATE_TO_SCOPE"; }
+    }
     else if (a.includes(b)) { scope = ""; note = note || "PROJECT_CONTENT_DUPLICATE_TO_SCALE"; }
   }
   return { scale, scope, note };
@@ -3598,6 +3612,25 @@ const fjCrypto = (() => {
   }
   return { sign, decrypt };
 })();
+async function fjSignedPost(ad, endpoint, payload) {
+  const body = { ...payload, ts: Date.now() };
+  let r;
+  try {
+    r = await fetch(`${ad.base}/FwPortalApi/Trade/${endpoint}`, {
+      method: "POST",
+      headers: { "User-Agent": UA_STR, "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest", "portal-sign": fjCrypto.sign(body), "Accept": "application/json, text/plain, */*", "Referer": ad.base + "/" },
+      body: JSON.stringify(body),
+    });
+  } catch { return null; }
+  if (!r || r.status !== 200) return null;
+  const json = await r.json().catch(() => null);
+  if (!json || json.State !== "200" || !json.Data) return null;
+  try { return JSON.parse(fjCrypto.decrypt(json.Data)); }
+  catch {
+    if (global.__RUN_REPORT) global.__RUN_REPORT.errors.push({ code: "FJ_DECRYPT_FAIL", message: `福建${endpoint}解密失败` });
+    return null;
+  }
+}
 async function fjList(ad, page, args) {
   const url = `${ad.base}/FwPortalApi/Trade/TradeInfo`;
   const body = { GGTYPE: ad.GGTYPE || "1", pageNo: page, pageSize: ad.rn || 10, ts: Date.now() };
@@ -3623,9 +3656,41 @@ async function fjList(ad, page, args) {
   const arr = (obj && Array.isArray(obj.Table)) ? obj.Table : [];
   return arr.map(it => {
     const date = String(it.TM || it.TM1 || it.M_TM || "").slice(0, 10);
-    const url2 = `${ad.base}/FwPortalApi/Trade/TradeInfoDetail?M_ID=${it.M_ID}`;
-    return { url: url2, title: String(it.NAME || "").replace(/\s+/g, " ").trim(), date };
+    const title = String(it.NAME || "").replace(/\s+/g, " ").trim();
+    const url2 = `${ad.base}/#/business/detail?name=${encodeURIComponent(title)}&cid=${encodeURIComponent(it.M_ID)}&type=GCJS`;
+    return { url: url2, M_ID: String(it.M_ID || ""), title, date };
   }).filter(x => x.title);
+}
+
+function mapFjDetailPayload(meta, content, item, ad) {
+  const html = content && (content.Contents || content.Detail) || "";
+  const out = html ? extractDetail({}, html, item, "") : {};
+  const base = meta.BaseInfo || {};
+  if (base.NOTICE_NAME || base.TENDER_PROJECT_NAME) out.title = base.NOTICE_NAME || base.TENDER_PROJECT_NAME;
+  if (base.TENDER_PROJECT_CODE) out.projectCode = String(base.TENDER_PROJECT_CODE);
+  if (base.AREANAME) out.city = String(base.AREANAME);
+  if (base.BID_OPEN_TIME) out.bidOpen = String(base.BID_OPEN_TIME).slice(0, 16);
+  if (base.CONTRACT_RECKON_PRICE != null && base.CONTRACT_RECKON_PRICE !== "") out.controlPrice = String(base.CONTRACT_RECKON_PRICE);
+  if (base.TENDERER_NAME) out.owner = String(base.TENDERER_NAME);
+  if (base.TENDER_AGENCY_NAME) out.agency = String(base.TENDER_AGENCY_NAME);
+  if (base.LIMITE_TIME) out.duration = `${base.LIMITE_TIME}日历天`;
+  if (content && Array.isArray(content.Attachment) && content.Attachment[0]) {
+    const file = content.Attachment[0];
+    const link = file.Url || file.URL || file.url || file.FileUrl || "";
+    if (link) out.docLink = toAbs(String(link), ad.base);
+  }
+  return out;
+}
+
+async function fjDetail(ad, item) {
+  const id = item.M_ID || (item.url && /[?&]cid=([^&]+)/.test(item.url) ? decodeURIComponent(RegExp.$1) : "");
+  if (!id) return {};
+  const meta = await fjSignedPost(ad, "TradeInfoDetail", { name: item.title || "", cid: Number(id) || id, type: "GCJS" });
+  if (!meta) return {};
+  const nodes = Array.isArray(meta.Nodes) ? meta.Nodes.flatMap((node) => Array.isArray(node.Children) ? node.Children : []) : [];
+  const notice = nodes.find((node) => /招标公告/.test(String(node.Title || ""))) || nodes[0];
+  const content = notice ? await fjSignedPost(ad, "TradeInfoContent", { type: notice.Type, m_id: notice.M_ID }) : null;
+  return mapFjDetailPayload(meta, content, item, ad);
 }
 
 // ---- 重庆：Nuxt SSR /trade/014001（Cloudflare 偶发 521，需完整浏览器 UA + 重试）----
@@ -7497,6 +7562,9 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
             // 湖南详情走结构化 JSON 接口（列表 url 是 SPA hash 路由，HTML 渲染拿不到正文）
             const dt = await hnDetail(ad, item);
             for (const [k, v] of Object.entries(dt)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
+          } else if (ad.kind === "fj") {
+            const dt = await fjDetail(ad, item);
+            for (const [k, v] of Object.entries(dt)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
           } else if (ad.kind === "yn") {
             const dt = await ynDetail(ad, item);
             for (const [k, v] of Object.entries(dt)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
@@ -7899,4 +7967,4 @@ function resolveOutputPaths(args) {
 
 
 module.exports = { ADAPTERS, PROV_ALIAS, PROJECT18_AUDIT_FIELDS, XLSX_HEADER, BIAOBIAOTONG_HEADER, PROJECT18_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, resolveYgpCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, isStrictZbTitle, extractDetail, extractProjectContent, auditedFieldValue, isFilledFieldValue, ensureFieldSources, markFieldSource, buildFieldStats, xlsxColumnWidths, buildYgpDetailUrl, parseYgpListRows, unwrapYgpPayload, parseYgpJsonText, selectYgpTenderAttachment, parseYgpDetailPayload, extractYgpAttachmentFields, attachmentStatusFromNote, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, guizhouAttachmentUrl, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseNanjingPayload, nanjingDetail, parseHuizhouHtml, parseHuizhouSearchJsonp, normalizeHuizhouUrl, huizhouDetail, parseZhongshanPayload, zhongshanControlPrice, zhongshanDetail, parseJinanPayload, jinanDetail, parseWuhanHtml, wuhanDetail, parseQingdaoHtml, parseStrongTableFields, qingdaoDetail, parseShenzhenList, parseBgTableFields, exactMoneyWan,
-  hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, cqList, tjList, nmgList, lnList, gsList };
+  hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, fjDetail, mapFjDetailPayload, cqList, tjList, nmgList, lnList, gsList };

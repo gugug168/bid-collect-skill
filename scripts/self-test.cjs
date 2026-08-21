@@ -925,6 +925,34 @@ test("A1 贵州附件 GUID 使用官方 preview 路由而非不存在的根路�
   }
 });
 
+test("A2 安徽保证金账户不冒充金额且HTML引号实体正确解码", () => {
+  const account = M.extractDetail({}, "<p>13.投标保证金账户 户名：某中心 子账号1：187252403508 开户银行：中国银行</p>", { title: "公告", url: "https://example.invalid/ah" }, "");
+  assert.equal(account.bond, "");
+  const amount = M.extractDetail({}, "<p>投标保证金金额：3万元</p>", { title: "公告", url: "https://example.invalid/ah2" }, "");
+  assert.equal(amount.bond, "3");
+  assert.equal(M.htmlToText("杜集&ldquo;五七&rdquo;干校&mdash;修缮"), "杜集“五七”干校—修缮");
+});
+
+test("A2 工程概况精确归scale且名称标签不污染scope", () => {
+  const out = M.extractProjectContent("", "2.项目概况与招标范围 工程概况：主要对中心城区排水管网雨污分流改造，新建管道总长约126千米。 2.1工程名称：某高速公路项目。", "");
+  assert.match(out.scale, /126千米/);
+  assert.equal(out.scope, "");
+});
+
+test("A2 福建详情签名响应映射结构化字段和公告正文", () => {
+  const meta = { BaseInfo: { NOTICE_NAME: "福建某管网监理招标公告", TENDER_PROJECT_CODE: "E3501", AREANAME: "沙县", BID_OPEN_TIME: "2026-09-04 09:00:00", CONTRACT_RECKON_PRICE: 11.66, TENDERER_NAME: "某建设局", TENDER_AGENCY_NAME: "某代理公司", LIMITE_TIME: "365" } };
+  const content = { Contents: "<p>建设规模：改造供水管网12公里。</p><p>招标范围：施工全过程监理服务。</p>", Attachment: [{ Url: "/download/file.pdf" }] };
+  const out = M.mapFjDetailPayload(meta, content, { title: "列表标题", url: "https://ggzyfw.fujian.gov.cn/#/business/detail" }, M.ADAPTERS.fujian);
+  assert.equal(out.title, "福建某管网监理招标公告");
+  assert.equal(out.projectCode, "E3501");
+  assert.equal(out.bidOpen, "2026-09-04 09:00");
+  assert.equal(out.controlPrice, "11.66");
+  assert.equal(out.duration, "365日历天");
+  assert.match(out.scale, /12公里/);
+  assert.match(out.scope, /监理服务/);
+  assert.equal(out.docLink, "https://ggzyfw.fujian.gov.cn/download/file.pdf");
+});
+
 test("XLSX 行宽与 schema 一致且脏哨兵不出现在单元格", () => {
   const sheets = M.buildXlsxSheets([{
     sheet: "其他项目",
