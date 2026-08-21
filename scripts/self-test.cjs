@@ -193,6 +193,17 @@ test("A3 城市结构化详情拒绝金额尾噪声、评审模板、空标签�
   assert.match(zhongshan.qualification, /工程勘察综合甲级/);
 });
 
+test("B1 关键词与项目内容守卫拒绝非招标阶段、章节标题和零控制价串值", () => {
+  assert.equal(M.ADAPTERS.changzhou.keywordClient, true);
+  assert.equal(M.ADAPTERS.anyang.itemAllowed({ title: "市政管网改造工程竞争性磋商公告" }), false);
+  assert.equal(M.ADAPTERS.anyang.itemAllowed({ title: "市政管网改造工程招标公告" }), true);
+  assert.equal(M.extractProjectContent("", "招标范围：2.1标段概况", "招标范围：2.1标段概况").scope, "");
+  assert.equal(M.extractProjectContent("", "招标范围：2.1标段名称：设计", "招标范围：2.1标段名称：设计").scope, "");
+  assert.equal(M.extractProjectContent("", "建设规模：/，建设地点：衢州市", "建设规模：/，建设地点：衢州市").scale, "");
+  const zero = M.extractDetail({}, "<p>工程概算38624万元，其中建安工程造价30632万元。</p><p>本次招标建安工程造价0.0000万元。</p>", { title: "浙江供水工程招标公告", url: "https://example.invalid/zj" }, "");
+  assert.equal(zero.controlPrice, "");
+});
+
 test("洛阳与郑州复用标准 EPoint 并锁定城市招标公告边界", () => {
   assert.equal(M.ADAPTERS.luoyang.kind, "epoint");
   assert.equal(M.ADAPTERS.luoyang.keepScheme, true);
