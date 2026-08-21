@@ -841,6 +841,54 @@ test("详情标题覆盖列表层截断值", () => {
   assert.equal(M.extractNoticeTitle('<title>招标公告</title>', "项目..."), "项目...");
 });
 
+test("A1 zb 阶段拒绝资审变更终止结果且天津平台名不覆盖项目标题", () => {
+  assert.equal(M.isStrictZbTitle("永顺县老城区公共供水管网漏损治理项目招标公告"), true);
+  for (const title of [
+    "某项目终止公告",
+    "某项目更正公示",
+    "某项目资审文件公告",
+    "某项目中标结果公示",
+  ]) assert.equal(M.isStrictZbTitle(title), false, title);
+  assert.equal(M.extractNoticeTitle('<h1>全国公共资源交易平台（天津市）</h1>', "天津市某道路工程招标公告"), "天津市某道路工程招标公告");
+  assert.equal(M.ADAPTERS.neimenggu.noticeTypeName, "招标公告");
+});
+
+test("A1 项目内容精确标签优先、UUID尾噪声清理且明确免保证金写0", () => {
+  const project = M.extractProjectContent("", "建设规模：改造DN300-DN1000排水管网12km，最终以施工图为准。 41cfeba6-13f6-417c-8885-00e007f650b0\n项目概况：改造部分支管。\n招标范围：完成施工图设计、采购及施工。", "");
+  assert.match(project.scale, /12km/);
+  assert.doesNotMatch(project.scale, /41cfeba6/);
+  assert.match(project.scope, /完成施工图设计/);
+  const hubei = M.extractProjectContent("", "2. 项目概况与招标范围 2.1 项目名称：电缆采购 2.2 项目概况：项目位于产业园，总建筑面积约5.8万㎡，总投资约3亿元，规划年产高白玻璃砂100万吨。 2.4 招标范围：本次采购全厂电力电缆和控制电缆。", "");
+  assert.match(hubei.scale, /5\.8万㎡/);
+  assert.match(hubei.scope, /本次采购全厂电力电缆/);
+  const noBond = M.extractDetail({}, "<p>本项目不收取投标保证金。</p>", { title: "示例招标公告", url: "https://example.invalid/a1" }, "");
+  assert.equal(noBond.bond, 0);
+});
+
+test("A1 天津精确建设规模与实际招标范围优先且评定分离不冒充评标办法", () => {
+  const html = `<h1>全国公共资源交易平台（天津市）</h1>
+    <p>建设规模为 97.966公里。</p>
+    <p>2、项目概况与招标范围</p><p>2.1 项目概况：改造DN25-DN300庭院管网共计3.69公里。</p>
+    <p>2.3 标段划分与招标范围：共分 1 个标段。本次招标标段为：一标段：标段名称：示例（施工） 招标范围: 改造庭院管网、换热站及智慧化设备设施，具体内容详见工程量清单及施工图纸中全部内容。本标段最高投标限价为43479833元。</p>
+    <p>本项目采用“评定分离”的方式评审。</p>`;
+  const out = M.extractDetail(M.ADAPTERS.tianjin, html, { title: "天津市某道路工程招标公告", url: "https://example.invalid/tj" }, "");
+  assert.equal(out.title, "天津市某道路工程招标公告");
+  assert.equal(out.scale, "97.966公里");
+  assert.match(out.scope, /改造庭院管网/);
+  assert.doesNotMatch(out.scope, /^共分\s*1\s*个标段/);
+  assert.equal(out.evaluation, "");
+});
+
+test("A1 贵州附件 GUID 使用官方 preview 路由而非不存在的根路径", () => {
+  assert.equal(
+    M.guizhouAttachmentUrl(M.ADAPTERS.guizhou, "4bd65f98-0997-4fa2-8d4a-7e7a2635ab02"),
+    "http://ztb.guizhou.gov.cn/api/upload/preview/4bd65f98-0997-4fa2-8d4a-7e7a2635ab02",
+  );
+  assert.equal(M.attachmentStatusFromNote("不支持的附件类型（非 PDF/Word/Zip）"), "ATTACHMENT_UNSUPPORTED");
+  assert.equal(M.attachmentStatusFromNote("附件下载需验证码(captcha)网关"), "ATTACHMENT_CAPTCHA_REQUIRED");
+  assert.equal(M.attachmentStatusFromNote("附件下载失败:HTTP 404"), "ATTACHMENT_DOWNLOAD_FAILED");
+});
+
 test("XLSX 行宽与 schema 一致且脏哨兵不出现在单元格", () => {
   const sheets = M.buildXlsxSheets([{
     sheet: "其他项目",
