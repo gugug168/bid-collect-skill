@@ -7585,6 +7585,8 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
           // 2026-08-15 实测：控制价 180万 vs 同项目 EPC 施工标 12780万，错判量纲会当标的价误用），
           // 以资质字段纠偏——监理综合资质/监理资质出现即必为监理标
           if (rec.tenderType !== "监理" && /监理(?:综合)?资质/.test(rec.qualification || "")) rec.tenderType = "监理";
+          // 阶段守卫必须早于附件：被详情标题识别为资审/变更/结果的记录，不下载附件也不写 signals。
+          if (!ad.stageKey && !isStrictZbTitle(rec.title)) continue;
           // 缺口一（统一出口）：HTML 未载控制价/概算/保证金时，从招标文件附件补抽。
           // 原先仅通用 HTML 分支调用；bespoke 详情分支（ah/xz/hn/yn/hb/gz/nmg/gs）的片段同样可能带附件，
           // 统一放在 try 尾部后全路径同享（--attach 门禁不变，docLink 为空/已解析过则安全 no-op）
