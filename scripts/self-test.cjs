@@ -224,6 +224,18 @@ test("B1 关键词与项目内容守卫拒绝非招标阶段、章节标题和�
   assert.equal(zero.controlPrice, "");
 });
 
+test("B2 拒绝标段划分、未勾选业绩模板与引用式规模", () => {
+  const scope = M.extractProjectContent("", "招标范围：以工程量清单范围内全部内容为准2.5标段划分：共八个标段", "");
+  assert.equal(scope.scope, "以工程量清单范围内全部内容为准");
+  const template = M.extractDetail({}, "<p>业绩要求：□近年（ 年 月 日至投标截止时间，不少于3年）不少于（1至3个）个类似项目</p>", { title: "四川工程招标公告", url: "https://example.invalid/sc" }, "");
+  assert.equal(template.performance, "");
+  const multi = M.extractDetail({}, "<p>业绩要求：（本项为多选）</p>", { title: "四川EPC招标公告", url: "https://example.invalid/sc2" }, "");
+  assert.equal(multi.performance, "");
+  assert.equal(M.extractProjectContent("", "建设规模：同施工五、六标段的建设规模", "").scale, "");
+  const funding = M.extractDetail({}, "<p>资金来源：为市财政资金35%，企业自筹65%，项目已具备招标条件，现公开招标</p>", { title: "郑州供水工程招标公告", url: "https://example.invalid/zz" }, "");
+  assert.equal(funding.funding, "市财政资金35%，企业自筹65%");
+});
+
 test("洛阳与郑州复用标准 EPoint 并锁定城市招标公告边界", () => {
   assert.equal(M.ADAPTERS.luoyang.kind, "epoint");
   assert.equal(M.ADAPTERS.luoyang.keepScheme, true);
