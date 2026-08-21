@@ -858,11 +858,21 @@ test("A1 项目内容精确标签优先、UUID尾噪声清理且明确免保证�
   assert.match(project.scale, /12km/);
   assert.doesNotMatch(project.scale, /41cfeba6/);
   assert.match(project.scope, /完成施工图设计/);
+  const adjacentUuid = M.extractProjectContent("", "建设规模：新建排水管14.03km66eedd5e-5fbb-494f-982c-0151b6c248db。", "");
+  assert.equal(adjacentUuid.scale, "新建排水管14.03km");
   const hubei = M.extractProjectContent("", "2. 项目概况与招标范围 2.1 项目名称：电缆采购 2.2 项目概况：项目位于产业园，总建筑面积约5.8万㎡，总投资约3亿元，规划年产高白玻璃砂100万吨。 2.4 招标范围：本次采购全厂电力电缆和控制电缆。", "");
   assert.match(hubei.scale, /5\.8万㎡/);
   assert.match(hubei.scope, /本次采购全厂电力电缆/);
   const noBond = M.extractDetail({}, "<p>本项目不收取投标保证金。</p>", { title: "示例招标公告", url: "https://example.invalid/a1" }, "");
   assert.equal(noBond.bond, 0);
+  const school = M.extractProjectContent("", "项目基本情况：建设学校风雨长廊254米、地面硬化3100平方米。", "");
+  assert.match(school.scale, /254米/);
+  const badName = M.extractProjectContent("", "项目概况：2.1 招标项目或标段名称：某燃气项目。", "");
+  assert.equal(badName.scale, "");
+  const cleanScope = M.extractProjectContent("", "招标范围：工程量清单所示全部工程 3．投标人资格要求3.1具备水利资质。", "");
+  assert.doesNotMatch(cleanScope.scope, /投标人资格要求/);
+  const taxonomy = M.extractProjectContent("", "招标范围：工程-工程施工-市政工程-排水工程;工程-工程施工-市政工程-给水工程。", "");
+  assert.equal(taxonomy.scope, "");
 });
 
 test("A1 天津精确建设规模与实际招标范围优先且评定分离不冒充评标办法", () => {
@@ -877,6 +887,7 @@ test("A1 天津精确建设规模与实际招标范围优先且评定分离不�
   assert.match(out.scope, /改造庭院管网/);
   assert.doesNotMatch(out.scope, /^共分\s*1\s*个标段/);
   assert.equal(out.evaluation, "");
+  assert.equal(M.grabEvaluation("评标办法： 公告状态：正常"), "");
 });
 
 test("A1 贵州附件 GUID 使用官方 preview 路由而非不存在的根路径", () => {
@@ -887,6 +898,9 @@ test("A1 贵州附件 GUID 使用官方 preview 路由而非不存在的根路�
   assert.equal(M.attachmentStatusFromNote("不支持的附件类型（非 PDF/Word/Zip）"), "ATTACHMENT_UNSUPPORTED");
   assert.equal(M.attachmentStatusFromNote("附件下载需验证码(captcha)网关"), "ATTACHMENT_CAPTCHA_REQUIRED");
   assert.equal(M.attachmentStatusFromNote("附件下载失败:HTTP 404"), "ATTACHMENT_DOWNLOAD_FAILED");
+  for (const adapter of ["guizhou", "yunnan", "neimenggu"]) {
+    assert.deepEqual(M.ADAPTERS[adapter].attachmentFields, ["controlPrice", "budget", "bond", "scale", "scope", "evaluation", "fullScore"]);
+  }
 });
 
 test("XLSX 行宽与 schema 一致且脏哨兵不出现在单元格", () => {

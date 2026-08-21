@@ -1116,6 +1116,7 @@ const ADAPTERS = {
     prjType: "A", // 工程建设（A01 招标公告 / A03 中标候选人 / A04 中标结果 均须 prjType=A）
     noticeType: "A01", // 招标公告（2026-08-14 复核：affiche 实为「招标计划」，A01 才是招标公告）
     rn: 10,
+    attachmentFields: ["controlPrice", "budget", "bond", "scale", "scope", "evaluation", "fullScore"],
     defaultType: "招标公告", // 服务端关键词检索（args 参数），无需客户端过滤
     // B 阶段（2026-08-14 真机枚举 vm/tradeviewmodel.js + /api/trade/search 验证）：
     //   candidate=A03 中标候选人公示、result=A04 中标结果公示；
@@ -1134,6 +1135,7 @@ const ADAPTERS = {
     rn: 10,
     clientFilterOnly: true, // 列表接口无关键词参数，采集时按标题客户端过滤
     allowNoUrl: true, // B 阶段端点字段仍可能没有详情 URL；zb 阶段由 guid 构造官方 findZbggByGuid 链接
+    attachmentFields: ["controlPrice", "budget", "bond", "scale", "scope", "evaluation", "fullScore"],
     defaultType: "招标公告",
     // B 阶段（2026-08-14 真机枚举 app.js gcjs/*List + 记录结构验证）：
     //   candidate=getZbwjygsList(tenderProjectName/publishTime)、result=getZbJgGgList(bulletinname/bulletinissuetime)、contract=getContractList(contractName/gongshiTime)
@@ -1324,6 +1326,7 @@ const ADAPTERS = {
     base: "https://ggzyjy.nmg.gov.cn",
     rn: 10,
     noticeTypeName: "招标公告", // 默认 zb 必须服务端隔离；空值会混入更正、中标结果与合同
+    attachmentFields: ["controlPrice", "budget", "bond", "scale", "scope", "evaluation", "fullScore"],
     defaultType: "招标公告", // 服务端关键词检索（noticeName 参数），无需客户端过滤
     // B 阶段（2026-08-15 真机枚举 /trssearch/openSearch/searchPublishResource）：noticeTypeName 隔离栏目；
     //   candidate=中标候选人公示、result=中标结果公告(站点无"中标结果公示"，字面=0)、contract=合同公示。
@@ -1548,7 +1551,7 @@ function grabEvaluation(text) {
   if (raw) {
     const hit = methods.find((name) => raw.replace(/\s+/g, "").includes(name));
     if (hit) return hit;
-    return raw;
+    return "";
   }
   // 无标签时按“评标方法优先、定标机制靠后”的语义顺序找，而不是按正文出现顺序找。
   // 2026-08-16 V5 取证回访修正（江苏实测误抽）：原文「5.1是否评定分离： 否 5.2本次招标采用 综合评估法」
@@ -2223,9 +2226,9 @@ function numFrom(s) {
 // 调研证据（北京/山西/黑龙江/安徽/西藏 5 省真实详情页）：这些字段 90%+ 公告正文都有，但此前通用 extractDetail 不抽。
 const CODE_LABELS = ["项目编号", "招标项目编号", "标段编号", "交易项目编号", "项目代码", "招标编号", "标段号", "招标项目代码", "采购项目编号", "项目序号"];
 const METHOD_LABELS = ["招标方式", "招标组织形式", "采购方式", "发包方式"];
-const SCALE_LABELS = ["建设规模", "工程规模", "项目规模"];
+const SCALE_LABELS = ["本次招标规模", "建设规模", "工程规模", "项目规模"];
 const SCOPE_LABELS = ["本标段招标范围", "标段招标范围", "招标范围", "招标内容及范围", "招标内容"];
-const AMBIGUOUS_PROJECT_LABELS = ["建设内容", "项目概况"];
+const AMBIGUOUS_PROJECT_LABELS = ["建设内容", "项目概况", "项目基本情况"];
 const COMBINED_PROJECT_LABEL = /^(?:招标范围及规模|招标范围和规模|建设规模及招标范围|项目概况及招标范围)$/;
 const APPROVAL_LABELS = ["批准文号", "审批文号", "核准文号", "备案号", "项目批准文号", "立项批复", "可研批复"];
 const MANAGER_LABELS = ["项目经理", "项目负责人", "项目总负责人", "总监理工程师"];
@@ -2328,13 +2331,17 @@ function cleanProjectContent(value) {
   let v = String(value || "").replace(/^[\s\[【]+|[\s\]】]+$/g, "").replace(/\s+/g, " ").trim();
   v = v.replace(/^为\s*/, "").trim();
   // 云南等结构化详情会把记录 GUID 拼在建设规模正文尾部；仅清理独立 UUID 尾段，不碰项目编号正文。
-  v = v.replace(/[。；;，,\s]+[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "").trim();
+  v = v.replace(/(?<![0-9a-f])[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "").trim();
   if (!v || PROJECT_TAIL_ONLY.test(v)) return "";
   if (/^(?:投资规模|建设规模|工程规模|项目规模|项目编号|招标编号|标段编号|交易编号)$/.test(v)) return "";
+  if (/^(?:\d+(?:\.\d+)+\s*)?(?:招标)?项目(?:或标段)?名称\s*[:：]/.test(v)) return "";
+  if (/^(?:工程|服务|货物)-/.test(v) && (v.match(/-/g) || []).length >= 2) return "";
   if (/^[A-Za-z]{2,}[A-Za-z0-9_.\-/]{4,}$/.test(v)) return "";
   // 仅删除有实质正文后的法律保留尾句，不删除正文中的“以清单为准”等必要描述。
   const tail = v.search(/[。；;，,]\s*(?:招标人有权|建设内容.*?增减|中标人不得有异议)/);
   if (tail >= 12) v = v.slice(0, tail + 1).trim();
+  const nextSection = v.search(/(?:(?:\d+(?:\.\d+)*)[、.．]\s*|\s+)(?:投标人|申请人|供应商)资格要求/);
+  if (nextSection >= 4) v = v.slice(0, nextSection).trim();
   return v.slice(0, 500);
 }
 
