@@ -199,7 +199,14 @@ test("B1 关键词与项目内容守卫拒绝非招标阶段、章节标题和�
   assert.equal(M.ADAPTERS.anyang.itemAllowed({ title: "市政管网改造工程招标公告" }), true);
   assert.equal(M.extractProjectContent("", "招标范围：2.1标段概况", "招标范围：2.1标段概况").scope, "");
   assert.equal(M.extractProjectContent("", "招标范围：2.1标段名称：设计", "招标范围：2.1标段名称：设计").scope, "");
+  assert.equal(M.extractProjectContent("", "招标范围：2.1标段名称", "招标范围：2.1标段名称").scope, "");
   assert.equal(M.extractProjectContent("", "建设规模：/，建设地点：衢州市", "建设规模：/，建设地点：衢州市").scale, "");
+  const section = M.extractProjectContent("", "2.2 招标范围：新建DN1500管道18公里及附属设施。\n2.3 施工工期：300日历天", "");
+  assert.match(section.scope, /DN1500管道18公里/);
+  assert.doesNotMatch(section.scope, /施工工期/);
+  assert.equal(M.resolveRecordRegion(M.ADAPTERS.changzhou, { city: "社渚污水处理厂", title: "配套管网工程" }), "常州市");
+  const perfNoise = M.extractDetail({}, "<p>业绩要求：的企业或者项目负责人仅可选1项</p>", { title: "示例招标公告", url: "https://example.invalid/b1" }, "");
+  assert.equal(perfNoise.performance, "");
   const zero = M.extractDetail({}, "<p>工程概算38624万元，其中建安工程造价30632万元。</p><p>本次招标建安工程造价0.0000万元。</p>", { title: "浙江供水工程招标公告", url: "https://example.invalid/zj" }, "");
   assert.equal(zero.controlPrice, "");
 });

@@ -1850,7 +1850,7 @@ function grabPerformance(text, flat) {
   }
   if (v
     && !/^[（(]?\s*\d+(?:\.\d+)?\s*分\s*[）)]?$/.test(v)
-    && !/^(?:的相关数据(?:\s*[:：]\s*(?:无|[\/／]))?|(?:\d+(?:\.\d+)+\s*)?企业类似工程业绩|[A-Z]{1,8}(?:[-_]\d+)?)$/i.test(v.trim())) return v;
+    && !/^(?:的企业(?:或者|或)项目负责人[\s\S]*|的相关数据(?:\s*[:：]\s*(?:无|[\/／]))?|(?:\d+(?:\.\d+)+\s*)?企业类似工程业绩|[A-Z]{1,8}(?:[-_]\d+)?)$/i.test(v.trim())) return v;
   let i = -1;
   while ((i = text.indexOf("业绩", i + 1)) >= 0) {
     const before = text.slice(Math.max(0, i - 120), i);
@@ -2365,7 +2365,7 @@ function cleanProjectContent(value) {
   // 云南等结构化详情会把记录 GUID 拼在建设规模正文尾部；仅清理独立 UUID 尾段，不碰项目编号正文。
   v = v.replace(/(?<![0-9a-f])[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "").trim();
   if (!v || PROJECT_TAIL_ONLY.test(v)) return "";
-  if (/^(?:(?:\d+(?:\.\d+)*)[、.．]?\s*)?(?:投资规模|建设规模|工程规模|项目规模|项目概况|工程概况|标段概况|项目编号|招标编号|标段编号|交易编号)$/.test(v)) return "";
+  if (/^(?:(?:\d+(?:\.\d+)*)[、.．]?\s*)?(?:投资规模|建设规模|工程规模|项目规模|项目概况|工程概况|标段概况|标段名称|项目编号|招标编号|标段编号|交易编号)$/.test(v)) return "";
   if (/^(?:\d+(?:\.\d+)+\s*)?(?:(?:招标)?项目(?:或标段)?名称|标段名称|工程名称)\s*[:：]/.test(v)) return "";
   if (/^(?:\d+(?:\.\d+)+\s*)?(?:工程建设地点|建设地点|项目地点)\s*[:：]/.test(v)) return "";
   if (/^[\/／]\s*[，,；;]?\s*(?:工程建设地点|建设地点|项目地点)\s*[:：]/.test(v)) return "";
@@ -2458,7 +2458,10 @@ function extractProjectContent(html, text, flat) {
     scale = grabProjectValueAll(text, flat, SCALE_LABELS, "scale");
     if (scale) scaleExact = true;
   }
-  if (!scope) scope = grabProjectValueAll(text, flat, SCOPE_LABELS, "scope");
+  if (!scope) {
+    const numberedScope = String(text || "").match(/(?:^|\n)\s*2\s*\.\s*2\s*招标范围\s*[:：]\s*([\s\S]{4,1800}?)(?=\n\s*2\s*\.\s*3\s*)/m)?.[1] || "";
+    scope = cleanProjectContent(numberedScope) || grabProjectValueAll(text, flat, SCOPE_LABELS, "scope");
+  }
 
   if (!scale || !scope) {
     const ambiguous = grabProjectValueAll(text, flat, AMBIGUOUS_PROJECT_LABELS, "ambiguous");
@@ -7268,6 +7271,7 @@ function resolveRecordRegion(ad, rec) {
   // “公共资源交易部/中心”等是发布机构，不是项目地区。此时保守回退到 adapter 明确管辖区，
   // 避免跨多城市项目从标题中随意挑一个城市。
   if (listed && /公共资源交易(?:部|中心|平台|服务中心)|交易服务(?:部|中心)|招标投标管理/.test(listed)) return jurisdictionFromAdapter(ad);
+  if (listed && !extractKnownArea(listed) && /(?:污水处理厂|水厂|医院|学校|研究院|项目|管道|桩号)/.test(listed)) return jurisdictionFromAdapter(ad);
   if (listed && !/^\d{6}$/.test(listed)) return listed;
   const fromText = extractKnownArea(`${rec && rec.projectSite || ""} ${rec && rec.title || ""}`);
   return fromText || jurisdictionFromAdapter(ad);
