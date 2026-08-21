@@ -1,10 +1,13 @@
 # 湖北省 采集参考
 
 > 数据源 adapter：`hubei` · kind=`hb` · 验证状态：**✅ 已打通（厚字段可重复采集）**
-> 最后验证：2026-08-14（全量实测矩阵 + 单省复测）
+> 最后验证：2026-08-21（A1 project18 clean evidence）
 
 ## 机制
 bespoke `hbDetail`：`jsgcZbggDetail?guid=` 取结构化详情。
+
+## 2026-08-21 A1 project18 结论
+管网与非管网公告均以官方详情回源；明确“不收取投标保证金”写合法值 `0`，“主要建设内容”归入 scale。17字段终态为 VL=4、VD=11、R=2，无 `FIELD_UNVERIFIED`。满分和招标文件仅在交易系统文件中，按受限收口。机器证据见 `reference/evidence/a1-structured-project18-20260821.json`。
 
 ## 2026-08-14 验证结论
 ✅ **厚字段已打通**：`--detail` 触发后，owner/agency/controlPrice/funding/bidOpen/duration/qualification/consortium/contact/phone/docLink 等稳定抽取（2026-08-14 实测 18/20 列 100% 命中，缺失列即上方"诚实留空"字段，非失败）。 2026-08 前期实测：owner/控制价/开标/资质/联合体/docLink 全命中。

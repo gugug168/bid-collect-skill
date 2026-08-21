@@ -110,6 +110,35 @@ function serializeCapabilities(doc) {
   ) + "\n";
 }
 
+function applyEvidenceUpdates(doc, fixture) {
+  if (!fixture || !fixture.evidence || !fixture.capability_updates) throw new Error("evidence fixture requires evidence and capability_updates");
+  for (const [id, evidence] of Object.entries(fixture.evidence)) doc.evidence[id] = evidence;
+  for (const [adapter, update] of Object.entries(fixture.capability_updates)) {
+    if (!doc.adapters[adapter]) throw new Error(`unknown adapter in evidence fixture: ${adapter}`);
+    let fields = update;
+    if (update && update.statuses) {
+      fields = {};
+      for (const [status, names] of Object.entries(update.statuses)) {
+        if (!FIELD_STATUSES.includes(status) || !Array.isArray(names)) throw new Error(`invalid grouped status: ${adapter}.${status}`);
+        for (const field of names) {
+          if (fields[field]) throw new Error(`duplicate grouped field: ${adapter}.${field}`);
+          fields[field] = { status, evidence_id: update.evidence_id, verified_at: update.verified_at };
+        }
+      }
+    }
+    for (const [field, entry] of Object.entries(fields)) {
+      if (!AUDITED_FIELDS.includes(field)) throw new Error(`unknown field in evidence fixture: ${adapter}.${field}`);
+      if (!entry || !FIELD_STATUSES.includes(entry.status) || !entry.evidence_id || !entry.verified_at) {
+        throw new Error(`invalid capability update: ${adapter}.${field}`);
+      }
+      doc.adapters[adapter].fields[field] = entry;
+    }
+  }
+  const report = validateCapabilities(doc);
+  if (!report.ok) throw new Error(`capability update invalid: ${report.errors.join("; ")}`);
+  return report;
+}
+
 function validateCapabilities(doc, options = {}) {
   const errors = [];
   if (!doc || doc.schema_version !== "project18-capabilities.v1") errors.push("invalid schema_version");
@@ -203,6 +232,17 @@ function main(argv) {
     return;
   }
   const doc = loadCapabilities();
+  if (command === "--apply-evidence") {
+    const input = argv[1];
+    if (!input) throw new Error("--apply-evidence requires a repository-relative fixture path");
+    const resolved = path.resolve(ROOT, input);
+    if (!(resolved === ROOT || resolved.startsWith(ROOT + path.sep))) throw new Error("evidence fixture escapes repository");
+    const fixture = JSON.parse(fs.readFileSync(resolved, "utf8"));
+    const report = applyEvidenceUpdates(doc, fixture);
+    fs.writeFileSync(CAPABILITY_PATH, serializeCapabilities(doc), "utf8");
+    console.log(JSON.stringify(report, null, 2));
+    return;
+  }
   if (command === "--format") {
     fs.writeFileSync(CAPABILITY_PATH, serializeCapabilities(doc), "utf8");
     return;
@@ -233,4 +273,5 @@ module.exports = {
   updateProjection,
   projectionMatches,
   serializeCapabilities,
+  applyEvidenceUpdates,
 };

@@ -1,0 +1,97 @@
+{
+  "schema_version": "project18-evidence.v1",
+  "batch": "A1",
+  "stage": "zb",
+  "verified_at": "2026-08-21T22:00:14+08:00",
+  "code_dirty": false,
+  "evidence": {
+    "fixture:a1-hunan-project18": {"kind":"fixture","path":"reference/evidence/a1-structured-project18-20260821.json","code_commit":"130dcc3b1881d99211e21a146b351c922f498267","code_dirty":false},
+    "fixture:a1-hubei-project18": {"kind":"fixture","path":"reference/evidence/a1-structured-project18-20260821.json","code_commit":"c312f8b0839dd53d0e9b3544c5b35f2a17620d96","code_dirty":false},
+    "fixture:a1-guizhou-project18": {"kind":"fixture","path":"reference/evidence/a1-structured-project18-20260821.json","code_commit":"130dcc3b1881d99211e21a146b351c922f498267","code_dirty":false},
+    "fixture:a1-yunnan-project18": {"kind":"fixture","path":"reference/evidence/a1-structured-project18-20260821.json","code_commit":"130dcc3b1881d99211e21a146b351c922f498267","code_dirty":false},
+    "fixture:a1-neimenggu-project18": {"kind":"fixture","path":"reference/evidence/a1-structured-project18-20260821.json","code_commit":"130dcc3b1881d99211e21a146b351c922f498267","code_dirty":false},
+    "fixture:a1-tianjin-project18": {"kind":"fixture","path":"reference/evidence/a1-structured-project18-20260821.json","code_commit":"dead8ba05b2cea7fd0dea82934ed2db29c468834","code_dirty":false},
+    "fixture:a1-jilin-project18": {"kind":"fixture","path":"reference/evidence/a1-structured-project18-20260821.json","code_commit":"130dcc3b1881d99211e21a146b351c922f498267","code_dirty":false}
+  },
+  "samples": {
+    "hunan": [
+      {"kind":"pipe","title":"长沙市雨花区林科院片区排水管网建设项目","official_url":"https://www.hnsggzy.com/#/resources/transactionDetail/construction?bidSectionId=53c6f650-00ff-4d57-892d-2eb4fa428fbd&regionCode=430100"},
+      {"kind":"general","title":"宁远一小、莲花小学等学校维修改造项目","official_url":"https://www.hnsggzy.com/#/resources/transactionDetail/construction?bidSectionId=ca7c409b-6b38-45ac-bdea-9a13bcf2e986&regionCode=431100"}
+    ],
+    "hubei": [
+      {"kind":"pipe","title":"江岸区污水单元示范片区管网改造工程施工（评定分离）（第一标段）","official_url":"https://www.hbggzyfwpt.cn/jyxx/jsgcZbggDetail?guid=f6920479-f94a-4f66-958d-1fba1abf3cad"},
+      {"kind":"general","title":"瓦仓大米产业链项目二期（第2次招标）招标公告","official_url":"https://www.hbggzyfwpt.cn/jyxx/jsgcZbggDetail?guid=5336be00-d57e-4741-8163-7cd0460d8c18"},
+      {"kind":"supplemental","title":"南漳县中心城区污水管网新建及改造工程监理服务招标公告","official_url":"https://www.hbggzyfwpt.cn/jyxx/jsgcZbggDetail?guid=ef05c107-c34e-4b02-8f87-1b0f65957446","clean_commit":"d6ee9d464c2021a2857cc792e422f2c0382b43d5"}
+    ],
+    "guizhou": [
+      {"kind":"pipe","title":"云岩区中心城区供水管网改造工程—设计招标公告","official_url":"http://ztb.guizhou.gov.cn/trade/bulletin/?id=928029"},
+      {"kind":"general","title":"习水县循环农业酒糟综合利用项目施工招标招标公告","official_url":"http://ztb.guizhou.gov.cn/trade/bulletin/?id=928299"}
+    ],
+    "yunnan": [
+      {"kind":"pipe","title":"永德县县城东部片区污水管网提质改造工程设计施工总承包（EPC）公开招标公告","official_url":"https://ggzy.yn.gov.cn/ynggfwpt-home-api/jyzyCenter/jyInfo/gcjs/findZbggByGuid?guid=9b744057-f0a3-4bef-96da-87184ab4a828"},
+      {"kind":"general","title":"双江自治县消防救援大队地基沉降维修治理暨综合训练设施建设项目设计施工总承包","official_url":"https://ggzy.yn.gov.cn/ynggfwpt-home-api/jyzyCenter/jyInfo/gcjs/findZbggByGuid?guid=638b72cf-866e-4c2c-b305-664ac6337210"}
+    ],
+    "neimenggu": [
+      {"kind":"pipe","title":"2026年开发区小区庭院管网改造项目（三期）招标公告","official_url":"https://ggzyjy.nmg.gov.cn/jyxx/index_24.html?id=9b93e54b-3618-4be0-9c64-78cd8da0fb77"},
+      {"kind":"general","title":"内蒙古自治区赤峰市浑善达克沙地综合治理（二期）项目2026-2027年（芝瑞镇）招标公告","official_url":"https://ggzyjy.nmg.gov.cn/jyxx/index_24.html?id=c035170c-d028-49ae-a41c-3bd9bc5d0d1a"}
+    ],
+    "tianjin": [
+      {"kind":"pipe","title":"2026年北辰区供热庭院管网及设施改造工程林发供热站改造项目1标段施工招标公告","official_url":"https://ggzy.zwfwb.tj.gov.cn/p54/1763787.html"},
+      {"kind":"general","title":"天碱片区道路二期工程-大连东道辅道工程1标段施工招标公告","official_url":"https://ggzy.zwfwb.tj.gov.cn/p54/1761873.html"}
+    ],
+    "jilin": [
+      {"kind":"pipe","title":"图们市老城区供热管网更新改造及供热计量节能提升项目（项目管理及工程检测）二次","official_url":"https://www.jl.gov.cn/ggzy/gcjs/zbgg/202608/t20260820_9685037.html"},
+      {"kind":"general","title":"珲春市迎宾广场主题雕塑改造工程（三次公告）","official_url":"https://www.jl.gov.cn/ggzy/gcjs/zbgg/202608/t20260821_9686087.html"}
+    ]
+  },
+  "terminal_notes": {
+    "hunan": {"bond":"公告未给金额且招标文件下载无公开直链","fullScore":"评分细则在受限招标文件","docLink":"需交易系统获取"},
+    "hubei": {"fullScore":"评分细则在交易系统文件","docLink":"页面仅给系统获取入口"},
+    "guizhou": {"performance":"四条公告均未设置可提取业绩事实"},
+    "yunnan": {"evaluation":"公开附件端点下载失败或返回不支持形态","fullScore":"公开附件端点下载失败或返回不支持形态"},
+    "neimenggu": {"scale":"详情及可解析附件未披露业务规模","scope":"仅返回行业分类串，已拒收","performance":"样本未披露","bond":"多数记录无公开文件直链","fullScore":"评分细则不可静态取得"},
+    "tianjin": {"performance":"样本公告未披露","bond":"金额在交易系统文件中且无公开直链","evaluation":"评定分离是定标机制，不是评标办法","fullScore":"评分文件无公开直链","docLink":"需投标服务平台获取"},
+    "jilin": {"controlPrice":"样本只出现限价规则，未披露具体金额","bond":"只披露保函/保证金提交方式，无金额","evaluation":"评分文件需交易系统获取","fullScore":"评分文件需交易系统获取","docLink":"需CA登录交易系统获取"}
+  },
+  "capability_updates": {
+    "hunan": {"evidence_id":"fixture:a1-hunan-project18","verified_at":"2026-08-21T22:00:14+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","title","url"],
+      "FIELD_VERIFIED_DETAIL":["region","bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","evaluation","consortium"],
+      "FIELD_RESTRICTED":["bond","fullScore","docLink"]
+    }},
+    "hubei": {"evidence_id":"fixture:a1-hubei-project18","verified_at":"2026-08-21T22:00:14+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","bond","evaluation","consortium"],
+      "FIELD_RESTRICTED":["fullScore","docLink"]
+    }},
+    "guizhou": {"evidence_id":"fixture:a1-guizhou-project18","verified_at":"2026-08-21T22:00:14+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","controlPrice","consortium","docLink"],
+      "FIELD_VERIFIED_ATTACHMENT":["bond","evaluation","fullScore"],
+      "FIELD_NOT_DISCLOSED":["performance"]
+    }},
+    "yunnan": {"evidence_id":"fixture:a1-yunnan-project18","verified_at":"2026-08-21T22:00:14+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","bond","consortium","docLink"],
+      "FIELD_RESTRICTED":["evaluation","fullScore"]
+    }},
+    "neimenggu": {"evidence_id":"fixture:a1-neimenggu-project18","verified_at":"2026-08-21T22:00:14+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","funding","duration","qualification","controlPrice","evaluation","consortium","docLink"],
+      "FIELD_NOT_DISCLOSED":["scale","scope","performance"],
+      "FIELD_RESTRICTED":["bond","fullScore"]
+    }},
+    "tianjin": {"evidence_id":"fixture:a1-tianjin-project18","verified_at":"2026-08-21T22:00:14+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","controlPrice","consortium"],
+      "FIELD_NOT_DISCLOSED":["performance"],
+      "FIELD_RESTRICTED":["bond","evaluation","fullScore","docLink"]
+    }},
+    "jilin": {"evidence_id":"fixture:a1-jilin-project18","verified_at":"2026-08-21T22:00:14+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","consortium"],
+      "FIELD_NOT_DISCLOSED":["controlPrice"],
+      "FIELD_RESTRICTED":["bond","evaluation","fullScore","docLink"]
+    }}
+  }
+}

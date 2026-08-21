@@ -1,10 +1,13 @@
 # 贵州省 采集参考
 
 > 数据源 adapter：`guizhou` · kind=`gz` · 验证状态：**✅ 已打通（厚字段可重复采集）**
-> 最后验证：2026-08-15（全量实测矩阵 + 单省复测 + 城市筛选）
+> 最后验证：2026-08-21（A1 project18 clean evidence）
 
 ## 机制
 bespoke `gzDetail`：`api/trade/detail?id=` 取结构化详情。
+
+## 2026-08-21 A1 project18 结论
+附件 GUID 已按官网模板改走 `/api/upload/preview/`。4条 clean 样本从公开 PDF 补出保证金、综合评估法和100分；17字段终态为 VL=4、VD=9、VA=3、ND=1，无 `FIELD_UNVERIFIED`。performance 在本批样本未披露。机器证据见 `reference/evidence/a1-structured-project18-20260821.json`。
 
 ## 2026-08-14 验证结论
 ✅ **厚字段已打通**：`--detail` 触发后，owner/agency/controlPrice/funding/bidOpen/duration/qualification/consortium/contact/phone/docLink 等稳定抽取（2026-08-14 实测 18/20 列 100% 命中，缺失列即上方"诚实留空"字段，非失败）。 2026-08 前期实测：owner/控制价/开标/资质/docLink 全命中。
