@@ -241,6 +241,19 @@ test("B2 拒绝标段划分、未勾选业绩模板与引用式规模", () => {
   assert.equal(funding.funding, "市财政资金35%，企业自筹65%");
 });
 
+test("B3 拒绝非招标采购、标段章节和项目名字段污染", () => {
+  assert.equal(M.isStrictZbTitle("雨污管网在线监测项目竞争性磋商采购公告"), false);
+  assert.equal(M.isStrictZbTitle("供水管网建设项目公开招标公告"), true);
+  assert.equal(M.extractProjectContent("", "建设规模：1.项目名称：污水处理厂劳务分包", "").scale, "");
+  assert.equal(M.extractProjectContent("", "招标范围：2.5.1施工标段：", "").scope, "");
+  assert.equal(M.extractProjectContent("", "招标范围：该项目位于寿光市城区，该工程概况", "").scope, "");
+  assert.equal(M.extractProjectContent("", "招标范围：2.3招标工程标段划分及计划工期：本次招标工程共划分1个标段", "").scope, "");
+  const duration = M.extractDetail({}, "<p>计划工期：本次招标工程共划分1个标段，各标段划分及工期要求如下。计划工期:140.0天</p>", { title: "青海排水工程招标公告", url: "https://example.invalid/qh" }, "");
+  assert.equal(duration.duration, "140.0天");
+  const funding = M.extractDetail({}, "<p>资金来源：：国债资金和自有资金</p>", { title: "潍坊供热工程招标公告", url: "https://example.invalid/wf" }, "");
+  assert.equal(funding.funding, "国债资金和自有资金");
+});
+
 test("洛阳与郑州复用标准 EPoint 并锁定城市招标公告边界", () => {
   assert.equal(M.ADAPTERS.luoyang.kind, "epoint");
   assert.equal(M.ADAPTERS.luoyang.keepScheme, true);

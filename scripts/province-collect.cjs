@@ -2087,7 +2087,7 @@ const DUR_SCORE_NOISE = /得\s*\d+(?:\.\d+)?\s*分|得分|加分|扣分|每增�
 // 2026-08-16 Goal v3 回源核查新增：EPoint 表格拼接串（黑龙江"（天）监理费上限（万元）SZJL0504…2026年10月31日43537.62"、
 // 兵团"（天） E6699004… 第四师G218…"）内日期"2026年"会被 DUR_UNIT 误判为"N 年工期"；海南出现"要求：总工期或计划开工日期为"
 // 截断句。拒收特征：以（天）开头 / 含（万元）/ 含字母+长数字编号 / 以"为""："等截断词收尾。
-const DUR_GARBAGE = /^[(（]\s*天[)）]|[（(]\s*万元\s*[)）]|[A-Za-z]\d{6,}|[为：:]\s*$/;
+const DUR_GARBAGE = /^[(（]\s*天[)）]|[（(]\s*万元\s*[)）]|[A-Za-z]\d{6,}|[为：:]\s*$|标段划分|各标段划分/;
 const DUR_SCOPE_NOISE = /工程量清单|施工图|图纸|招标范围|范围内所有工程|所有工程施工|工作内容/;
 
 function grabDuration(text, flat) {
@@ -2099,7 +2099,7 @@ function grabDuration(text, flat) {
   const durUnitHit = (s) => DUR_UNIT.test(String(s).replace(/(?:19|20)\d{2}\s*年(?:\s*\d{1,2}\s*月(?:\s*\d{1,2}\s*日)?)?/g, ""));
   // 先取紧邻“计划工期/工期”的数字时间值，避开复合标题“招标范围及标段划分、计划工期”
   // 后面尚有大量复选框时，兜底扫描会把“☑其他：施工图纸……”错当工期（绵阳公路公告实测）。
-  const directRe = /(?:计划工期|总工期|工期)\s*(?:要求\s*)?[:：]?\s*(?:为\s*)?(\d+\s*(?:个日历天|日历天|个工作日|工作日|天|个月|月|年))/g;
+  const directRe = /(?:计划工期|总工期|工期)\s*(?:要求\s*)?[:：]?\s*(?:为\s*)?(\d+(?:\.\d+)?\s*(?:个日历天|日历天|个工作日|工作日|天|个月|月|年))/g;
   let direct;
   while ((direct = directRe.exec(text))) {
     const candidate = durClean(direct[1]);
@@ -2242,10 +2242,10 @@ function grabQualification(text, flat) {
 function cleanQualificationOutput(value, source = "") {
   let v = String(value || "").trim();
   if (/^1\s*[.、]\s*资质等级及范围[：:]/.test(v)) {
-    const recovered = String(source || "").match(/企业要求\s*[:：]\s*([\s\S]{10,800}?)(?=(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取)|$)/)?.[1] || "";
+    const recovered = String(source || "").match(/企业要求\s*[:：]\s*([\s\S]{10,800}?)(?=(?:(?:三、|3\s*[.、．])\s*(?:报名|报名及获取|获取招标文件)|(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取))|$)/)?.[1] || "";
     if (recovered) v = cleanVal(recovered.replace(/[\r\n]+/g, " "));
   }
-  const tail = v.search(/(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取)/);
+  const tail = v.search(/(?:(?:三、|3\s*[.、．])\s*(?:报名|报名及获取|获取招标文件)|(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取))/);
   if (tail >= 12) v = v.slice(0, tail).trim();
   return v;
 }
@@ -2388,13 +2388,16 @@ function cleanProjectContent(value) {
   // 云南等结构化详情会把记录 GUID 拼在建设规模正文尾部；仅清理独立 UUID 尾段，不碰项目编号正文。
   v = v.replace(/(?<![0-9a-f])[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "").trim();
   if (!v || PROJECT_TAIL_ONLY.test(v)) return "";
-  if (/^(?:(?:\d+(?:\.\d+)*)[、.．]?\s*)?(?:投资规模|建设规模|工程规模|项目规模|项目概况|工程概况|标段概况|标段名称|供货期[（(]?天[）)]?|服务期[（(]?天[）)]?|项目编号|招标编号|标段编号|交易编号)$/.test(v)) return "";
-  if (/^(?:\d+(?:\.\d+)+\s*)?(?:(?:招标)?项目(?:或标段)?名称|标段名称|工程名称)\s*[:：]/.test(v)) return "";
+  if (/^(?:(?:\d+(?:\.\d+)*)[、.．]?\s*)?(?:投资规模|建设规模|工程规模|项目规模|项目概况|工程概况|标段概况|标段名称|招标工程标段划分及?|供货期[（(]?天[）)]?|服务期[（(]?天[）)]?|项目编号|招标编号|标段编号|交易编号)$/.test(v)) return "";
+  if (/^(?:\d+(?:\.\d+)*[.、．]?\s*)?(?:(?:招标)?项目(?:或标段)?名称|标段名称|工程名称)\s*[:：]/.test(v)) return "";
   if (/^(?:\d+(?:\.\d+)*[.、．]?\s*)?(?:工程建设地点|建设地点|项目地点|招标项目所在实施地区)\s*[:：]/.test(v)) return "";
   if (/^[\/／]\s*[，,；;]?\s*(?:工程建设地点|建设地点|项目地点)\s*[:：]/.test(v)) return "";
   if (/^(?:工程|服务|货物)-/.test(v) && (v.match(/-/g) || []).length >= 2) return "";
   if (/^[A-Za-z]{2,}[A-Za-z0-9_.\-/]{4,}$/.test(v)) return "";
   if (/^同[^，,。；;]{0,80}(?:标段)?的建设规模$/.test(v)) return "";
+  if (/^(?:\d+(?:\.\d+)*[.、．]?\s*)?(?:施工标段|监理标段|设计标段)\s*[:：]?$/.test(v)) return "";
+  if (/^(?:\d+(?:\.\d+)*[.、．]?\s*)?招标工程标段划分及计划工期[\s\S]*$/.test(v)) return "";
+  if (/^该项目位于[\s\S]{0,100}?该工程概况$/.test(v)) return "";
   // 仅删除有实质正文后的法律保留尾句，不删除正文中的“以清单为准”等必要描述。
   const tail = v.search(/[。；;，,]\s*(?:招标人有权|建设内容.*?增减|中标人不得有异议)/);
   if (tail >= 12) v = v.slice(0, tail + 1).trim();
@@ -2583,7 +2586,7 @@ function extractNoticeTitle(html, fallback = "") {
 function isStrictZbTitle(title) {
   const text = String(title || "").replace(/\s+/g, " ").trim();
   if (!text) return false;
-  return !/(?:资格预审(?:文件|公告)?|资审文件公告|预审结果|答疑|澄清|更正|变更|补充公告|终止公告|暂停公告|流标|废标|中标(?:候选人|结果|公告|公示)|成交(?:公告|结果|公示)|评标结果|合同(?:公告|公示))/.test(text);
+  return !/(?:竞争性磋商|竞争性谈判|询价(?:采购)?公告|单一来源(?:采购)?公告|资格预审(?:文件|公告)?|资审文件公告|预审结果|答疑|澄清|更正|变更|补充公告|终止公告|暂停公告|流标|废标|中标(?:候选人|结果|公告|公示)|成交(?:公告|结果|公示)|评标结果|合同(?:公告|公示))/.test(text);
 }
 
 function extractDetail(ad, html, item, pdfText) {
@@ -2616,6 +2619,7 @@ function extractDetail(ad, html, item, pdfText) {
     // "建设资金" 兜底：缙云公告写成「建设资金\n通过争取上级补助及县财政统筹安排」，无"来源/来自"字样
     // 扁平化兜底 minLen=2：武义县公告资金来源就是"自筹"两个字，属完整有效答案
     funding: grabBoth(text, flat, FUND_LABELS, 2)
+      .replace(/^[：:\s]+/, "")
       .replace(/^(?:来源于|来自|于|为)(?=.{2})/, "")
       .replace(/[，,]?\s*项目已具备招标条件[\s\S]*$/, ""),
     duration: grabDuration(text, flat),
