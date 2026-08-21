@@ -166,6 +166,7 @@ test("深圳列表严格只收 noticeTypeName=招标公告，保留官方地区�
   assert.match(got[0].url, /contentId=20584564&channelId=2851$/);
   assert.equal(M.exactMoneyWan("2369.89万元"), "2369.89");
   assert.equal(M.exactMoneyWan("66042741.73元"), "6604.274173");
+  assert.equal(M.parseShenzhenList({ data: { content: [{ id: 3, channelId: 2851, noticeTypeName: "招标公告", noticeTitle: "某项目资格预审公告", releaseTime: "2026-08-18" }] } }, ad).length, 0);
 });
 
 test("A3 城市结构化详情拒绝金额尾噪声、评审模板、空标签与跨章节资质", () => {
@@ -177,6 +178,15 @@ test("A3 城市结构化详情拒绝金额尾噪声、评审模板、空标签�
   assert.equal(M.cleanNanjingQualification("具有工程设计综合甲级资质。业绩要求：承担过涉铁工程设计项目。"), "具有工程设计综合甲级资质。");
   assert.deepEqual(M.shenzhenProjectContent({}), { scale: "", scope: "" });
   assert.deepEqual(M.shenzhenProjectContent({ "本次招标面积": "12000平方米", "本次招标内容": "施工图范围内全部施工" }), { scale: "12000平方米", scope: "施工图范围内全部施工" });
+  assert.equal(M.ningboExactDuration("施工期的现场配合服务等"), "");
+  assert.equal(M.ningboExactDuration("工期要求：总工期为270日历天"), "270日历天");
+
+  const jinan = M.jinanDetail("<p>1.项目名称:示例</p><p>4.计划工期:240</p><p>5.质量要求:合格</p><p>1、资质要求：工程设计综合甲级资质。4、业绩要求：投标人承担过单项合同100万元以上类似工程。5、信誉要求：良好。</p>", { title: "济南示例招标公告", url: "https://example.invalid/jinan" }, "");
+  assert.equal(jinan.duration, "240");
+  assert.match(jinan.performance, /100万元/);
+
+  const zhongshan = M.zhongshanDetail("<table><tr><td>投标资格能力要求</td><td>工程勘察综合甲级资质；工程设计市政行业甲级资质</td></tr></table>", { title: "中山示例招标公告", url: "https://example.invalid/zs" }, "");
+  assert.match(zhongshan.qualification, /工程勘察综合甲级/);
 });
 
 test("洛阳与郑州复用标准 EPoint 并锁定城市招标公告边界", () => {
