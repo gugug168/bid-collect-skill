@@ -13,10 +13,10 @@
 | neimenggu | `VERIFIED_RECORD` | 3 | — | `neimenggu.run-report.json` | 官方 JSON 详情 |
 | liaoning | `VERIFIED_RECORD` | 1 | — | `reference/evidence/a2-structured-project18-20260821.json` | 管网1+非管网1条干净复测；发布机构不再冒充地区 |
 | jilin | `VERIFIED_RECORD` | 1 | — | `jilin.run-report.json` | 30 天仅 1 条，按规则停止 |
-| heilongjiang | `CONNECTED_NO_RECENT_DATA` | 0 | 90/365 仍 0 | `heilongjiang.run-report.json`, `heilongjiang-90d`, `heilongjiang-365d` | 旧快照曾需 400 天，当前窗口仍无记录 |
+| heilongjiang | `CONNECTED_NO_RECENT_DATA` | 0 | 30/90/365天0；无关键词30天0 | `reference/evidence/b1-epoint-project18-20260822.json` | B1 四次请求成功、零错误限流；17字段以NO_SAMPLE收口 |
 | shanghai | `VERIFIED_RECORD` | 3 | — | `shanghai.run-report.json` | DNS→curl 兜底后有记录 |
-| jiangsu | `VERIFIED_RECORD` | 3 | — | `jiangsu.run-report.json` | 徐州另有城市筛选证据 |
-| zhejiang | `VERIFIED_RECORD` | 3 | — | `zhejiang.run-report.json` | 官方 URL 齐全 |
+| jiangsu | `VERIFIED_RECORD` | 3 | — | `reference/evidence/b1-epoint-project18-20260822.json` | B1 管网3+非管网1；服务范围与业绩门槛修复 |
+| zhejiang | `VERIFIED_RECORD` | 3 | — | `reference/evidence/b1-epoint-project18-20260822.json` | B1 PDF回源；零控制价、规模地点和scope尾噪声修复 |
 | anhui | `VERIFIED_RECORD` | 3 | — | `reference/evidence/a2-structured-project18-20260821.json` | 管网3+非管网1条；保证金账户噪声已修复 |
 | fujian | `VERIFIED_RECORD` | 3 | — | `reference/evidence/a2-structured-project18-20260821.json` | 官方签名详情API；管网3+学校1条干净复测 |
 | jiangxi | `VERIFIED_RECORD` | 3 | — | `jiangxi.run-report.json` | TLS→curl 兜底 |
@@ -26,7 +26,7 @@
 | hunan | `VERIFIED_RECORD` | 3 | — | `hunan.run-report.json` | 官方 REST |
 | guangdong | `VERIFIED_RECORD` | 3 | 3 天广州3、珠海3 | `2026-08-19_project18实时验收/*.run-report.json` | `3C14` 纯招标；公开详情与附件链接；大文件/验证码单独记附件信号 |
 | guangxi | `VERIFIED_RECORD` | 3 | — | `guangxi.run-report.json` | HTTP 官方入口 |
-| hainan | `VERIFIED_RECORD` | 3 | — | `hainan.run-report.json` | 多栏目拆轮后有记录 |
+| hainan | `VERIFIED_RECORD` | 3 | — | `reference/evidence/b1-epoint-project18-20260822.json` | B1 管网3+河道疏浚1；附件验证码单列 |
 | chongqing | `VERIFIED_RECORD` | 3 | — | `reference/evidence/a2-structured-project18-20260821.json` | 管网3+非管网1条；Nuxt SSR详情复测 |
 | sichuan | `VERIFIED_RECORD` | 3 | — | `sichuan.run-report.json` | EPoint |
 | guizhou | `VERIFIED_RECORD` | 3 | — | `guizhou.run-report.json` | 官方 REST |
@@ -38,9 +38,9 @@
 | ningxia | `VERIFIED_RECORD` | 3 | — | `ningxia.run-report.json` | EPointX |
 | xinjiang | `VERIFIED_RECORD` | 3 | — | `xinjiang.run-report.json` | EPointX |
 | xinjiangbt | `CONNECTED_NO_RECENT_DATA` | 0 | 90/365 仍 0 | `xinjiangbt.run-report.json`, `xinjiangbt-90d`, `xinjiangbt-365d` | 旧快照需去关键词，当前管网窗口为空 |
-| anyang | `VERIFIED_RECORD` | 2 | — | `anyang-zb-30d.run-report.json` | 锁定 `001001002`/`001002002` 后近 30 天复验，2/2 均为招标公告 |
+| anyang | `VERIFIED_RECORD` | 1 | — | `reference/evidence/b1-epoint-project18-20260822.json` | B1 排除竞争性磋商等非招标采购，管网招标1条 |
 | dingxi | `CONNECTED_NO_RECENT_DATA` | 0 | 365 仍 0 | `dingxi-365d.run-report.json` | 城市级（infodate 排序变体）：可达 total=4621 但源站 2023-04 后停更，非近期数据源 |
-| changzhou | `VERIFIED_RECORD` | 3 | — | `changzhou2.run-report.json` | 城市级独立平台（V5 探测接入）：近 30 天 3/3，控制价/招标人厚字段命中 |
+| changzhou | `VERIFIED_RECORD` | 3 | — | `reference/evidence/b1-epoint-project18-20260822.json` | B1 标题二次关键词过滤；附件补保证金 |
 | luoyang | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/luoyang.run-report.json` | 标准 EPoint；锁 `003001002` 工程招标公告；HTTP 官方入口 |
 | zhengzhou | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/zhengzhou.run-report.json` | 标准 EPoint；排除 `004001` 混入的招标计划/采购意向 |
 | mianyang | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/mianyang.run-report.json` | 静态列表+关系接口；精确选择 `001001` 招标公告；附件验证码不绕过 |

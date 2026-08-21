@@ -1,0 +1,79 @@
+{
+  "schema_version": "project18-evidence.v1",
+  "batch": "B1",
+  "stage": "zb",
+  "verified_at": "2026-08-22T00:01:00+08:00",
+  "code_dirty": false,
+  "evidence": {
+    "fixture:b1-jiangsu-project18": {"kind":"fixture","path":"reference/evidence/b1-epoint-project18-20260822.json","code_commit":"0f71b750eaca71a7560886014ca5b163619e3397","code_dirty":false},
+    "fixture:b1-zhejiang-project18": {"kind":"fixture","path":"reference/evidence/b1-epoint-project18-20260822.json","code_commit":"665107518d87b1de74d08a6ea6e4ec3f3dad849a","code_dirty":false},
+    "fixture:b1-hainan-project18": {"kind":"fixture","path":"reference/evidence/b1-epoint-project18-20260822.json","code_commit":"0f71b750eaca71a7560886014ca5b163619e3397","code_dirty":false},
+    "fixture:b1-heilongjiang-project18": {"kind":"fixture","path":"reference/evidence/b1-epoint-project18-20260822.json","code_commit":"0f71b750eaca71a7560886014ca5b163619e3397","code_dirty":false},
+    "fixture:b1-anyang-project18": {"kind":"fixture","path":"reference/evidence/b1-epoint-project18-20260822.json","code_commit":"665107518d87b1de74d08a6ea6e4ec3f3dad849a","code_dirty":false},
+    "fixture:b1-changzhou-project18": {"kind":"fixture","path":"reference/evidence/b1-epoint-project18-20260822.json","code_commit":"665107518d87b1de74d08a6ea6e4ec3f3dad849a","code_dirty":false}
+  },
+  "samples": {
+    "jiangsu": [
+      {"kind":"pipe","title":"梁徐工业园区供热管网工程梁徐工业园区供热管网建设项目(重发公告第1次)","official_url":"http://jsggzy.jszwfw.gov.cn/jyxx/003001/003001001/20260821/a2f04d16-416a-4bbb-b869-d174f1af9156.html"},
+      {"kind":"general","title":"沙头镇镇区及智能制造产业园基础设施提升完善工程求知路段施工招标公告","official_url":"http://jsggzy.jszwfw.gov.cn/jyxx/003001/003001001/20260821/d03df7e9-691a-4c6d-9afa-55252c09dc18.html"}
+    ],
+    "zhejiang": [
+      {"kind":"pipe","title":"衢州市供水管网互联互通工程招标公告","official_url":"https://ggzy.zj.gov.cn/jyxxgk/002001/002001001/20260821/b2df859b-20ee-4054-8c5c-c97a903e762b.html"},
+      {"kind":"general","title":"浙中水资源配置义乌境内配套工程-南线输水管工程","official_url":"https://ggzy.zj.gov.cn/jyxxgk/002001/002001001/20260821/9d9bc5e9-ba95-4e48-b553-ffb08d65869c.html"}
+    ],
+    "hainan": [
+      {"kind":"pipe","title":"（机器管招投标）定安县城区排水管网修复提升项目（三期）设计施工总承包EPC招标公告","official_url":"https://ggzy.hainan.gov.cn/jyxx/003001/003001002/20260821/2c9a70e69fb79daa01a0232bfc656cfe.html"},
+      {"kind":"general","title":"（机器管招投标）定安县南渡江（墩山段）河道疏浚项目招标公告","official_url":"https://ggzy.hainan.gov.cn/jyxx/003001/003001002/20260821/2c9a7082a023c2a201a024205821080c.html"}
+    ],
+    "anyang": [
+      {"kind":"pipe","title":"安阳市文明大道等地下热力管网老化更新改造工程(一期)（EPC）招标公告","official_url":"https://ggzy.anyang.gov.cn/jyxx/001001/001001002/20260805/5f10778c-eec8-4d3c-a68f-945959d0ab02.html"},
+      {"kind":"general","title":"2026年林州市石板岩镇乡村旅游产业路提升改造项目","official_url":"https://ggzy.anyang.gov.cn/jyxx/001001/001001002/20260821/ae02eba7-5099-4a44-aa58-01d86dbf673d.html"}
+    ],
+    "changzhou": [
+      {"kind":"pipe","title":"热力管网华高新专线管道工程监理","official_url":"https://ggzy.changzhou.gov.cn/jyzx/001001/001001001/001001001002/20260820/3da30caf-7288-4dbd-9eff-0b9c8fca7056.html"},
+      {"kind":"general","title":"南京师范大学未来工学研究院（新科创中心）设计","official_url":"https://ggzy.changzhou.gov.cn/jyzx/001001/001001001/001001001003/20260821/dd67b0ae-4ab3-4dec-81de-8894e13256dc.html"}
+    ],
+    "heilongjiang": []
+  },
+  "terminal_notes": {
+    "jiangsu": {"bond":"四条公告及公开附件未形成可核对保证金金额"},
+    "zhejiang": {"bond":"公告PDF未披露保证金金额","evaluation":"评标办法位于正式交易文件而非公告PDF","fullScore":"评分细则位于正式交易文件"},
+    "hainan": {"performance":"四条样本未披露独立企业业绩要求","fullScore":"招标文件下载需验证码，未绕过"},
+    "heilongjiang": {"sample":"管网30/90/365天及无关键词30天均请求成功但无记录；17字段全部以FIELD_NO_SAMPLE收口，不推断未披露或失败"},
+    "anyang": {"performance":"两条招标公告未披露独立企业业绩要求","bond":"附件下载需验证码","evaluation":"评标办法位于验证码附件","fullScore":"评分细则位于验证码附件"},
+    "changzhou": {"fullScore":"四条样本详情和可解析附件未披露评分总分"}
+  },
+  "capability_updates": {
+    "jiangsu": {"evidence_id":"fixture:b1-jiangsu-project18","verified_at":"2026-08-22T00:01:00+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","evaluation","consortium","fullScore","docLink"],
+      "FIELD_RESTRICTED":["bond"]
+    }},
+    "zhejiang": {"evidence_id":"fixture:b1-zhejiang-project18","verified_at":"2026-08-22T00:01:00+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","consortium","docLink"],
+      "FIELD_RESTRICTED":["bond","evaluation","fullScore"]
+    }},
+    "hainan": {"evidence_id":"fixture:b1-hainan-project18","verified_at":"2026-08-22T00:01:00+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","title","scale","scope","funding","duration","qualification","controlPrice","bond","evaluation","consortium","docLink"],
+      "FIELD_NOT_DISCLOSED":["performance"],
+      "FIELD_RESTRICTED":["fullScore"]
+    }},
+    "heilongjiang": {"evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00","statuses":{
+      "FIELD_NO_SAMPLE":["publishDate","region","bidOpen","title","scale","scope","funding","duration","qualification","performance","controlPrice","bond","evaluation","consortium","fullScore","url","docLink"]
+    }},
+    "anyang": {"evidence_id":"fixture:b1-anyang-project18","verified_at":"2026-08-22T00:01:00+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","title","url"],
+      "FIELD_VERIFIED_DETAIL":["region","bidOpen","scale","scope","funding","duration","qualification","controlPrice","consortium","docLink"],
+      "FIELD_NOT_DISCLOSED":["performance"],
+      "FIELD_RESTRICTED":["bond","evaluation","fullScore"]
+    }},
+    "changzhou": {"evidence_id":"fixture:b1-changzhou-project18","verified_at":"2026-08-22T00:01:00+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","title","url"],
+      "FIELD_VERIFIED_DETAIL":["region","bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","evaluation","consortium","docLink"],
+      "FIELD_VERIFIED_ATTACHMENT":["bond"],
+      "FIELD_RESTRICTED":["fullScore"]
+    }}
+  }
+}

@@ -380,6 +380,8 @@ const ADAPTERS = {
     // 不能留空：全量搜索会混入 001001004 评标结果、001001005 中标结果和 001001001 招标计划。
     // collectProvince 会将多栏目拆轮采集，避免 EPoint 同字段多 condition 仅首项生效的静默漏采。
     cats: ["001001002", "001002002"],
+    // 用户验收只包含招标公告；政府采购栏目中的磋商/谈判/询价并非“招标”，必须拒绝。
+    itemAllowed: (item) => !/(?:竞争性磋商|竞争性谈判|询价|单一来源)/.test(String(item && item.title || "")),
     defaultType: "招标公告",
   },
   // ===== 常州（城市级 · 2026-08-16 V5 全量测试探测新增 · 标准 EPoint 同构）=====
@@ -397,6 +399,7 @@ const ADAPTERS = {
     sortField: "webdate", // 探针实测 webdate 排序最新在前（同安阳）
     cats: ["001001001"], // contains 前缀：工程建设招标公告全部子类（施工/监理设计/采购）
     omitFields: true,    // 常州实例对 fields 投影参数敏感：传入即静默返空（2026-08-16 二分定位实测）
+    keywordClient: true, // 该实例服务端 wd 会返回无关键词记录，必须在标题层二次过滤
     defaultType: "招标公告",
   },
   // ===== 城市扩展批次（2026-08-18）：洛阳/郑州复用标准 EPoint =====
@@ -1835,6 +1838,8 @@ function grabPerformance(text, flat) {
   // 烟台工程公告的明确空值形态：「3.4 业绩要求：/ 3.5 其他要求」。
   // 斜杠不是缺失，而是发布方明确表示无业绩要求；须在宽松 grab 跨入 3.5 前截住。
   if (/(?:业绩要求|业绩条件|企业业绩)\s*[:：]\s*[\/／]\s*(?=\d+\.\d|[。；;\n]|$)/.test(text)) return "不要求";
+  const directSimilar = text.match(/具有与本工程相类似项目的(?:设计|施工|监理)?业绩\s*[:：]\s*([\s\S]{10,700}?)(?=类似业绩证明材料|证明材料需提供|\n\s*3\s*\.\s*4\s*\.\s*2)/);
+  if (directSimilar) return cleanVal(directSimilar[1].replace(/[\r\n]+/g, " ")).slice(0, 500);
   // 福建施工公告模板把答案放在“用于确定类似工程业绩的相关数据”后。
   // 明确写“无”或“/”就是不要求，不能把标签尾巴“的相关数据”当成业绩事实。
   if (/用于确定类似工程业绩的相关数据\s*[:：]\s*(?:无|[\/／])(?=\s|[（(；;。]|$)/.test(text)) return "不要求";
@@ -1847,7 +1852,7 @@ function grabPerformance(text, flat) {
   }
   if (v
     && !/^[（(]?\s*\d+(?:\.\d+)?\s*分\s*[）)]?$/.test(v)
-    && !/^(?:的相关数据(?:\s*[:：]\s*(?:无|[\/／]))?|(?:\d+(?:\.\d+)+\s*)?企业类似工程业绩|[A-Z]{1,8}(?:[-_]\d+)?)$/i.test(v.trim())) return v;
+    && !/^(?:的企业(?:或者|或)项目负责人[\s\S]*|的相关数据(?:\s*[:：]\s*(?:无|[\/／]))?|(?:\d+(?:\.\d+)+\s*)?企业类似工程业绩|[A-Z]{1,8}(?:[-_]\d+)?)$/i.test(v.trim())) return v;
   let i = -1;
   while ((i = text.indexOf("业绩", i + 1)) >= 0) {
     const before = text.slice(Math.max(0, i - 120), i);
@@ -2232,6 +2237,17 @@ function grabQualification(text, flat) {
   return phrase;
 }
 
+function cleanQualificationOutput(value, source = "") {
+  let v = String(value || "").trim();
+  if (/^1\s*[.、]\s*资质等级及范围[：:]/.test(v)) {
+    const recovered = String(source || "").match(/企业要求\s*[:：]\s*([\s\S]{10,800}?)(?=(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取)|$)/)?.[1] || "";
+    if (recovered) v = cleanVal(recovered.replace(/[\r\n]+/g, " "));
+  }
+  const tail = v.search(/(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取)/);
+  if (tail >= 12) v = v.slice(0, tail).trim();
+  return v;
+}
+
 function numFrom(s) {
   if (!s) return "";
   const m = s.replace(/,/g, "").match(/(\d+(?:\.\d+)?)/);
@@ -2243,7 +2259,7 @@ function numFrom(s) {
 const CODE_LABELS = ["项目编号", "招标项目编号", "标段编号", "交易项目编号", "项目代码", "招标编号", "标段号", "招标项目代码", "采购项目编号", "项目序号"];
 const METHOD_LABELS = ["招标方式", "招标组织形式", "采购方式", "发包方式"];
 const SCALE_LABELS = ["本标段工程的主要建设内容", "主要建设内容", "本次招标规模", "建设规模", "工程规模", "项目规模", "工程概况"];
-const SCOPE_LABELS = ["本标段招标范围", "标段招标范围", "招标范围和内容", "招标范围", "招标内容及范围", "招标内容"];
+const SCOPE_LABELS = ["本标段招标范围", "标段招标范围", "设计及相关服务范围", "监理及相关服务范围", "招标范围和内容", "招标范围", "招标内容及范围", "招标内容"];
 const AMBIGUOUS_PROJECT_LABELS = ["建设内容", "项目概况", "项目基本情况"];
 const COMBINED_PROJECT_LABEL = /^(?:招标范围及规模|招标范围和规模|建设规模及招标范围|项目概况及招标范围)$/;
 const APPROVAL_LABELS = ["批准文号", "审批文号", "核准文号", "备案号", "项目批准文号", "立项批复", "可研批复"];
@@ -2362,9 +2378,10 @@ function cleanProjectContent(value) {
   // 云南等结构化详情会把记录 GUID 拼在建设规模正文尾部；仅清理独立 UUID 尾段，不碰项目编号正文。
   v = v.replace(/(?<![0-9a-f])[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "").trim();
   if (!v || PROJECT_TAIL_ONLY.test(v)) return "";
-  if (/^(?:(?:\d+(?:\.\d+)*)[、.．]?\s*)?(?:投资规模|建设规模|工程规模|项目规模|项目概况|工程概况|项目编号|招标编号|标段编号|交易编号)$/.test(v)) return "";
-  if (/^(?:\d+(?:\.\d+)+\s*)?(?:(?:招标)?项目(?:或标段)?名称|工程名称)\s*[:：]/.test(v)) return "";
+  if (/^(?:(?:\d+(?:\.\d+)*)[、.．]?\s*)?(?:投资规模|建设规模|工程规模|项目规模|项目概况|工程概况|标段概况|标段名称|项目编号|招标编号|标段编号|交易编号)$/.test(v)) return "";
+  if (/^(?:\d+(?:\.\d+)+\s*)?(?:(?:招标)?项目(?:或标段)?名称|标段名称|工程名称)\s*[:：]/.test(v)) return "";
   if (/^(?:\d+(?:\.\d+)+\s*)?(?:工程建设地点|建设地点|项目地点)\s*[:：]/.test(v)) return "";
+  if (/^[\/／]\s*[，,；;]?\s*(?:工程建设地点|建设地点|项目地点)\s*[:：]/.test(v)) return "";
   if (/^(?:工程|服务|货物)-/.test(v) && (v.match(/-/g) || []).length >= 2) return "";
   if (/^[A-Za-z]{2,}[A-Za-z0-9_.\-/]{4,}$/.test(v)) return "";
   // 仅删除有实质正文后的法律保留尾句，不删除正文中的“以清单为准”等必要描述。
@@ -2374,6 +2391,8 @@ function cleanProjectContent(value) {
   if (nextSection >= 4) v = v.slice(0, nextSection).trim();
   const numberedSection = v.search(/\s*\d+\.\d+\.?\s*(?:工程建设地点|工程建设规模|招标范围和内容|招标范围|建筑安装工程费|招标控制价|工期要求|质量要求)\s*[:：]/);
   if (numberedSection >= 4) v = v.slice(0, numberedSection).trim();
+  const tenderAmountTail = v.search(/\s*[，,；;]?\s*(?:其中\s*[，,]?\s*□?\s*建筑面积|本次招标建安工程造价)/);
+  if (tenderAmountTail >= 4) v = v.slice(0, tenderAmountTail).trim();
   return v.slice(0, 500);
 }
 
@@ -2454,7 +2473,10 @@ function extractProjectContent(html, text, flat) {
     scale = grabProjectValueAll(text, flat, SCALE_LABELS, "scale");
     if (scale) scaleExact = true;
   }
-  if (!scope) scope = grabProjectValueAll(text, flat, SCOPE_LABELS, "scope");
+  if (!scope) {
+    const numberedScope = String(text || "").match(/(?:^|\n)\s*2\s*\.\s*2\s*招标范围\s*[:：]\s*([\s\S]{4,1800}?)(?=\n\s*2\s*\.\s*3\s*)/m)?.[1] || "";
+    scope = cleanProjectContent(numberedScope) || grabProjectValueAll(text, flat, SCOPE_LABELS, "scope");
+  }
 
   if (!scale || !scope) {
     const ambiguous = grabProjectValueAll(text, flat, AMBIGUOUS_PROJECT_LABELS, "ambiguous");
@@ -2558,7 +2580,8 @@ function extractDetail(ad, html, item, pdfText) {
   // 合同估算价放最后兜底：安徽公告无"控制价/最高限价"栏目，价款披露就是「N、合同估算价：5000038.66元」
   // （2026-08-15 对标标标通实测：安徽 23 条控制价填充率 43%→补此标签后可近满额；标标通控制价列即取此值）。
   // 语义上它是估算口径，但为安徽公告唯一价款字段，按标标通口径入控制价列；严格口径用户可看 budget 列。
-  const controlWan = grabMoneyWan(text, ["招标控制价", "控制价", "最高投标限价", "最高限价", "预算金额", "预算价", "合同估算价",
+  const explicitTenderConstructionZero = /本次招标建安工程造价\s*0(?:\.0+)?\s*万元/.test(text);
+  const controlWan = explicitTenderConstructionZero ? "" : grabMoneyWan(text, ["招标控制价", "控制价", "最高投标限价", "最高限价", "预算金额", "预算价", "合同估算价",
     // 2026-08-16 V5 取证回访补词（重庆/青海/海南实测原文）：
     //   重庆「本次招标项目合同估算金额： 2964.95 万元」「总投资金额： 4095.29 万元」
     //   青海「标段估算价:1930.29万元」——复合词形态，原词族未覆盖
@@ -2580,7 +2603,7 @@ function extractDetail(ad, html, item, pdfText) {
     funding: grabBoth(text, flat, FUND_LABELS, 2).replace(/^(?:来源于|来自|于)(?=.{2})/, ""),
     duration: grabDuration(text, flat),
     // v4 增补：浙江 PDF 用「①设计资质：… ②施工资质：…」「资格条件：」表述，无"资质要求"字样
-    qualification: grabQualification(text, flat),
+    qualification: cleanQualificationOutput(grabQualification(text, flat), text),
     performance: grabPerformance(text, flat),
     controlPrice: controlWan,
     // 概算/估算单独记录，绝不冒充控制价（见 grabBudgetWan 注释）
@@ -7263,6 +7286,9 @@ function resolveRecordRegion(ad, rec) {
   // “公共资源交易部/中心”等是发布机构，不是项目地区。此时保守回退到 adapter 明确管辖区，
   // 避免跨多城市项目从标题中随意挑一个城市。
   if (listed && /公共资源交易(?:部|中心|平台|服务中心)|交易服务(?:部|中心)|招标投标管理/.test(listed)) return jurisdictionFromAdapter(ad);
+  const listedArea = listed ? extractKnownArea(listed) : "";
+  if (listedArea) return listedArea;
+  if (listed && /(?:污水处理厂|水厂|医院|学校|研究院|项目|管道|管网|桩号)/.test(`${listed} ${rec && rec.title || ""}`)) return jurisdictionFromAdapter(ad);
   if (listed && !/^\d{6}$/.test(listed)) return listed;
   const fromText = extractKnownArea(`${rec && rec.projectSite || ""} ${rec && rec.title || ""}`);
   return fromText || jurisdictionFromAdapter(ad);

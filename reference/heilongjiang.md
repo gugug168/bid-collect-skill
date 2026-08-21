@@ -1,7 +1,7 @@
 # 黑龙江省 采集参考
 
 > 数据源 adapter：`heilongjiang` · kind=`epoint` · 验证状态：**🟡 CONNECTED_NO_RECENT_DATA（当前窗口）**
-> 最后验证：2026-08-15（30→90→365 天、管网关键词均无记录）
+> 最后验证：2026-08-22（管网30→90→365天及无关键词30天均无记录）
 
 ## 机制
 EPoint 标准 `getFullTextDataNew`，**cnum=002=工程建设信息(27万条)**；`keywordClient:true`（服务端 wd 检索全坏，拉全量类目后客户端按标题过滤）。
@@ -10,6 +10,10 @@ EPoint 标准 `getFullTextDataNew`，**cnum=002=工程建设信息(27万条)**�
 ✅ **历史修复已验证（2026-08-14）**：原 cnum=003=政府采购(错配) + 服务端关键词检索失效 → 0 条；改 cnum=002 + keywordClient 后，用 **`-d 400`** 实测抓到"供水管网改造"等 6 条 18/20 全命中。
 
 当前 2026-08-15 的 30→90→365 天窗口 sidecar 均为 `CONNECTED_NO_RECENT_DATA`；这只覆盖本次参数与时间窗，不抹除历史可达证据。
+
+## 2026-08-22 B1 project18 结论
+
+四次请求均成功、零错误、零限流，但没有当前可核对公告。17字段全部以 `FIELD_NO_SAMPLE` 诚实收口，无 `FIELD_UNVERIFIED`；不把无样本写成未披露、失败或浏览器要求。机器证据：`reference/evidence/b1-epoint-project18-20260822.json`。
 
 ## 可重复采集命令
 ```bash

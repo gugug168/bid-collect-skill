@@ -193,6 +193,37 @@ test("A3 城市结构化详情拒绝金额尾噪声、评审模板、空标签�
   assert.match(zhongshan.qualification, /工程勘察综合甲级/);
 });
 
+test("B1 关键词与项目内容守卫拒绝非招标阶段、章节标题和零控制价串值", () => {
+  assert.equal(M.ADAPTERS.changzhou.keywordClient, true);
+  assert.equal(M.ADAPTERS.anyang.itemAllowed({ title: "市政管网改造工程竞争性磋商公告" }), false);
+  assert.equal(M.ADAPTERS.anyang.itemAllowed({ title: "市政管网改造工程招标公告" }), true);
+  assert.equal(M.extractProjectContent("", "招标范围：2.1标段概况", "招标范围：2.1标段概况").scope, "");
+  assert.equal(M.extractProjectContent("", "招标范围：2.1标段名称：设计", "招标范围：2.1标段名称：设计").scope, "");
+  assert.equal(M.extractProjectContent("", "招标范围：2.1标段名称", "招标范围：2.1标段名称").scope, "");
+  assert.equal(M.extractProjectContent("", "建设规模：/，建设地点：衢州市", "建设规模：/，建设地点：衢州市").scale, "");
+  const section = M.extractProjectContent("", "2.2 招标范围：新建DN1500管道18公里及附属设施。\n2.3 施工工期：300日历天", "");
+  assert.match(section.scope, /DN1500管道18公里/);
+  assert.doesNotMatch(section.scope, /施工工期/);
+  assert.equal(M.resolveRecordRegion(M.ADAPTERS.changzhou, { city: "社渚污水处理厂", title: "配套管网工程" }), "常州市");
+  assert.equal(M.resolveRecordRegion(M.ADAPTERS.changzhou, { city: "大唐至金花河南（华城路路南）", title: "热力管网桩号5101工程" }), "常州市");
+  assert.equal(M.resolveRecordRegion(M.ADAPTERS.changzhou, { city: "常州市新北区新桥街道秀水河路11号", title: "科创中心设计" }), "常州市");
+  const cleanScope = M.extractProjectContent("", "招标范围：新建DN1500管道18公里，其中，□建筑面积㎡。本次招标建安工程造价704万元。", "");
+  assert.equal(cleanScope.scope, "新建DN1500管道18公里");
+  const perfNoise = M.extractDetail({}, "<p>业绩要求：的企业或者项目负责人仅可选1项</p>", { title: "示例招标公告", url: "https://example.invalid/b1" }, "");
+  assert.equal(perfNoise.performance, "");
+  const perf = M.extractDetail({}, "<p>具有与本工程相类似项目的设计业绩：自2023年1月1日以来，承担过管道长度700m以上且DN1400以上的给水工程设计项目。证明材料需提供中标通知书和合同。</p>", { title: "江苏设计招标公告", url: "https://example.invalid/js" }, "");
+  assert.match(perf.performance, /管道长度700m以上/);
+  assert.doesNotMatch(perf.performance, /证明材料需提供/);
+  const serviceScope = M.extractProjectContent("", "2.6设计及相关服务范围：本次招标包括初步设计、施工图设计及后续服务。", "");
+  assert.match(serviceScope.scope, /初步设计/);
+  assert.equal(M.extractProjectContent("", "发包内容：合同估算价（万元）", "发包内容：合同估算价（万元）").scope, "");
+  const qual = M.extractDetail({}, "<p>资质要求：1.资质等级及范围：2.项目负责人资质类别和等级：3.本次招标不接受联合体投标。4.其它要求：企业要求：具有市政公用工程施工总承包一级资质。四、投标1.投标截止时间：2026年9月1日。</p>", { title: "浙江工程招标公告", url: "https://example.invalid/qual" }, "");
+  assert.match(qual.qualification, /市政公用工程施工总承包一级/);
+  assert.doesNotMatch(qual.qualification, /投标截止时间/);
+  const zero = M.extractDetail({}, "<p>工程概算38624万元，其中建安工程造价30632万元。</p><p>本次招标建安工程造价0.0000万元。</p>", { title: "浙江供水工程招标公告", url: "https://example.invalid/zj" }, "");
+  assert.equal(zero.controlPrice, "");
+});
+
 test("洛阳与郑州复用标准 EPoint 并锁定城市招标公告边界", () => {
   assert.equal(M.ADAPTERS.luoyang.kind, "epoint");
   assert.equal(M.ADAPTERS.luoyang.keepScheme, true);
@@ -844,11 +875,12 @@ test("project18 能力真相源覆盖62×17并锁定干净证据", () => {
   assert.equal(validation.adapter_count, 62);
   assert.equal(validation.field_count, 17);
   assert.equal(validation.cells, 1054);
-  assert.equal(validation.unverified, 680);
+  assert.equal(validation.unverified, 578);
   assert.equal(CAP.projectionMatches(doc), true);
   for (const adapter of ["guangdong", "hunan", "hubei", "guizhou", "yunnan", "neimenggu", "tianjin", "jilin",
     "anhui", "xizang", "gansu", "liaoning", "fujian", "chongqing", "henan",
-    "qingdao", "wuhan", "jinan", "ningbo", "zhongshan", "nanjing", "shenzhen"]) {
+    "qingdao", "wuhan", "jinan", "ningbo", "zhongshan", "nanjing", "shenzhen",
+    "jiangsu", "zhejiang", "hainan", "heilongjiang", "anyang", "changzhou"]) {
     for (const field of doc.audited_fields) assert.notEqual(doc.adapters[adapter].fields[field].status, "FIELD_UNVERIFIED", `${adapter}.${field}`);
   }
   for (const evidence of Object.values(doc.evidence)) assert.equal(evidence.code_dirty, false);
