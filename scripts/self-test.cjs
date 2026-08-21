@@ -232,6 +232,7 @@ test("B2 拒绝标段划分、未勾选业绩模板与引用式规模", () => {
   const multi = M.extractDetail({}, "<p>业绩要求：（本项为多选）</p>", { title: "四川EPC招标公告", url: "https://example.invalid/sc2" }, "");
   assert.equal(multi.performance, "");
   assert.equal(M.extractProjectContent("", "建设规模：同施工五、六标段的建设规模", "").scale, "");
+  assert.equal(M.extractProjectContent("", "招标范围：供货期（天）", "").scope, "");
   const funding = M.extractDetail({}, "<p>资金来源：为市财政资金35%，企业自筹65%，项目已具备招标条件，现公开招标</p>", { title: "郑州供水工程招标公告", url: "https://example.invalid/zz" }, "");
   assert.equal(funding.funding, "市财政资金35%，企业自筹65%");
 });
