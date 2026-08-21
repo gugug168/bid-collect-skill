@@ -178,6 +178,8 @@ test("A3 城市结构化详情拒绝金额尾噪声、评审模板、空标签�
   assert.equal(M.cleanNanjingQualification("具有工程设计综合甲级资质。业绩要求：承担过涉铁工程设计项目。"), "具有工程设计综合甲级资质。");
   assert.deepEqual(M.shenzhenProjectContent({}), { scale: "", scope: "" });
   assert.deepEqual(M.shenzhenProjectContent({ "本次招标面积": "12000平方米", "本次招标内容": "施工图范围内全部施工" }), { scale: "12000平方米", scope: "施工图范围内全部施工" });
+  assert.equal(M.qualitativeFullScore("定性评审法"), "不适用（定性评审）");
+  assert.equal(M.qualitativeFullScore("综合评估法"), "");
   assert.equal(M.ningboExactDuration("施工期的现场配合服务等"), "");
   assert.equal(M.ningboExactDuration("工期要求：总工期为270日历天"), "270日历天");
 
