@@ -1,0 +1,67 @@
+{
+  "schema_version": "project18-evidence.v1",
+  "adapter": "guangdong",
+  "stage": "zb",
+  "verified_at": "2026-08-20T00:00:00+08:00",
+  "code_commit": "91877ccf73f0d5b1f10f200c9ee0c216c5ae77d2",
+  "code_dirty": false,
+  "source": "广东省公共资源交易平台（粤公平）",
+  "verified_fields": [
+    "publishDate",
+    "region",
+    "bidOpen",
+    "title",
+    "scale",
+    "scope",
+    "funding",
+    "duration",
+    "qualification",
+    "performance",
+    "controlPrice",
+    "bond",
+    "evaluation",
+    "consortium",
+    "fullScore",
+    "url",
+    "docLink"
+  ],
+  "samples": [
+    {
+      "id": "longcheng",
+      "status": "VERIFIED_RECORD",
+      "official_url": "https://ygp.gdzwfw.gov.cn/ggzy-portal/#/new/jygg/v3/A?noticeId=402894069f93e26d01a018c437e97968&projectCode=E4404000001006053001&bizCode=3C14&siteCode=440400&publishDate=20260819143220",
+      "title": "吉大街道隆城花园等老旧小区环境整治提升工程招标公告",
+      "publishDate": "2026-08-19",
+      "region": "珠海市",
+      "project_content_split": "具体招标内容包括",
+      "bond": 50,
+      "evaluation": "定性评审（经济标、技术标）",
+      "fullScore": "不适用（定性评审）",
+      "attachment_status": "ATTACHMENT_ENRICHED"
+    },
+    {
+      "id": "tancun",
+      "status": "VERIFIED_RECORD",
+      "official_url": "https://ygp.gdzwfw.gov.cn/ggzy-portal/#/new/jygg/v3/A?noticeId=f8546519-9060-410b-9559-7e390f4d9bf2-3C14&projectCode=E4401002701504772001&bizCode=3C14&siteCode=440100&publishDate=20260819000000",
+      "title": "广州市白云区潭村城中村改造项目（石井街部分）石井河以西片区管线迁改工程设计施工总承包招标公告",
+      "publishDate": "2026-08-19",
+      "region": "白云区",
+      "bond": 0,
+      "evaluation": "综合评估法",
+      "fullScore": "100",
+      "attachment_status": "ATTACHMENT_ENRICHED"
+    },
+    {
+      "id": "kemu",
+      "status": "VERIFIED_RECORD",
+      "official_url": "https://ygp.gdzwfw.gov.cn/ggzy-portal/#/new/jygg/v3/A?noticeId=e1fc64b8-431f-4340-a7ce-b5746dd56aef-3C14&projectCode=E4401002701504572001&bizCode=3C14&siteCode=440100&publishDate=20260819000000",
+      "title": "知识城柯木路市政道路及配套工程设计招标公告",
+      "publishDate": "2026-08-19",
+      "region": "黄埔区",
+      "bond": 0,
+      "evaluation": "综合评估法",
+      "fullScore": "100.5",
+      "attachment_status": "ATTACHMENT_ENRICHED"
+    }
+  ]
+}

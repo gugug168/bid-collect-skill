@@ -1,6 +1,7 @@
 # 省平台架构家族索引（FAMILY_INDEX）
 
 > 加新省 / 查某省招标公告打法前先读此页。下方状态表是 2026-08-14 的**历史厚字段快照**；当前招标公告实时状态以 [`ZB_LIVE_STATUS_2026-08-15.md`](ZB_LIVE_STATUS_2026-08-15.md) 为准。
+> 本页只负责平台家族与路由；project18 的17字段能力只认根目录 `PROJECT18_CAPABILITIES.json`，人读投影见 [`COVERAGE_MATRIX.md`](COVERAGE_MATRIX.md)。
 > 厚字段标准见 `SKILL.md`：owner/agency/projectCode/controlPrice/budget/bond/funding/bidOpen/duration/qualification/performance/evaluation/consortium/fullScore/contact/phone/docLink/city/projectSite/type/date/title/url（26 项）。
 > **诚实纪律**：没有任何省能在每条记录填满全部 26 项（源页本就不含 performance/fullScore/projectSite 等）；"打通"= 源页**实际存在的**厚字段成功抽出，不存在的诚实留空，绝不伪造。
 
