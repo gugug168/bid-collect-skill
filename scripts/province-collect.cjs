@@ -1819,6 +1819,8 @@ function grabPerformance(text, flat) {
   if (perfCheckbox && /[□£]/.test(perfCheckbox[1])) return "不要求";
   const namedCheckbox = text.match(/([R☑√■⊠□£])\s*类似项目业绩要求\s*[:：]/);
   if (namedCheckbox && /[□£]/.test(namedCheckbox[1])) return "不要求";
+  if (/□\s*近年[\s\S]{0,160}?年\s*月\s*日[\s\S]{0,160}?不少于[\s\S]{0,80}?[1１]\s*至\s*3\s*个/.test(text)
+    && !/[R☑√■⊠]\s*近年/.test(text)) return "";
   // 郑州模板把“企业类似工程业绩”和“项目经理类似工程业绩”拆成两组复选框。
   // 只读取企业组中已勾选的“要求/不要求”，不能把小标题本身写进业务表。
   const enterpriseSection = text.match(/企业类似工程业绩([\s\S]{0,900}?)(?=(?:\d+\s*\.\s*\d+\s*\.\s*\d+\s*)?项目经理类似工程业绩|$)/);
@@ -1852,7 +1854,7 @@ function grabPerformance(text, flat) {
   }
   if (v
     && !/^[（(]?\s*\d+(?:\.\d+)?\s*分\s*[）)]?$/.test(v)
-    && !/^(?:的企业(?:或者|或)项目负责人[\s\S]*|的相关数据(?:\s*[:：]\s*(?:无|[\/／]))?|(?:\d+(?:\.\d+)+\s*)?企业类似工程业绩|[A-Z]{1,8}(?:[-_]\d+)?)$/i.test(v.trim())) return v;
+    && !/^(?:[（(]?本项为多选[）)]?|的企业(?:或者|或)项目负责人[\s\S]*|的相关数据(?:\s*[:：]\s*(?:无|[\/／]))?|(?:\d+(?:\.\d+)+\s*)?企业类似工程业绩|[A-Z]{1,8}(?:[-_]\d+)?)$/i.test(v.trim())) return v;
   let i = -1;
   while ((i = text.indexOf("业绩", i + 1)) >= 0) {
     const before = text.slice(Math.max(0, i - 120), i);
@@ -2328,6 +2330,13 @@ function grabScopeLike(text, flat, labels, minLen) {
   if (!v || labels.includes(v) || v.length < 4) return "";
   return v.slice(0, 200);
 }
+function cleanProjectCandidate(value, prefer) {
+  const cleaned = cleanProjectContent(value);
+  if (cleaned || prefer !== "scope") return cleaned;
+  const raw = String(value || "").replace(/\s+/g, " ").trim()
+    .replace(/\s*\d+\.\d+\.?\s*标段划分\s*[:：][\s\S]*$/, "").trim();
+  return /^以[\s\S]{0,80}?(?:初步设计|施工图|工程量清单)[\s\S]{0,80}?范围内[\s\S]{0,40}?为准$/.test(raw) ? raw : "";
+}
 function grabProjectValueAll(text, flat, labels, prefer) {
   const candidates = [];
   // 招标范围常由“项目基本事实一句 + 本次招标独有内容一句”组成。若在第一个句号就截断，
@@ -2338,7 +2347,7 @@ function grabProjectValueAll(text, flat, labels, prefer) {
       const lineRe = new RegExp(labRe(label) + "\\s*[:：]\\s*([^\\n]{4,600})", "gi");
       let lineMatch;
       while ((lineMatch = lineRe.exec(String(text || "")))) {
-        const value = cleanProjectContent(lineMatch[1]);
+        const value = cleanProjectCandidate(lineMatch[1], prefer);
         if (value) candidates.push({ value, score: 1100 + Math.min(value.length, 300) });
       }
     }
@@ -2348,7 +2357,7 @@ function grabProjectValueAll(text, flat, labels, prefer) {
       const re = new RegExp(labRe(label) + "\\s*[:：]\\s*([\\s\\S]{4,600}?)(?=\\n\\s*(?:\\d+(?:\\.\\d+)+|[一二三四五六七八九十]+[、.])|[。；;]|$)", "gi");
       let match;
       while ((match = re.exec(source))) {
-        const value = cleanProjectContent(match[1]);
+        const value = cleanProjectCandidate(match[1], prefer);
         if (!value || value.length < 4) continue;
         let score = Math.min(value.length, 300);
         if (prefer === "scale") score += PROJECT_SCALE_SIGNAL.test(value) ? 1000 : 0;
@@ -2375,21 +2384,23 @@ const PROJECT_SPLIT_MARKERS = ["具体招标内容包括", "具体招标内容",
 function cleanProjectContent(value) {
   let v = String(value || "").replace(/^[\s\[【]+|[\s\]】]+$/g, "").replace(/\s+/g, " ").trim();
   v = v.replace(/^为\s*/, "").trim();
+  v = v.replace(/^\d+\s*[;；]\s*(?=\S{4})/, "").trim();
   // 云南等结构化详情会把记录 GUID 拼在建设规模正文尾部；仅清理独立 UUID 尾段，不碰项目编号正文。
   v = v.replace(/(?<![0-9a-f])[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "").trim();
   if (!v || PROJECT_TAIL_ONLY.test(v)) return "";
-  if (/^(?:(?:\d+(?:\.\d+)*)[、.．]?\s*)?(?:投资规模|建设规模|工程规模|项目规模|项目概况|工程概况|标段概况|标段名称|项目编号|招标编号|标段编号|交易编号)$/.test(v)) return "";
+  if (/^(?:(?:\d+(?:\.\d+)*)[、.．]?\s*)?(?:投资规模|建设规模|工程规模|项目规模|项目概况|工程概况|标段概况|标段名称|供货期[（(]?天[）)]?|服务期[（(]?天[）)]?|项目编号|招标编号|标段编号|交易编号)$/.test(v)) return "";
   if (/^(?:\d+(?:\.\d+)+\s*)?(?:(?:招标)?项目(?:或标段)?名称|标段名称|工程名称)\s*[:：]/.test(v)) return "";
-  if (/^(?:\d+(?:\.\d+)+\s*)?(?:工程建设地点|建设地点|项目地点)\s*[:：]/.test(v)) return "";
+  if (/^(?:\d+(?:\.\d+)*[.、．]?\s*)?(?:工程建设地点|建设地点|项目地点|招标项目所在实施地区)\s*[:：]/.test(v)) return "";
   if (/^[\/／]\s*[，,；;]?\s*(?:工程建设地点|建设地点|项目地点)\s*[:：]/.test(v)) return "";
   if (/^(?:工程|服务|货物)-/.test(v) && (v.match(/-/g) || []).length >= 2) return "";
   if (/^[A-Za-z]{2,}[A-Za-z0-9_.\-/]{4,}$/.test(v)) return "";
+  if (/^同[^，,。；;]{0,80}(?:标段)?的建设规模$/.test(v)) return "";
   // 仅删除有实质正文后的法律保留尾句，不删除正文中的“以清单为准”等必要描述。
   const tail = v.search(/[。；;，,]\s*(?:招标人有权|建设内容.*?增减|中标人不得有异议)/);
   if (tail >= 12) v = v.slice(0, tail + 1).trim();
   const nextSection = v.search(/(?:(?:\d+(?:\.\d+)*)[、.．]\s*|\s+)(?:投标人|申请人|供应商)资格要求/);
   if (nextSection >= 4) v = v.slice(0, nextSection).trim();
-  const numberedSection = v.search(/\s*\d+\.\d+\.?\s*(?:工程建设地点|工程建设规模|招标范围和内容|招标范围|建筑安装工程费|招标控制价|工期要求|质量要求)\s*[:：]/);
+  const numberedSection = v.search(/\s*\d+\.\d+\.?\s*(?:工程建设地点|工程建设规模|招标范围和内容|招标范围|建筑安装工程费|招标控制价|最高投标限价|工期要求|服务期限|质量要求|标段划分)\s*[:：]/);
   if (numberedSection >= 4) v = v.slice(0, numberedSection).trim();
   const tenderAmountTail = v.search(/\s*[，,；;]?\s*(?:其中\s*[，,]?\s*□?\s*建筑面积|本次招标建安工程造价)/);
   if (tenderAmountTail >= 4) v = v.slice(0, tenderAmountTail).trim();
@@ -2498,7 +2509,11 @@ function extractProjectContent(html, text, flat) {
   }
 
   scale = cleanProjectContent(scale);
+  const scopeBeforeFinalClean = String(scope || "").replace(/\s+/g, " ").trim();
   scope = cleanProjectContent(scope);
+  // “以初步设计/工程量清单范围内全部内容为准”作为 scale 是法律尾句噪声，
+  // 但在精确招标范围标签下它本身就是发布方给出的完整 scope，不能二次清洗成空。
+  if (!scope && /^以[\s\S]{0,80}?(?:初步设计|施工图|工程量清单)[\s\S]{0,80}?范围内[\s\S]{0,40}?为准$/.test(scopeBeforeFinalClean)) scope = scopeBeforeFinalClean;
   if (scale && scope && /本标段工程的主要建设内容/.test(scope) && scope.includes(scale)) scope = "";
   if (scale && scope) {
     const a = scale.replace(/[\s，,。；;]/g, "");
@@ -2600,7 +2615,9 @@ function extractDetail(ad, html, item, pdfText) {
     // 倒装标签放前面：江苏为"建设资金来自自筹资金（资金来源）"，若先匹配"资金来源"会抓到右括号后文
     // "建设资金" 兜底：缙云公告写成「建设资金\n通过争取上级补助及县财政统筹安排」，无"来源/来自"字样
     // 扁平化兜底 minLen=2：武义县公告资金来源就是"自筹"两个字，属完整有效答案
-    funding: grabBoth(text, flat, FUND_LABELS, 2).replace(/^(?:来源于|来自|于)(?=.{2})/, ""),
+    funding: grabBoth(text, flat, FUND_LABELS, 2)
+      .replace(/^(?:来源于|来自|于|为)(?=.{2})/, "")
+      .replace(/[，,]?\s*项目已具备招标条件[\s\S]*$/, ""),
     duration: grabDuration(text, flat),
     // v4 增补：浙江 PDF 用「①设计资质：… ②施工资质：…」「资格条件：」表述，无"资质要求"字样
     qualification: cleanQualificationOutput(grabQualification(text, flat), text),

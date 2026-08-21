@@ -57,8 +57,8 @@ test("招标公告实时状态总账覆盖全部 62 个 adapter", () => {
   const rows = [...text.matchAll(/^\| ([a-z][a-z0-9]+) \|/gm)].map((m) => m[1]).filter((adapter) => M.ADAPTERS[adapter]);
   assert.equal(new Set(rows).size, 62);
   assert.deepEqual([...new Set(rows)].sort(), Object.keys(M.ADAPTERS).sort());
-  assert.match(text, /`VERIFIED_RECORD`：55 个/);
-  assert.match(text, /`CONNECTED_NO_RECENT_DATA`：6 个/);
+  assert.match(text, /`VERIFIED_RECORD`：56 个/);
+  assert.match(text, /`CONNECTED_NO_RECENT_DATA`：5 个/);
   assert.match(text, /`FAILED`：1 个/);
 });
 
@@ -222,6 +222,23 @@ test("B1 关键词与项目内容守卫拒绝非招标阶段、章节标题和�
   assert.doesNotMatch(qual.qualification, /投标截止时间/);
   const zero = M.extractDetail({}, "<p>工程概算38624万元，其中建安工程造价30632万元。</p><p>本次招标建安工程造价0.0000万元。</p>", { title: "浙江供水工程招标公告", url: "https://example.invalid/zj" }, "");
   assert.equal(zero.controlPrice, "");
+});
+
+test("B2 拒绝标段划分、未勾选业绩模板与引用式规模", () => {
+  const scope = M.extractProjectContent("", "招标范围：以工程量清单范围内全部内容为准2.5标段划分：共八个标段", "");
+  assert.equal(scope.scope, "以工程量清单范围内全部内容为准");
+  const template = M.extractDetail({}, "<p>业绩要求：□近年（ 年 月 日至投标截止时间，不少于3年）不少于（1至3个）个类似项目</p>", { title: "四川工程招标公告", url: "https://example.invalid/sc" }, "");
+  assert.equal(template.performance, "");
+  const multi = M.extractDetail({}, "<p>业绩要求：（本项为多选）</p>", { title: "四川EPC招标公告", url: "https://example.invalid/sc2" }, "");
+  assert.equal(multi.performance, "");
+  assert.equal(M.extractProjectContent("", "建设规模：同施工五、六标段的建设规模", "").scale, "");
+  assert.equal(M.extractProjectContent("", "招标范围：供货期（天）", "").scope, "");
+  assert.equal(M.extractProjectContent("", "招标范围：1.招标项目所在实施地区：新疆生产建设兵团·一师", "").scope, "");
+  const luoyangScope = M.extractProjectContent("", "招标范围：项目规划红线内所有设计。2.4最高投标限价：170万元 2.5服务期限：25日历天", "");
+  assert.equal(luoyangScope.scope, "项目规划红线内所有设计。");
+  assert.equal(M.extractProjectContent("", "建设规模：1;道路硬化24301平方米", "").scale, "道路硬化24301平方米");
+  const funding = M.extractDetail({}, "<p>资金来源：为市财政资金35%，企业自筹65%，项目已具备招标条件，现公开招标</p>", { title: "郑州供水工程招标公告", url: "https://example.invalid/zz" }, "");
+  assert.equal(funding.funding, "市财政资金35%，企业自筹65%");
 });
 
 test("洛阳与郑州复用标准 EPoint 并锁定城市招标公告边界", () => {
@@ -875,12 +892,13 @@ test("project18 能力真相源覆盖62×17并锁定干净证据", () => {
   assert.equal(validation.adapter_count, 62);
   assert.equal(validation.field_count, 17);
   assert.equal(validation.cells, 1054);
-  assert.equal(validation.unverified, 578);
+  assert.equal(validation.unverified, 476);
   assert.equal(CAP.projectionMatches(doc), true);
   for (const adapter of ["guangdong", "hunan", "hubei", "guizhou", "yunnan", "neimenggu", "tianjin", "jilin",
     "anhui", "xizang", "gansu", "liaoning", "fujian", "chongqing", "henan",
     "qingdao", "wuhan", "jinan", "ningbo", "zhongshan", "nanjing", "shenzhen",
-    "jiangsu", "zhejiang", "hainan", "heilongjiang", "anyang", "changzhou"]) {
+    "jiangsu", "zhejiang", "hainan", "heilongjiang", "anyang", "changzhou",
+    "luoyang", "zhengzhou", "sichuan", "xinjiangbt", "xuzhou", "ningxia"]) {
     for (const field of doc.audited_fields) assert.notEqual(doc.adapters[adapter].fields[field].status, "FIELD_UNVERIFIED", `${adapter}.${field}`);
   }
   for (const evidence of Object.values(doc.evidence)) assert.equal(evidence.code_dirty, false);

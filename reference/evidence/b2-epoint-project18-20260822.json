@@ -1,0 +1,82 @@
+{
+  "schema_version": "project18-evidence.v1",
+  "batch": "B2",
+  "stage": "zb",
+  "verified_at": "2026-08-22T00:17:40+08:00",
+  "code_dirty": false,
+  "evidence": {
+    "fixture:b2-luoyang-project18": {"kind":"fixture","path":"reference/evidence/b2-epoint-project18-20260822.json","code_commit":"a0aeb5c61aa0abf40cbf04ee02200648a17302d4","code_dirty":false},
+    "fixture:b2-zhengzhou-project18": {"kind":"fixture","path":"reference/evidence/b2-epoint-project18-20260822.json","code_commit":"05475a98e34c058caf563875d03813bcc0cdcffd","code_dirty":false},
+    "fixture:b2-sichuan-project18": {"kind":"fixture","path":"reference/evidence/b2-epoint-project18-20260822.json","code_commit":"05475a98e34c058caf563875d03813bcc0cdcffd","code_dirty":false},
+    "fixture:b2-xinjiangbt-project18": {"kind":"fixture","path":"reference/evidence/b2-epoint-project18-20260822.json","code_commit":"a0aeb5c61aa0abf40cbf04ee02200648a17302d4","code_dirty":false},
+    "fixture:b2-xuzhou-project18": {"kind":"fixture","path":"reference/evidence/b2-epoint-project18-20260822.json","code_commit":"05475a98e34c058caf563875d03813bcc0cdcffd","code_dirty":false},
+    "fixture:b2-ningxia-project18": {"kind":"fixture","path":"reference/evidence/b2-epoint-project18-20260822.json","code_commit":"a0aeb5c61aa0abf40cbf04ee02200648a17302d4","code_dirty":false}
+  },
+  "samples": {
+    "luoyang": [
+      {"kind":"pipe","title":"洛阳市洛龙区安乐区域污水管网提升改造项目招标公告","official_url":"http://lyggzyjy.ly.gov.cn/jyxx/003001/003001002/20260806/4bbb8f30-d950-4010-969f-179f84c2af9a.html"},
+      {"kind":"general","title":"洛阳市第五人民医院病房改造提升工程设计项目（二次）招标公告","official_url":"http://lyggzyjy.ly.gov.cn/jyxx/003001/003001002/20260821/cd680053-d3e9-47dd-aaa8-a1e9c1152eab.html"}
+    ],
+    "zhengzhou": [
+      {"kind":"pipe","title":"郑州市中原区34条道路排水管网更新改造工程招标公告","official_url":"https://zzggzy.zhengzhou.gov.cn/jsgc/004001/20260821/b30e2c6f-03da-474d-8a76-0e672cf595e6.html"},
+      {"kind":"general","title":"山姆会员商店建设项目供配电施工招标公告","official_url":"https://zzggzy.zhengzhou.gov.cn/jsgc/004001/20260821/27ac9d71-0fb1-46eb-bb1f-154b0021a03b.html"}
+    ],
+    "sichuan": [
+      {"kind":"pipe","title":"西充县旧城区排水防涝设施建设和污水管网更新改造项目","official_url":"https://ggzyjy.sc.gov.cn/jyxx/002001/002001001/20260821/6a8d90c7-5049-4f66-bca8-63e0dd283a98.html"},
+      {"kind":"general","title":"青神县100MW/200MWh电网侧磷酸铁锂新型储能项目（EPC）","official_url":"https://ggzyjy.sc.gov.cn/jyxx/002001/002001001/20260821/701d2199-349e-4305-9a24-f1b3c04b2b23.html"}
+    ],
+    "xinjiangbt": [
+      {"kind":"general","title":"G687铁门关至阿拉尔公路（一师段）施工第四合同段招标公告","official_url":"https://ggzy.xjbt.gov.cn/jygk/004001/004001001/004001001001/20260820/39be1581-b6d8-4730-baa4-1f9f6cfe1b0b.html"}
+    ],
+    "xuzhou": [
+      {"kind":"pipe90","title":"新沂经济开发区滨河一期改造工程","official_url":"https://ggzy.zwb.xz.gov.cn/jyxx/003001/003001001/20260717/80a5489c-1bde-4d19-bb5b-2834c9ebe9dd.html"},
+      {"kind":"general","title":"新沂骆马湖流域2026年农村生活污水治理项目","official_url":"https://ggzy.zwb.xz.gov.cn/jyxx/003001/003001001/20260821/25b504ee-b640-44c3-8d63-372025b65ee9.html"}
+    ],
+    "ningxia": [
+      {"kind":"pipe","title":"隆德县城至污水处理厂排污管网改造项目七至八标段招标公告","official_url":"https://ggzyjy.fzggw.nx.gov.cn/dzjy/001001/001001001/001001001001/20260821/7163d877-40d8-4275-95b0-cdffe0c78b6e.html"},
+      {"kind":"general","title":"泾源县大湾乡2026年基础设施补短板公益事业项目施工招标公告","official_url":"https://ggzyjy.fzggw.nx.gov.cn/dzjy/001001/001001001/001001001001/20260821/b4a92ce6-cbc5-4d8c-8945-2ff5dbc712b9.html"}
+    ]
+  },
+  "terminal_notes": {
+    "luoyang": {"bond":"附件下载需验证码","evaluation":"评标办法位于验证码附件","fullScore":"评分细则位于验证码附件"},
+    "zhengzhou": {"bond":"公告无公开文件直链","evaluation":"评标办法位于交易文件","fullScore":"评分细则位于交易文件","docLink":"无公开招标文件直链"},
+    "sichuan": {"bond":"公告及可解析附件未披露金额","evaluation":"评标办法位于交易文件","fullScore":"评分细则位于交易文件"},
+    "xinjiangbt": {"scope":"当前公路样本未披露独立招标范围字段，位置标签已拒收","duration":"样本未披露可确认工期","performance":"样本未披露独立企业业绩要求","controlPrice":"样本未披露具体控制价","bond":"无公开文件直链","evaluation":"评标办法位于交易文件","fullScore":"评分细则位于交易文件","docLink":"无公开文件直链","pipe_window":"管网30/90/365天为空；能力证据来自无关键词官方招标公告，不冒充管网命中"},
+    "xuzhou": {"bond":"四条附件均需验证码，未绕过","pipe_window":"管网30天为空，90天命中3条"},
+    "ningxia": {"performance":"四条样本未披露独立企业业绩要求","controlPrice":"公告未披露具体控制价","bond":"附件下载需验证码","evaluation":"评标办法位于验证码附件","fullScore":"评分细则位于验证码附件"}
+  },
+  "capability_updates": {
+    "luoyang": {"evidence_id":"fixture:b2-luoyang-project18","verified_at":"2026-08-22T00:17:40+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","consortium","docLink"],
+      "FIELD_RESTRICTED":["bond","evaluation","fullScore"]
+    }},
+    "zhengzhou": {"evidence_id":"fixture:b2-zhengzhou-project18","verified_at":"2026-08-22T00:17:40+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","consortium"],
+      "FIELD_RESTRICTED":["bond","evaluation","fullScore","docLink"]
+    }},
+    "sichuan": {"evidence_id":"fixture:b2-sichuan-project18","verified_at":"2026-08-22T00:17:40+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","consortium","docLink"],
+      "FIELD_RESTRICTED":["bond","evaluation","fullScore"]
+    }},
+    "xinjiangbt": {"evidence_id":"fixture:b2-xinjiangbt-project18","verified_at":"2026-08-22T00:17:40+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","title","scale","funding","qualification","consortium"],
+      "FIELD_NOT_DISCLOSED":["scope","duration","performance","controlPrice"],
+      "FIELD_RESTRICTED":["bond","evaluation","fullScore","docLink"]
+    }},
+    "xuzhou": {"evidence_id":"fixture:b2-xuzhou-project18","verified_at":"2026-08-22T00:17:40+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","evaluation","consortium","fullScore","docLink"],
+      "FIELD_RESTRICTED":["bond"]
+    }},
+    "ningxia": {"evidence_id":"fixture:b2-ningxia-project18","verified_at":"2026-08-22T00:17:40+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","consortium","docLink"],
+      "FIELD_NOT_DISCLOSED":["performance","controlPrice"],
+      "FIELD_RESTRICTED":["bond","evaluation","fullScore"]
+    }}
+  }
+}

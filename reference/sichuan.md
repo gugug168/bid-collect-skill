@@ -1,13 +1,17 @@
 # 四川省 采集参考
 
 > 数据源 adapter：`sichuan` · kind=`epoint` · 验证状态：**✅ 已打通（厚字段可重复采集）**
-> 最后验证：2026-08-14（全量实测矩阵 + 单省复测）
+> 最后验证：2026-08-22（B2 project18 clean evidence）
 
 ## 机制
 EPoint 标准，cnum=002/003 变体。
 
 ## 2026-08-14 验证结论
 ✅ **厚字段已打通**：`--detail` 触发后，owner/agency/controlPrice/funding/bidOpen/duration/qualification/consortium/contact/phone/docLink 等稳定抽取（2026-08-14 实测 18/20 列 100% 命中，缺失列即上方"诚实留空"字段，非失败）。 2026-08-14 矩阵实测 20 条管网 18/20 全命中。
+
+## 2026-08-22 B2 project18 结论
+
+管网3条及储能EPC 1条完成实时复测。未勾选业绩模板与“本项为多选”不再写入业务表，引用其他施工标段的规模不冒充本标段事实。17字段终态为 VL=4、VD=10、R=3，无 `FIELD_UNVERIFIED`。机器证据：`reference/evidence/b2-epoint-project18-20260822.json`。
 
 ## 可重复采集命令
 ```bash

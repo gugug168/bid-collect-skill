@@ -1,13 +1,17 @@
 # 宁夏回族自治区 采集参考
 
 > 数据源 adapter：`ningxia` · kind=`epointX` · 验证状态：**✅ 已打通（厚字段可重复采集）**
-> 最后验证：2026-08-14（全量实测矩阵 + 单省复测）
+> 最后验证：2026-08-22（B2 project18 clean evidence）
 
 ## 机制
 EPoint 自定义 `/interface_wz/.../getFullTextDataNew`，pn=offset。
 
 ## 2026-08-14 验证结论
 ✅ **厚字段已打通**：`--detail` 触发后，owner/agency/controlPrice/funding/bidOpen/duration/qualification/consortium/contact/phone/docLink 等稳定抽取（2026-08-14 实测 18/20 列 100% 命中，缺失列即上方"诚实留空"字段，非失败）。 2026-08-14 矩阵实测 10 条管网 18/20 全命中。
+
+## 2026-08-22 B2 project18 结论
+
+管网3条及乡村基础设施1条通过；scope 在 `2.5标段划分` 前截断，资金前缀和规模序号已清理。17字段终态为 VL=4、VD=8、ND=2、R=3，无 `FIELD_UNVERIFIED`。机器证据：`reference/evidence/b2-epoint-project18-20260822.json`。
 
 ## 可重复采集命令
 ```bash
