@@ -691,6 +691,7 @@ const ADAPTERS = {
     referer: "https://ggzyjy.wuxi.gov.cn/wxsggzyjyzxzl/jyxx/jsgc/zbgg/gcl/index.shtml",
     chanId: "53051", // 建设工程-招标公告-工程类栏目
     clientFilterOnly: true, // 无服务端关键词参数
+    detailReject: /资格预审公告|资格预审文件的获取|资格预审申请文件/,
     defaultType: "招标公告",
   },
   quanzhou: {
@@ -1842,6 +1843,8 @@ function grabPerformance(text, flat) {
   if (/(?:业绩要求|业绩条件|企业业绩)\s*[:：]\s*[\/／]\s*(?=\d+\.\d|[。；;\n]|$)/.test(text)) return "不要求";
   const directSimilar = text.match(/具有与本工程相类似项目的(?:设计|施工|监理)?业绩\s*[:：]\s*([\s\S]{10,700}?)(?=类似业绩证明材料|证明材料需提供|\n\s*3\s*\.\s*4\s*\.\s*2)/);
   if (directSimilar) return cleanVal(directSimilar[1].replace(/[\r\n]+/g, " ")).slice(0, 500);
+  const recognizedSimilar = text.match(/类似工程认定标准\s*[:：]\s*([\s\S]{10,700}?)(?=类似工程业绩必须同时提供|必须同时提供)/);
+  if (recognizedSimilar) return cleanVal(recognizedSimilar[1].replace(/[\r\n]+/g, " ")).slice(0, 500);
   // 福建施工公告模板把答案放在“用于确定类似工程业绩的相关数据”后。
   // 明确写“无”或“/”就是不要求，不能把标签尾巴“的相关数据”当成业绩事实。
   if (/用于确定类似工程业绩的相关数据\s*[:：]\s*(?:无|[\/／])(?=\s|[（(；;。]|$)/.test(text)) return "不要求";
@@ -2247,6 +2250,7 @@ function cleanQualificationOutput(value, source = "") {
   }
   const tail = v.search(/(?:(?:三、|3\s*[.、．])\s*(?:报名|报名及获取|获取招标文件)|(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取))/);
   if (tail >= 12) v = v.slice(0, tail).trim();
+  v = v.replace(/[，,。]?\s*[\/／]?\s*业绩(?=\s*[，,并])/, "");
   return v;
 }
 
@@ -2385,6 +2389,7 @@ function cleanProjectContent(value) {
   let v = String(value || "").replace(/^[\s\[【]+|[\s\]】]+$/g, "").replace(/\s+/g, " ").trim();
   v = v.replace(/^为\s*/, "").trim();
   v = v.replace(/^\d+\s*[;；]\s*(?=\S{4})/, "").trim();
+  v = v.replace(/^\d+(?:\.\d+)+\s*(?:施工标段|监理标段|设计标段)\s*[:：]\s*/, "").trim();
   // 云南等结构化详情会把记录 GUID 拼在建设规模正文尾部；仅清理独立 UUID 尾段，不碰项目编号正文。
   v = v.replace(/(?<![0-9a-f])[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "").trim();
   if (!v || PROJECT_TAIL_ONLY.test(v)) return "";
@@ -2618,10 +2623,7 @@ function extractDetail(ad, html, item, pdfText) {
     // 倒装标签放前面：江苏为"建设资金来自自筹资金（资金来源）"，若先匹配"资金来源"会抓到右括号后文
     // "建设资金" 兜底：缙云公告写成「建设资金\n通过争取上级补助及县财政统筹安排」，无"来源/来自"字样
     // 扁平化兜底 minLen=2：武义县公告资金来源就是"自筹"两个字，属完整有效答案
-    funding: grabBoth(text, flat, FUND_LABELS, 2)
-      .replace(/^[：:\s]+/, "")
-      .replace(/^(?:来源于|来自|于|为)(?=.{2})/, "")
-      .replace(/[，,]?\s*项目已具备招标条件[\s\S]*$/, ""),
+    funding: cleanFundingValue(grabBoth(text, flat, FUND_LABELS, 2)),
     duration: grabDuration(text, flat),
     // v4 增补：浙江 PDF 用「①设计资质：… ②施工资质：…」「资格条件：」表述，无"资质要求"字样
     qualification: cleanQualificationOutput(grabQualification(text, flat), text),
@@ -2649,6 +2651,13 @@ function extractDetail(ad, html, item, pdfText) {
     phone: grabPhone(text),
     docLink,
   };
+}
+
+function cleanFundingValue(value) {
+  return String(value || "").replace(/^[\u200B-\u200D\uFEFF\s：:]+/, "")
+    .replace(/^(?:来源于|来自|于|为)(?=.{2})/, "")
+    .replace(/[，,]?\s*项目已具备招标条件[\s\S]*$/, "")
+    .trim();
 }
 
 function tianjinDetail(html, item, pdfText) {
@@ -7777,6 +7786,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
             const dhtml = ad.gbkDetail
               ? new TextDecoder("gbk").decode(Buffer.from(await (await fetch(item.url)).arrayBuffer()))
               : await requestWithRetry(item.url, args.delay);
+            if (!ad.stageKey && ad.detailReject && ad.detailReject.test(htmlToText(dhtml))) continue;
             // 正文可能在 PDF 附件里（浙江等）；HTML 够厚时此步直接跳过，不产生额外请求
             let pdfText = "";
             if (ad.pdfBody !== false) {
@@ -7835,6 +7845,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
       markChangedDetailSources(rec, beforeDetail);
       // 列表栏目锁定仍可能被详情阶段标题覆盖成资审/变更/终止/结果；入结果集前再做最终纯度守卫。
       if (!ad.stageKey && !isStrictZbTitle(rec.title)) continue;
+      rec.funding = cleanFundingValue(rec.funding);
       // 地区是业务表硬字段：优先保留列表/详情的精确区县，其次从已知行政区词表识别，
       // 最后只回退到该官方 adapter 的明确管辖区（省/市），不臆造更细粒度城市。
       rec.city = resolveRecordRegion(ad, rec);
