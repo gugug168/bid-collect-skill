@@ -547,6 +547,7 @@ test("D 宜宾官方详情映射并拒绝谈判采购阶段", () => {
   assert.equal(yb.bond, "4");
   assert.equal(yb.evaluation, "综合评估法");
   assert.equal(yb.consortium, "不接受");
+  assert.equal(yb.performance, "不要求");
   assert.match(yb.docLink, /tender\.ZBJ/);
   const sz = M.extractDetail({}, "<p>建设规模：（工程特征、结构层次、建筑高度、道路宽度长度等）：项目总建筑面积79326平方米</p><p>资金来源：自筹，项目建设采用：☑自建□代建</p>", { title: "苏州项目招标公告", url: "x" }, "");
   assert.doesNotMatch(sz.scale, /工程特征/);

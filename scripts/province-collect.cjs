@@ -5340,11 +5340,17 @@ function parseYibinDetailPayload(payload, item) {
   const scale = range.match(/2\s*\.\s*2[^：:]*[:：]\s*([\s\S]{4,3000}?)(?=2\s*\.\s*3\s*)/)?.[1] || "";
   const duration = range.match(/2\s*\.\s*3\s*(?:交货期|工期)\s*[:：]\s*([^；;\n]{3,300})/)?.[1] || "";
   const scope = range.match(/2\s*\.\s*4\s*招标范围\s*[:：]\s*([\s\S]{10,2400}?)(?=2\s*\.\s*5\s*)/)?.[1] || "";
+  const qualificationText = String(d.ZiGe_YaoQiu || "");
+  const exactQualification = qualificationText.match(/3\s*\.\s*1\s*\.\s*1\s*资质要求\s*[:：]\s*([\s\S]{8,1200}?)(?=3\s*\.\s*1\s*\.\s*2)/)?.[1] || "";
   out.title = String(d.ZhaoBiao_XiangMu_Name || item && item.title || out.title || "").trim();
   out.projectCode = String(d.ZhaoBiao_XiangMu_No || item && item.projectCode || out.projectCode || "").trim();
   if (scale) out.scale = cleanProjectContent(scale);
   if (scope) out.scope = cleanProjectContent(scope);
   if (duration) out.duration = cleanVal(duration);
+  if (exactQualification) {
+    out.qualification = cleanVal(exactQualification.replace(/（对制造商资质有要求的[\s\S]*?）/g, "").replace(/\(对制造商资质有要求的[\s\S]*?\)/g, "").replace(/[\r\n]+/g, " "));
+  }
+  if (/[☑√■⊠]\s*无投标人业绩要求/.test(qualificationText)) out.performance = "不要求";
   if (/^(?!1900-)/.test(String(d.TouBiao_EndTime || ""))) out.bidOpen = String(d.TouBiao_EndTime).trim();
   const cp = yibinMoneyWan(seg.HeTong_GuSuanJia, seg.HeTong_GuSuanJia_DanWei);
   const bond = yibinMoneyWan(seg.BaoZhengJin, seg.BaoZhengJin_DanWei);
