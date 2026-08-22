@@ -1144,6 +1144,10 @@ test("A1 贵州附件 GUID 使用官方 preview 路由而非不存在的根路�
     "http://ztb.guizhou.gov.cn/api/upload/preview/4bd65f98-0997-4fa2-8d4a-7e7a2635ab02",
   );
   assert.equal(M.attachmentStatusFromNote("不支持的附件类型（非 PDF/Word/Zip）"), "ATTACHMENT_UNSUPPORTED");
+  const zbj = M.parseAttachmentBuffer(Buffer.from([0x53, 0x54, 0xbc, 0xaf, 0x27, 0x1c, 0x00, 0x03]));
+  assert.match(zbj.note, /ZBJ加密7z容器/);
+  assert.equal(zbj.text, "");
+  assert.equal(M.attachmentStatusFromNote(zbj.note), "ATTACHMENT_ZBJ_ENCRYPTED");
   assert.equal(M.attachmentStatusFromNote("附件下载需验证码(captcha)网关"), "ATTACHMENT_CAPTCHA_REQUIRED");
   assert.equal(M.attachmentStatusFromNote("附件下载失败:HTTP 404"), "ATTACHMENT_DOWNLOAD_FAILED");
   for (const adapter of ["guizhou", "yunnan", "neimenggu"]) {
