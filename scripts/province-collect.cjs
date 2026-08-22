@@ -5144,7 +5144,9 @@ function yueyangDetail(html, item, pdfText) {
   const agencyScale = text.match(/2\s*\.\s*4\s*项目建设内容及规模[^：:]*[:：]\s*([\s\S]{4,1600}?)(?=2\s*\.\s*5\s*代建范围)/)?.[1] || "";
   const agencyDuration = text.match(/2\s*\.\s*10\s*代建周期\s*[:：]\s*([\s\S]{10,800}?)(?=2\s*\.\s*11\s*)/)?.[1] || "";
   const epcDays = text.match(/1\s*\.\s*3\s*工期要求\s*[:：]\s*(\d+)\s*[？?þ√☑]?\s*天/)?.[1] || "";
-  if (epcScale || agencyScale) out.scale = cleanProjectContent(epcScale || agencyScale);
+  if (epcScale || agencyScale) {
+    out.scale = cleanProjectContent(epcScale || agencyScale).replace(/\s*本项目(?:最高投标限价|概算总投资)[\s\S]*$/, "").trim();
+  }
   if (epcScope) out.scope = cleanProjectContent(epcScope);
   else if (/2\s*\.\s*5\s*代建范围\s*[:：][\s\S]{0,100}?[？?þ√☑]\s*阶段性代建/.test(text)) out.scope = "阶段性代建";
   if (epcDays) out.duration = `${epcDays}日历天`;

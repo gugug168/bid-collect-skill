@@ -516,11 +516,13 @@ test("C3 泉州动态详情映射且遵义资格模板去重", () => {
   assert.equal(M.cleanQualificationOutput(". 具备水利工程资质证书）资质"), "具备水利工程资质证书）");
   const yy = M.extractDetail(M.ADAPTERS.yueyang, "", { title: "君山区燃气管网EPC", url: "https://example.invalid/yy" }, "1.2.3 项目基本情况：改造中压燃气管网13.23km。1.3 工期要求：270 ？天（日历日）□月□年；1.4 招标范围：建设规模范围内的设计、施工总承包。1.5 质量要求：合格。2.8 类似工程业绩要求：？不要求 □要求。");
   assert.match(yy.scale, /13\.23km/);
+  assert.doesNotMatch(yy.scale, /最高投标限价/);
   assert.match(yy.scope, /设计、施工总承包/);
   assert.equal(yy.duration, "270日历天");
   assert.equal(yy.performance, "不要求");
   const yyAgency = M.extractDetail(M.ADAPTERS.yueyang, "", { title: "岳阳污水厂代建", url: "https://example.invalid/yy2" }, "2.4 项目建设内容及规模：对17万m3/d污水处理厂提标改造。2.5 代建范围：□全过程代建；？阶段性代建 2.10 代建周期：合同生效之日起至实体移交手续完成止。2.11 代建服务费招标控制价：151万元");
   assert.match(yyAgency.scale, /17万m3\/d/);
+  assert.doesNotMatch(yyAgency.scale, /概算总投资/);
   assert.equal(yyAgency.scope, "阶段性代建");
   assert.match(yyAgency.duration, /实体移交/);
 });
