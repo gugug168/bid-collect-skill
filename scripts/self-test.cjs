@@ -549,6 +549,11 @@ test("D 宜宾官方详情映射并拒绝谈判采购阶段", () => {
   assert.equal(yb.consortium, "不接受");
   assert.equal(yb.performance, "不要求");
   assert.match(yb.docLink, /tender\.ZBJ/);
+  const ybBuild = M.parseYibinDetailPayload({ data: { zhaoBiao_GongGao: { ZhaoBiao_FanWei: "2.2建设地点：珙县；2.3建设规模：改造141个小区、12204户；2.4计划工期：500日历天；2.5招标范围：施工图和工程量清单全部内容。", ZiGe_YaoQiu: "3.1.1资质条件：市政公用工程施工总承包三级资质。3.1.2业绩要求：☐近年不少于1个类似项目。☑无业绩要求。3.1.3项目经理要求：二级建造师。" }, biaoDuan_List: [] } }, { title: "珙县项目", url: "x" });
+  assert.match(ybBuild.scale, /141个小区/);
+  assert.doesNotMatch(ybBuild.scale, /^珙县/);
+  assert.equal(ybBuild.duration, "500日历天");
+  assert.equal(ybBuild.performance, "不要求");
   const sz = M.extractDetail({}, "<p>建设规模：（工程特征、结构层次、建筑高度、道路宽度长度等）：项目总建筑面积79326平方米</p><p>资金来源：自筹，项目建设采用：☑自建□代建</p>", { title: "苏州项目招标公告", url: "x" }, "");
   assert.doesNotMatch(sz.scale, /工程特征/);
   assert.equal(sz.funding, "自筹");
