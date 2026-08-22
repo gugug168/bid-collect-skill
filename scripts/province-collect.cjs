@@ -1873,7 +1873,7 @@ function grabPerformance(text, flat) {
   }
   if (v
     && !/^[（(]?\s*\d+(?:\.\d+)?\s*分\s*[）)]?$/.test(v)
-    && !/^(?:[（(]?本项为多选[）)]?|的企业(?:或者|或)项目负责人[\s\S]*|的相关数据(?:\s*[:：]\s*(?:无|[\/／]))?|(?:\d+(?:\.\d+)+\s*)?企业类似工程业绩|[A-Z]{1,8}(?:[-_]\d+)?)$/i.test(v.trim())) return v;
+    && !/^(?:[（(]?本项为多选[）)]?|的企业(?:或者|或)项目负责人[\s\S]*|的相关数据(?:\s*[:：]\s*(?:无|[\/／]))?|(?:\d+(?:\.\d+)+\s*)?企业类似工程业绩|[A-Z]{1,8}(?:[-_]\d+)?)$/i.test(v.trim())) return v.replace(/^的相关数据\s*[:：]\s*/, "");
   let i = -1;
   while ((i = text.indexOf("业绩", i + 1)) >= 0) {
     const before = text.slice(Math.max(0, i - 120), i);
@@ -2265,6 +2265,7 @@ function grabQualification(text, flat) {
 
 function cleanQualificationOutput(value, source = "") {
   let v = String(value || "").trim();
+  v = v.replace(/^[.．、:：\s]+/, "");
   v = v.replace(/具备\s*具备/g, "具备");
   const compact = v.replace(/\s+/g, "");
   if (/履行合同的能力[，,]?(?:包括)?资质|具备如下资质[、，,]*并/.test(compact)) return "";
@@ -2278,6 +2279,7 @@ function cleanQualificationOutput(value, source = "") {
   const genericTail = v.search(/资质[、，,\s]*并在人员、设备、资金等方面具有相应的/);
   if (genericTail > 0) v = v.slice(0, genericTail + 2).trim();
   if (/具备如下资质[、，,\s]*并/.test(v.replace(/\s+/g, ""))) return "";
+  v = v.replace(/(资质证书[）)])资质$/, "$1");
   return v;
 }
 
@@ -4971,7 +4973,10 @@ function parseQuanzhouPayload(detailPayload, bulletinPayload, item) {
   const text = htmlToText(body);
   const exactScale = text.match(/(?:建设规模|项目规模|工程规模)\s*[:：]\s*([\s\S]{4,1200}?)(?=招标范围|计划工期|工期要求|资质要求|投标人资格)/)?.[1] || "";
   const exactScope = text.match(/招标范围\s*[:：]\s*([\s\S]{4,1600}?)(?=计划工期|工期要求|资质要求|投标人资格|最高投标限价)/)?.[1] || "";
-  if (exactScale) out.scale = cleanProjectContent(exactScale);
+  if (exactScale) {
+    const candidate = cleanProjectContent(exactScale.replace(/[；;\s]*2\s*\.\s*3\s*\.?\s*$/, ""));
+    out.scale = candidate && PROJECT_SCALE_SIGNAL.test(candidate) ? candidate : "";
+  }
   if (exactScope) out.scope = cleanProjectContent(exactScope);
   out.title = String(item && item.title || project.projName || out.title || "");
   out.projectCode = String(project.projNo || out.projectCode || "");

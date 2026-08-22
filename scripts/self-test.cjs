@@ -508,8 +508,12 @@ test("C3 泉州动态详情映射且遵义资格模板去重", () => {
   assert.match(qz.scope, /工程量清单/);
   assert.equal(qz.duration, "180日历天");
   assert.match(qz.qualification, /市政公用工程施工总承包三级/);
+  const qzMoney = M.parseQuanzhouPayload({ data: {} }, { data: [{ fileTitle: "项目（招标公告）", fileContent: '<p>项目规模：<input value="工程总造价4131万元；2.3."></p><p>招标范围：<input value="新建污水管道1700米"></p>' }] }, { title: "项目", url: "x" });
+  assert.equal(qzMoney.scale, "");
+  assert.match(qzMoney.scope, /1700米/);
   const zy = M.cleanQualificationOutput("本次招标要求投标人须具备具备水利水电工程施工总承包二级资质、，并在人员、设备、资金等方面具有相应的施工能力");
   assert.equal(zy, "本次招标要求投标人须具备水利水电工程施工总承包二级资质");
+  assert.equal(M.cleanQualificationOutput(". 具备水利工程资质证书）资质"), "具备水利工程资质证书）");
 });
 
 test("遵义只接收 announcement=交易公告，拒绝答疑澄清和更正", () => {
