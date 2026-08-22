@@ -719,6 +719,7 @@ const ADAPTERS = {
     base: "https://ggzy.yueyang.gov.cn",
     gbkDetail: true, // 详情页 charset=gb2312：UTF-8 解码乱码致厚字段全空（实测），走 TextDecoder("gbk")
     clientFilterOnly: true, // 无服务端关键词
+    detail: yueyangDetail,
     defaultType: "招标公告",
   },
   zunyi: {
@@ -5132,6 +5133,24 @@ function wenzhouDetail(html, item, pdfText) {
   if (duration) out.duration = cleanVal(duration);
   if (/投标人须知前附表附录\s*2\s*规定的\s*业绩/.test(text)) out.performance = "详见投标人须知前附表附录2";
   out.qualification = String(out.qualification || "").replace(/[þ□☑☒✓√■⊠]+\s*$/, "").trim();
+  return out;
+}
+
+function yueyangDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  const text = String(pdfText || htmlToText(html)).replace(/[\u00a0\u3000]/g, " ").replace(/\s+/g, " ").trim();
+  const epcScale = text.match(/1\s*\.\s*2\s*\.\s*3\s*项目基本情况\s*[:：]\s*([\s\S]{4,1800}?)(?=1\s*\.\s*3\s*工期要求)/)?.[1] || "";
+  const epcScope = text.match(/1\s*\.\s*4\s*招标范围\s*[:：]\s*([\s\S]{4,1200}?)(?=1\s*\.\s*5\s*质量要求)/)?.[1] || "";
+  const agencyScale = text.match(/2\s*\.\s*4\s*项目建设内容及规模[^：:]*[:：]\s*([\s\S]{4,1600}?)(?=2\s*\.\s*5\s*代建范围)/)?.[1] || "";
+  const agencyDuration = text.match(/2\s*\.\s*10\s*代建周期\s*[:：]\s*([\s\S]{10,800}?)(?=2\s*\.\s*11\s*)/)?.[1] || "";
+  const epcDays = text.match(/1\s*\.\s*3\s*工期要求\s*[:：]\s*(\d+)\s*[？?þ√☑]?\s*天/)?.[1] || "";
+  if (epcScale || agencyScale) out.scale = cleanProjectContent(epcScale || agencyScale);
+  if (epcScope) out.scope = cleanProjectContent(epcScope);
+  else if (/2\s*\.\s*5\s*代建范围\s*[:：][\s\S]{0,100}?[？?þ√☑]\s*阶段性代建/.test(text)) out.scope = "阶段性代建";
+  if (epcDays) out.duration = `${epcDays}日历天`;
+  else if (agencyDuration) out.duration = cleanVal(agencyDuration);
+  if (/类似工程业绩要求\s*[:：]\s*[？?þ√☑]\s*不要求/.test(text)) out.performance = "不要求";
+  if (/^https?:\/\/ggzy\.yueyang\.gov\.cn\/?$/i.test(String(out.docLink || ""))) out.docLink = "";
   return out;
 }
 
