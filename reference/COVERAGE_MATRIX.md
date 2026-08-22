@@ -40,9 +40,9 @@
 | ningbo | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | VD |
 | jiaxing | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | ND | ND | VD | ND | VL | VD |
 | wuxi | VL | VD | VD | VL | VD | ND | VD | VD | VD | VD | VD | VA | VD | VD | ND | VL | VD |
-| quanzhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
-| yueyang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
-| zunyi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| quanzhou | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | VD | VD | VD | ND | VL | R |
+| yueyang | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | VD | VD | VD | ND | VL | R |
+| zunyi | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | VA | R | VD | R | VL | VD |
 | yibin | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
 | dingxi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
 | guangdong | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | VA | VA | VD | VA | VL | VD |

@@ -1,0 +1,23 @@
+{
+  "schema_version":"project18-evidence.v1","batch":"C3","stage":"zb","verified_at":"2026-08-22T15:42:00+08:00","code_dirty":false,
+  "evidence":{
+    "fixture:c3-quanzhou-project18":{"kind":"fixture","path":"reference/evidence/c3-specialhtml-project18-20260822.json","code_commit":"a65e19cce893a0bf091052049772b59cc0d2d7a1","code_dirty":false},
+    "fixture:c3-yueyang-project18":{"kind":"fixture","path":"reference/evidence/c3-specialhtml-project18-20260822.json","code_commit":"93829d8ac05246590259dc17d292b49512b093e8","code_dirty":false},
+    "fixture:c3-zunyi-project18":{"kind":"fixture","path":"reference/evidence/c3-specialhtml-project18-20260822.json","code_commit":"a65e19cce893a0bf091052049772b59cc0d2d7a1","code_dirty":false}
+  },
+  "samples":{
+    "quanzhou":[{"kind":"pipe","title":"安溪县城东片区排水管网建设与泵站改造项目","official_url":"http://ggzyjy.quanzhou.gov.cn/project/projectInfo.do?projId=75430"},{"kind":"general","title":"南安市公共实训基地建设项目","official_url":"http://ggzyjy.quanzhou.gov.cn/project/projectInfo.do?projId=75554"}],
+    "yueyang":[{"kind":"pipe365","title":"君山区城区燃气管网改造项目EPC","official_url":"https://ggzy.yueyang.gov.cn/56114/56125/56126/content_2331397.html"},{"kind":"general365","title":"岳阳市南津港污水处理厂提标改造项目代建单位","official_url":"https://ggzy.yueyang.gov.cn/56114/56125/56126/content_2334424.html"}],
+    "zunyi":[{"kind":"pipe","title":"余庆县农村人饮管网建设项目招标公告","official_url":"https://ggzy.guizhou.gov.cn/tradeInfo/detailHtml?metaId=1250629776713060352"},{"kind":"general","title":"遵义市第一人民医院物流传输系统设备采购安装招标公告","official_url":"https://ggzy.guizhou.gov.cn/tradeInfo/detailHtml?metaId=1250709029525786624"}]
+  },
+  "terminal_notes":{
+    "quanzhou":{"fullScore":"四条公告未披露评分总分","docLink":"项目资料下载需验证码，未绕过"},
+    "yueyang":{"fullScore":"三条公告未披露评分总分","docLink":"正文仅给会员端/根站下载说明，无公开文件直链","pipe_window":"管网30/90天为空，365天命中2条"},
+    "zunyi":{"evaluation":"评标办法位于交易文件","fullScore":"评分细则位于交易文件"}
+  },
+  "capability_updates":{
+    "quanzhou":{"evidence_id":"fixture:c3-quanzhou-project18","verified_at":"2026-08-22T15:42:00+08:00","statuses":{"FIELD_VERIFIED_LIST":["publishDate","region","title","url"],"FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","bond","evaluation","consortium"],"FIELD_NOT_DISCLOSED":["fullScore"],"FIELD_RESTRICTED":["docLink"]}},
+    "yueyang":{"evidence_id":"fixture:c3-yueyang-project18","verified_at":"2026-08-22T15:42:00+08:00","statuses":{"FIELD_VERIFIED_LIST":["publishDate","region","title","url"],"FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","bond","evaluation","consortium"],"FIELD_NOT_DISCLOSED":["fullScore"],"FIELD_RESTRICTED":["docLink"]}},
+    "zunyi":{"evidence_id":"fixture:c3-zunyi-project18","verified_at":"2026-08-22T15:42:00+08:00","statuses":{"FIELD_VERIFIED_LIST":["publishDate","region","title","url"],"FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","consortium","docLink"],"FIELD_VERIFIED_ATTACHMENT":["bond"],"FIELD_RESTRICTED":["evaluation","fullScore"]}}
+  }
+}
