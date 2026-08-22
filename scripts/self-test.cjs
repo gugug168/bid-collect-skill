@@ -494,6 +494,24 @@ test("C2 未勾选业绩与范围金额尾部不进入 project18", () => {
   assert.doesNotMatch(wz.qualification, /þ/);
 });
 
+test("C3 泉州动态详情映射且遵义资格模板去重", () => {
+  const qz = M.parseQuanzhouPayload(
+    { data: { projName: "泉州管网项目", projNo: "QZ-1", buildArea: "福建省泉州市安溪县", fundSource: "财政资金", ownerdeptname: "招标人", agentDept: "代理机构", totalInvest: 1752.244 } },
+    { data: [{ fileTitle: "泉州管网项目（招标公告）", fileContent: '<p>建设规模：<input value="新建排水管网10公里"></p><p>招标范围：<input value="施工图及工程量清单全部内容"></p><p>计划工期：<input value="180日历天"></p><p>资质要求：<input value="市政公用工程施工总承包三级资质"></p>' }] },
+    { title: "泉州管网项目", url: "http://example.invalid/qz" },
+  );
+  assert.equal(qz.projectCode, "QZ-1");
+  assert.equal(qz.projectSite, "福建省泉州市安溪县");
+  assert.equal(qz.funding, "财政资金");
+  assert.equal(qz.budget, "1752.244");
+  assert.match(qz.scale, /10公里/);
+  assert.match(qz.scope, /工程量清单/);
+  assert.equal(qz.duration, "180日历天");
+  assert.match(qz.qualification, /市政公用工程施工总承包三级/);
+  const zy = M.cleanQualificationOutput("本次招标要求投标人须具备具备水利水电工程施工总承包二级资质、，并在人员、设备、资金等方面具有相应的施工能力");
+  assert.equal(zy, "本次招标要求投标人须具备水利水电工程施工总承包二级资质");
+});
+
 test("遵义只接收 announcement=交易公告，拒绝答疑澄清和更正", () => {
   assert.equal(M.isZunyiTenderRecord({ announcement: "交易公告", docTitle: "管网工程（二次）招标公告" }), true);
   assert.equal(M.isZunyiTenderRecord({ announcement: "变更公告（澄清与答疑）", docTitle: "管网工程答疑澄清文件" }), false);
