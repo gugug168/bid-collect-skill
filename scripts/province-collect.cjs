@@ -1834,6 +1834,7 @@ function grabPerformance(text, flat) {
   if (namedCheckbox && /[□£]/.test(namedCheckbox[1])) return "不要求";
   if (/□\s*近年[\s\S]{0,160}?年\s*月\s*日[\s\S]{0,160}?不少于[\s\S]{0,80}?[1１]\s*至\s*3\s*个/.test(text)
     && !/[R☑√■⊠]\s*近年/.test(text)) return "";
+  if (/□\s*近年[\s\S]{0,220}?\d+\s*个类似项目/.test(text) && !/[R☑√■⊠]\s*近年/.test(text)) return "";
   // 郑州模板把“企业类似工程业绩”和“项目经理类似工程业绩”拆成两组复选框。
   // 只读取企业组中已勾选的“要求/不要求”，不能把小标题本身写进业务表。
   const enterpriseSection = text.match(/企业类似工程业绩([\s\S]{0,900}?)(?=(?:\d+\s*\.\s*\d+\s*\.\s*\d+\s*)?项目经理类似工程业绩|$)/);
@@ -2545,6 +2546,8 @@ function extractProjectContent(html, text, flat) {
   const scopeBeforeFinalClean = String(scope || "").replace(/\s+/g, " ").trim();
   scope = cleanProjectContent(scope);
   if (/^\d+(?:\.\d+)+\s*(?:项目|工程|建设)规模\s*[:：]/.test(scopeBeforeFinalClean)) scope = "";
+  const scopeMetaTail = scope.search(/[；;。]?\s*(?:本次招标)?(?:最高投标限价|概算价控制价)\s*(?:约|为|[:：])?/);
+  if (scopeMetaTail >= 4) scope = scope.slice(0, scopeMetaTail).trim();
   // “以初步设计/工程量清单范围内全部内容为准”作为 scale 是法律尾句噪声，
   // 但在精确招标范围标签下它本身就是发布方给出的完整 scope，不能二次清洗成空。
   if (!scope && /^以[\s\S]{0,80}?(?:初步设计|施工图|工程量清单)[\s\S]{0,80}?范围内[\s\S]{0,40}?为准$/.test(scopeBeforeFinalClean)) scope = scopeBeforeFinalClean;

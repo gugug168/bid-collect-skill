@@ -474,6 +474,15 @@ test("C1 阶段与模板守卫并配置广西官方动态PDF", () => {
   assert.equal(M.resolveRecordRegion(M.ADAPTERS.shandong, { city: "城区", title: "定陶城区供水管网漏损治理工程招标公告" }), "定陶区");
 });
 
+test("C2 未勾选业绩与范围金额尾部不进入 project18", () => {
+  const perf = M.extractDetail({}, "<p>业绩要求：□近年（至投标截止时间，不少于3年，已完成或新承接或正在施工）1个类似项目</p>", { title: "绵阳施工招标公告", url: "https://example.invalid/my" }, "");
+  assert.equal(perf.performance, "");
+  const qhd = M.extractProjectContent("", "招标范围：按要求完成图纸及工程量清单全部内容；本次招标最高投标限价 9616.39 万元；计划工期93日历天", "");
+  assert.equal(qhd.scope, "按要求完成图纸及工程量清单全部内容");
+  const jx = M.extractProjectContent("", "招标范围：施工图设计、设备采购和工程施工。本次招标概算价控制价约9598.3458万元。", "");
+  assert.equal(jx.scope, "施工图设计、设备采购和工程施工");
+});
+
 test("遵义只接收 announcement=交易公告，拒绝答疑澄清和更正", () => {
   assert.equal(M.isZunyiTenderRecord({ announcement: "交易公告", docTitle: "管网工程（二次）招标公告" }), true);
   assert.equal(M.isZunyiTenderRecord({ announcement: "变更公告（澄清与答疑）", docTitle: "管网工程答疑澄清文件" }), false);
