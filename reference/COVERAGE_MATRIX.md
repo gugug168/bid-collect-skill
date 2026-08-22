@@ -21,11 +21,11 @@
 | changzhou | VL | VD | VD | VL | VD | VD | VD | VD | VD | VD | VD | VA | VD | VD | R | VL | VD |
 | luoyang | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | VD |
 | zhengzhou | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | R |
-| mianyang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
-| qinhuangdao | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
-| nantong | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| mianyang | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | R |
+| qinhuangdao | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | R |
+| nantong | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | VD | VD | VD | VL | VD |
 | nanjing | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | VD | VD | VD | VL | VD |
-| huizhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| huizhou | VL | VL | VD | VL | ND | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | VD |
 | zhongshan | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | VD | R | R | VD | R | VL | R |
 | jinan | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | R |
 | wuhan | VL | VL | VD | VD | ND | VD | ND | VD | VD | VD | ND | R | VD | VD | R | VL | R |
@@ -36,9 +36,9 @@
 | linyi | VL | VD | VD | VL | VD | VD | VD | VD | VD | ND | VD | R | R | VD | R | VL | R |
 | yantai | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | ND | R | R | VD | R | VL | R |
 | hefei | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | ND | VD | VD | ND | VL | VD |
-| wenzhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| wenzhou | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | ND | ND | VD | ND | VL | VD |
 | ningbo | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | VD |
-| jiaxing | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| jiaxing | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | ND | ND | VD | ND | VL | VD |
 | wuxi | VL | VD | VD | VL | VD | ND | VD | VD | VD | VD | VD | VA | VD | VD | ND | VL | VD |
 | quanzhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
 | yueyang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |

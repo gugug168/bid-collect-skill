@@ -1,0 +1,35 @@
+{
+  "schema_version":"project18-evidence.v1","batch":"C2","stage":"zb","verified_at":"2026-08-22T15:05:00+08:00","code_dirty":false,
+  "evidence":{
+    "fixture:c2-mianyang-project18":{"kind":"fixture","path":"reference/evidence/c2-cityhtml-project18-20260822.json","code_commit":"e092b6c75f69470f5d4fef447d3a950c201084e1","code_dirty":false},
+    "fixture:c2-qinhuangdao-project18":{"kind":"fixture","path":"reference/evidence/c2-cityhtml-project18-20260822.json","code_commit":"9b824eb5d461816634d53067c2b02e46aec58643","code_dirty":false},
+    "fixture:c2-nantong-project18":{"kind":"fixture","path":"reference/evidence/c2-cityhtml-project18-20260822.json","code_commit":"9b824eb5d461816634d53067c2b02e46aec58643","code_dirty":false},
+    "fixture:c2-huizhou-project18":{"kind":"fixture","path":"reference/evidence/c2-cityhtml-project18-20260822.json","code_commit":"9b824eb5d461816634d53067c2b02e46aec58643","code_dirty":false},
+    "fixture:c2-jiaxing-project18":{"kind":"fixture","path":"reference/evidence/c2-cityhtml-project18-20260822.json","code_commit":"e092b6c75f69470f5d4fef447d3a950c201084e1","code_dirty":false},
+    "fixture:c2-wenzhou-project18":{"kind":"fixture","path":"reference/evidence/c2-cityhtml-project18-20260822.json","code_commit":"e092b6c75f69470f5d4fef447d3a950c201084e1","code_dirty":false}
+  },
+  "samples":{
+    "mianyang":[{"kind":"pipe","title":"北川县永昌片区污水收集管网建设工程设计施工总承包","official_url":"https://ggzy.my.gov.cn/myggzy/jsgc/001001/20260810/5875caee-4d5a-45cd-a7d4-614cf37977ed.html"},{"kind":"general","title":"四川省凯江安州区防洪治理工程勘察设计施工总承包","official_url":"https://ggzy.my.gov.cn/myggzy/jsgc/001001/20260821/edbfda90-82ec-4c93-984d-9c78b886a8d9.html"}],
+    "qinhuangdao":[{"kind":"pipe","title":"秦皇岛市富阳热力有限责任公司管网改造工程监理招标公告","official_url":"https://www.qhdggzy.cn/qhdggzy/jydt/001003/001003001/20260805/53d94324-9dfa-485b-86d7-e482b59b7458.html"},{"kind":"general","title":"京能颐康北戴河康养中心建设项目工程设计公开招标公告","official_url":"https://www.qhdggzy.cn/qhdggzy/jydt/001003/001003001/20260824/0626bf99-bcbd-4441-b69a-089807b4c80e.html"}],
+    "nantong":[{"kind":"pipe","title":"通州湾5个老片区污水管网提升工程勘察设计项目资格后审公告","official_url":"https://ggzyjy.nantong.gov.cn/jyxx/003001/003001001/20260728/b4303524-d04b-4e80-897f-a17b33847072.html"},{"kind":"general","title":"R24025地块建设项目一期27号楼工程施工招标公告","official_url":"https://ggzyjy.nantong.gov.cn/jyxx/003001/003001001/20260821/74a44d6d-6154-47e8-a8f8-d70eacc7ad2b.html"}],
+    "huizhou":[{"kind":"pipe","title":"惠州市城镇老旧供水管网及附属设施升级改造工程监理招标公告","official_url":"https://zyjy.huizhou.gov.cn/ggfw/jyxx/jsgc/zbzgysgg/szx/content/post_5822671.html"},{"kind":"general","title":"省道S254线博罗下村桥至黎村段路面改造工程施工招标公告","official_url":"https://zyjy.huizhou.gov.cn/ggfw/jyxx/jsgc/zbzgysgg/szx/content/post_5836296.html"}],
+    "jiaxing":[{"kind":"pipe","title":"嘉兴经济技术开发区老旧供水管网及二次供水设施改造项目EPC","official_url":"https://jxszwsjb.jiaxing.gov.cn/col/col1229743509/art/2026/art_87149610f2ff44eba3c6c16c25d64d59.html"},{"kind":"general","title":"南湖基金小镇信德园装修项目","official_url":"https://jxszwsjb.jiaxing.gov.cn/col/col1229743509/art/2026/art_68a49dd562be4030b3230b62386217ae.html"}],
+    "wenzhou":[{"kind":"pipe365","title":"温州市区供水管网漏损治理工程一阶段一老旧管道改造","official_url":"https://ggzyjy-eweb.wenzhou.gov.cn/col/col1229696276/art/2026/art_fd760521720f499c96853c836e525a91.html"},{"kind":"general","title":"瑞安市2026年普通国道路基路面养护工程监理","official_url":"https://ggzyjy-eweb.wenzhou.gov.cn/col/col1229696276/art/2026/art_ae964348c43947f58848d98d4593042a.html"}]
+  },
+  "terminal_notes":{
+    "mianyang":{"bond":"招标文件下载需验证码","evaluation":"评标办法位于验证码文件","fullScore":"评分细则位于验证码文件","docLink":"无静态公开文件直链"},
+    "qinhuangdao":{"bond":"无公开招标文件直链","evaluation":"评标办法位于交易文件","fullScore":"评分细则位于交易文件","docLink":"无公开招标文件直链"},
+    "nantong":{"bond":"附件为JS form下载页，静态方式未取得保证金金额"},
+    "huizhou":{"scale":"四条样本未披露独立建设规模字段","bond":"官方IP附件Node/curl均传输失败","evaluation":"评标办法位于受限附件","fullScore":"评分细则位于受限附件"},
+    "jiaxing":{"bond":"两份文本PDF未披露保证金金额","evaluation":"两份文本PDF未披露评标办法","fullScore":"两份文本PDF未披露评分总分"},
+    "wenzhou":{"bond":"两份文本PDF未披露保证金金额","evaluation":"两份文本PDF未披露评标办法","fullScore":"两份文本PDF未披露评分总分","pipe_window":"管网30/90天为空，365天命中1条"}
+  },
+  "capability_updates":{
+    "mianyang":{"evidence_id":"fixture:c2-mianyang-project18","verified_at":"2026-08-22T15:05:00+08:00","statuses":{"FIELD_VERIFIED_LIST":["publishDate","region","title","url"],"FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","consortium"],"FIELD_RESTRICTED":["bond","evaluation","fullScore","docLink"]}},
+    "qinhuangdao":{"evidence_id":"fixture:c2-qinhuangdao-project18","verified_at":"2026-08-22T15:05:00+08:00","statuses":{"FIELD_VERIFIED_LIST":["publishDate","region","title","url"],"FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","consortium"],"FIELD_RESTRICTED":["bond","evaluation","fullScore","docLink"]}},
+    "nantong":{"evidence_id":"fixture:c2-nantong-project18","verified_at":"2026-08-22T15:05:00+08:00","statuses":{"FIELD_VERIFIED_LIST":["publishDate","region","title","url"],"FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","evaluation","consortium","fullScore","docLink"],"FIELD_RESTRICTED":["bond"]}},
+    "huizhou":{"evidence_id":"fixture:c2-huizhou-project18","verified_at":"2026-08-22T15:05:00+08:00","statuses":{"FIELD_VERIFIED_LIST":["publishDate","region","title","url"],"FIELD_VERIFIED_DETAIL":["bidOpen","scope","funding","duration","qualification","performance","controlPrice","consortium","docLink"],"FIELD_NOT_DISCLOSED":["scale"],"FIELD_RESTRICTED":["bond","evaluation","fullScore"]}},
+    "jiaxing":{"evidence_id":"fixture:c2-jiaxing-project18","verified_at":"2026-08-22T15:05:00+08:00","statuses":{"FIELD_VERIFIED_LIST":["publishDate","region","title","url"],"FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","consortium","docLink"],"FIELD_NOT_DISCLOSED":["bond","evaluation","fullScore"]}},
+    "wenzhou":{"evidence_id":"fixture:c2-wenzhou-project18","verified_at":"2026-08-22T15:05:00+08:00","statuses":{"FIELD_VERIFIED_LIST":["publishDate","region","title","url"],"FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","consortium","docLink"],"FIELD_NOT_DISCLOSED":["bond","evaluation","fullScore"]}}
+  }
+}

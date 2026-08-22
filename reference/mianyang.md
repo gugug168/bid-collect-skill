@@ -1,5 +1,9 @@
 # 绵阳市采集参考（城市级 · 静态列表+关系接口）
 
+## 2026-08-22 C2 project18
+
+管网3条、非管网1条通过；未勾选业绩模板留空，勾选设计业绩完整保留。附件验证码不绕过。证据见 `evidence/c2-cityhtml-project18-20260822.json`。
+
 > 数据源 adapter：`mianyang` · kind=`mianyang` · 验证状态：**✅ VERIFIED_RECORD（2026-08-18）**
 
 ## 机制

@@ -1,4 +1,4 @@
-# 招标公告实时状态总账（基线 2026-08-15；广东更新至 2026-08-19；A1/A2/A3/B1/B2/B3/B4/C1 更新至 2026-08-22）
+# 招标公告实时状态总账（基线 2026-08-15；广东更新至 2026-08-19；A1/A2/A3/B1/B2/B3/B4/C1/C2 更新至 2026-08-22）
 
 > 本表只记录招标公告（`zb`）的实时窗口结果，不包含候选人/中标/合同阶段。每次采集的 sidecar 才是单次运行的机器真相；这里是便于人审和 PR 追踪的当前快照。
 >
@@ -43,11 +43,11 @@
 | changzhou | `VERIFIED_RECORD` | 3 | — | `reference/evidence/b1-epoint-project18-20260822.json` | B1 标题二次关键词过滤；附件补保证金 |
 | luoyang | `VERIFIED_RECORD` | 2 | 30 天 2，停止扩大 | `reference/evidence/b2-epoint-project18-20260822.json` | B2 管网2+医院设计1；scope章节尾已清理 |
 | zhengzhou | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `reference/evidence/b2-epoint-project18-20260822.json` | B2 管网3+供配电1；资金尾部已清理 |
-| mianyang | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/mianyang.run-report.json` | 静态列表+关系接口；精确选择 `001001` 招标公告；附件验证码不绕过 |
-| qinhuangdao | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/qinhuangdao.run-report.json` | 静态近期页；排除资格预审/变更；深页验证码边界保留 |
-| nantong | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `p0-city-batch-release/nantong-v2.run-report.json` | EWB-FRONT；严格阶段三字段；剔除已作废并清理 `[新]` |
+| mianyang | `VERIFIED_RECORD` | 3 | 30 天命中3 | `reference/evidence/c2-cityhtml-project18-20260822.json` | C2 管网3+非管网1；未勾选业绩模板清理，附件验证码不绕过 |
+| qinhuangdao | `VERIFIED_RECORD` | 3 | 30 天命中3 | `reference/evidence/c2-cityhtml-project18-20260822.json` | C2 管网3+非管网1；范围中的限价/工期尾部已拆除 |
+| nantong | `VERIFIED_RECORD` | 3 | 30 天命中3 | `reference/evidence/c2-cityhtml-project18-20260822.json` | C2 管网3+非管网1；JS附件限制单列 |
 | nanjing | `VERIFIED_RECORD` | 2 | 30 天 2，停止扩大 | `reference/evidence/a3-city-structured-project18-20260821.json` | A3 管网2+非管网1；资质、业绩、满分和文件链接复核 |
-| huizhou | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `city-batch2-release/huizhou.run-report.json` | 官方广东政府 JSONP；8 栏目地区映射；过滤废止/过期 |
+| huizhou | `VERIFIED_RECORD` | 3 | 30 天命中3 | `reference/evidence/c2-cityhtml-project18-20260822.json` | C2 管网3+非管网1；官方IP附件传输失败单列，不降公告状态 |
 | zhongshan | `VERIFIED_RECORD` | 3 | 30/90 天 0，365 天 3 | `reference/evidence/a3-city-structured-project18-20260821.json` | A3 补全多专业资格；附件验证码留空 |
 | jinan | `VERIFIED_RECORD` | 1 | 30 天 1，停止扩大 | `reference/evidence/a3-city-structured-project18-20260821.json` | A3 管网1+非管网1；精确工期、企业资质和业绩金额 |
 | wuhan | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `reference/evidence/a3-city-structured-project18-20260821.json` | A3 管网3+非管网1；结构化详情复测 |
@@ -57,9 +57,9 @@
 | linyi | `VERIFIED_RECORD` | 3 | 30 天命中3，停止扩大 | `reference/evidence/b4-epoint-project18-20260822.json` | B4 锁 `012001001/012002001`；合同、结果、候选、计划均拒绝；管网3+非管网1 |
 | yantai | `VERIFIED_RECORD` | 2 | 30 天命中2，停止扩大 | `reference/evidence/b4-epoint-project18-20260822.json` | B4 管网2+非管网1；锁 `003001003/003002002`，无合同/中标结果 |
 | hefei | `VERIFIED_RECORD` | 2 | 30 天命中2，停止扩大 | `reference/evidence/b4-epoint-project18-20260822.json` | B4 管网2+非管网1；拒绝望江县等异地项目，平台标题不再冒充地区 |
-| wenzhou | `VERIFIED_RECORD` | 1 | 30 天 0，90 天 1 | `wenzhou-sol-90d-v2/wenzhou.run-report.json` | 锁温州市主站 `col1229696276`；官方 CMS 列表 + PDF 详情；16 列回源复验 |
+| wenzhou | `VERIFIED_RECORD` | 1 | 管网30/90天0，365天1 | `reference/evidence/c2-cityhtml-project18-20260822.json` | C2 管网1+非管网1；公路监理规模/范围/工期精确解析 |
 | ningbo | `VERIFIED_RECORD` | 1 | 30 天 1，停止扩大 | `reference/evidence/a3-city-structured-project18-20260821.json` | A3 管网1+非管网1；无工期时拒绝“施工期”误抽；附件HTTP 0单列 |
-| jiaxing | `VERIFIED_RECORD` | 1 | 30 天 1，停止扩大 | `jiaxing-sol-30d-v2/jiaxing.run-report.json` | 锁建设工程 `col1229743509` 招标公告；JPaas 列表 + HTML 详情；16 列回源复验 |
+| jiaxing | `VERIFIED_RECORD` | 1 | 30 天命中1 | `reference/evidence/c2-cityhtml-project18-20260822.json` | C2 管网1+非管网1；范围预算价尾部已清理，文本PDF可解析 |
 | weifang | `VERIFIED_RECORD` | 2 | 30 天命中2，停止扩大 | `reference/evidence/b3-epointx-project18-20260822.json` | B3 管网2+非管网1；范围章节与资金前缀已清理；附件验证码单列 |
 | qingdao | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `reference/evidence/a3-city-structured-project18-20260821.json` | A3 管网3+非管网1；范围尾数字与评审模板噪声已修复 |
 | shenzhen | `VERIFIED_RECORD` | 1 | 30 天 1，停止扩大 | `reference/evidence/a3-city-structured-project18-20260821.json` | A3 管网1+非管网1；双重阶段守卫、空标签与定性满分闭环 |

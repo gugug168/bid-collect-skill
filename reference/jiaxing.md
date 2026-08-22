@@ -1,5 +1,9 @@
 # 嘉兴市采集参考（城市级 · JPaas CMS）
 
+## 2026-08-22 C2 project18
+
+管网1条、非管网1条通过；文本PDF可解析，招标范围中的预算价尾部已拆除。证据见 `evidence/c2-cityhtml-project18-20260822.json`。
+
 > 数据源 adapter：`jiaxing` · kind=`jiaxing` · 验证状态：**✅ VERIFIED_RECORD（2026-08-18 实时复测）**
 > 最后验证：2026-08-18（30 天“管网”1 条，已满足 1–3 条停止条件；Sol 实测）
 

@@ -1,5 +1,9 @@
 # 南通市采集参考（城市级 · EWB-FRONT）
 
+## 2026-08-22 C2 project18
+
+管网3条、非管网1条通过；资格后审公告属于正式招标公告，JS form附件限制单列。证据见 `evidence/c2-cityhtml-project18-20260822.json`。
+
 > 数据源 adapter：`nantong` · kind=`nantong` · 验证状态：**✅ VERIFIED_RECORD（2026-08-18）**
 
 ## 机制
