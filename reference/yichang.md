@@ -1,7 +1,7 @@
 # 宜昌市 采集参考（城市级 · EpointWebBuilder 变体）
 
 > 数据源 adapter：`yichang` · kind=`yichang` · 验证状态：**✅ 已打通（2026-08-16 V5 批次2 实测）**
-> 最后验证：2026-08-16（Goal v5 批次2 侦察接入实测）
+> 最后验证：2026-08-22（B3 project18 实时复测）
 
 ## 机制
 EpointWebBuilder 变体（`/EpointWebBuilder/rest/secaction/getSecInfoListYzm`，与河南 henanNotice 同族不同端点；siteGuid 同值、categoryNum=003001002 工程建设招标公告、content=服务端关键词；第 20 页起需验证码，前 20 页×20 条够日常窗口）
@@ -10,6 +10,10 @@ EpointWebBuilder 变体（`/EpointWebBuilder/rest/secaction/getSecInfoListYzm`�
 ## 验证结论
 ✅ 2026-08-16 实测：`-k 管网 -d 365 --limit 3` 3/3 VERIFIED_RECORD（伍家岗区污水管网新建/白洋集镇地下管网改造，官方链接齐备）。侦察 total=4348。
 机器证据：`test-logs/v5-fulltest-2026-08-16/b2_yichang.run-report.json`。
+
+## 2026-08-22 project18 复测
+
+管网30天为空，按规则扩大到90天命中3条，另核对1条近期非管网监理公告。已修复“计划监理与相关服务期”句首丢失和联合体条款误入企业资质；验证码附件不绕过。字段证据见 `evidence/b3-epointx-project18-20260822.json`。
 
 ## 可重复采集命令
 ```bash

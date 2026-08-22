@@ -1,7 +1,7 @@
 # 无锡市 采集参考（城市级 · webBuilder AJAX）
 
 > 数据源 adapter：`wuxi` · kind=`wuxi` · 验证状态：**✅ 已打通（2026-08-16 V5 批次2 实测）**
-> 最后验证：2026-08-16（Goal v5 批次2 侦察接入实测）
+> 最后验证：2026-08-22（B3 project18 实时复测）
 
 ## 机制
 webBuilder 壳 + `/info_open/searchPublicResource` POST JSON（chanId=53051 建设工程招标公告栏目；**无服务端关键词参数** → clientFilterOnly；jyly 可传区名）
@@ -10,6 +10,10 @@ webBuilder 壳 + `/info_open/searchPublicResource` POST JSON（chanId=53051 建�
 ## 验证结论
 ✅ 2026-08-16 实测：3/3 VERIFIED_RECORD（无锡软件园自来水管/锡山区市政污水管网更新，https 直链）。侦察 total=7180。
 机器证据：`test-logs/v5-fulltest-2026-08-16/b2_wuxi.run-report.json`。
+
+## 2026-08-22 project18 复测
+
+详情纯度守卫把管网窗口中2条资格预审记录剔除，仅保留1条真实招标公告；另核对1条桥梁整治公告。两条官方PDF均可解析，保证金5万元/20万元由附件核对；源页未独立披露招标范围与满分时诚实留空。字段证据见 `evidence/b3-epointx-project18-20260822.json`。
 
 ## 可重复采集命令
 ```bash
