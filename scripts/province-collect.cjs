@@ -656,6 +656,7 @@ const ADAPTERS = {
     tagId: "资料list",
     rn: 10,
     clientFilterOnly: true, // CMS unit 接口无可靠标题检索参数，按发布日期分页后客户端过滤
+    detail: wenzhouDetail,
     defaultType: "招标公告",
   },
   // ===== 宁波（城市级 · 2026-08-18 接入 · SPA websiteapi）=====
@@ -1825,6 +1826,8 @@ function grabPerfClause(flat) {
 }
 
 function grabPerformance(text, flat) {
+  const checkedDesign = text.match(/[R☑√■⊠]\s*设计业绩要求\s*[:：]\s*([\s\S]{20,800}?)(?=[□R☑√■⊠]\s*施工业绩要求|\n\s*3\s*\.\s*1\s*\.\s*3)/);
+  if (checkedDesign) return cleanVal(checkedDesign[1].replace(/[\r\n]+/g, " ")).slice(0, 500);
   // 江苏建设工程通用模板会保留未勾选的 3.4.1「承担过类似工程」整段说明，说明文字本身又含
   // 「类似工程业绩的企业……」；若直接从“业绩”标签抓，会把模板说明误报成真实业绩要求。
   // 先读复选框状态：明确未勾选 = 不要求；只有勾选时才继续抽取具体条款。
@@ -2546,8 +2549,8 @@ function extractProjectContent(html, text, flat) {
   const scopeBeforeFinalClean = String(scope || "").replace(/\s+/g, " ").trim();
   scope = cleanProjectContent(scope);
   if (/^\d+(?:\.\d+)+\s*(?:项目|工程|建设)规模\s*[:：]/.test(scopeBeforeFinalClean)) scope = "";
-  const scopeMetaTail = scope.search(/[；;。]?\s*(?:本次招标)?(?:最高投标限价|概算价控制价)\s*(?:约|为|[:：])?/);
-  if (scopeMetaTail >= 4) scope = scope.slice(0, scopeMetaTail).trim();
+  const scopeMetaTail = scope.search(/[；;。]?\s*(?:本次招标)?(?:最高投标限价|概算价控制价|招标标准预算价)\s*(?:约|为|[:：])?/);
+  if (scopeMetaTail >= 4) scope = scope.slice(0, scopeMetaTail).replace(/[，,。；;\s]+$/, "").trim();
   // “以初步设计/工程量清单范围内全部内容为准”作为 scale 是法律尾句噪声，
   // 但在精确招标范围标签下它本身就是发布方给出的完整 scope，不能二次清洗成空。
   if (!scope && /^以[\s\S]{0,80}?(?:初步设计|施工图|工程量清单)[\s\S]{0,80}?范围内[\s\S]{0,40}?为准$/.test(scopeBeforeFinalClean)) scope = scopeBeforeFinalClean;
@@ -5058,6 +5061,20 @@ function parseWenzhouCmsList(html, ad) {
       cityHint: extractKnownArea(title) || extractCity(title),
     });
   }
+  return out;
+}
+
+function wenzhouDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  const text = String(pdfText || htmlToText(html)).replace(/[\u00a0\u3000]/g, " ").replace(/\s+/g, " ").trim();
+  const scale = text.match(/2\s*\.\s*2\s*项目规模及技术标准\s*[:：]\s*([\s\S]{20,1600}?)(?=2\s*\.\s*3\s*招标范围)/)?.[1] || "";
+  const scope = text.match(/2\s*\.\s*3\s*招标范围\s*[:：]\s*([\s\S]{20,1400}?)(?=2\s*\.\s*4\s*监理标段划分)/)?.[1] || "";
+  const duration = text.match(/监理服务期为\s*([^。；;]{4,260})/)?.[1] || "";
+  if (scale) out.scale = cleanProjectContent(scale);
+  if (scope) out.scope = cleanProjectContent(scope);
+  if (duration) out.duration = cleanVal(duration);
+  if (/投标人须知前附表附录\s*2\s*规定的\s*业绩/.test(text)) out.performance = "详见投标人须知前附表附录2";
+  out.qualification = String(out.qualification || "").replace(/[þ□☑☒✓√■⊠]+\s*$/, "").trim();
   return out;
 }
 
