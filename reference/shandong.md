@@ -1,5 +1,9 @@
 # 山东省 采集参考
 
+## 2026-08-22 C1 project18
+
+列表标题、日期、地区和官方链接可实时核对；详情页在当前静态环境中Node与curl均连接失败，已停止快速重试，13个详情字段以 `FIELD_FAILED` 收口，不降低公告列表的 `VERIFIED_RECORD`。证据见 `evidence/c1-htmlpdf-project18-20260822.json`。
+
 > 数据源 adapter：`shandong` · kind=`html` · 验证状态：**⚠️ 环境限制（代码正确，待开放网络/降频）**
 > 最后验证：2026-08-14（全量实测矩阵 + 单省复测）
 

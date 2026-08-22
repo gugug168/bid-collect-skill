@@ -1,0 +1,35 @@
+{
+  "schema_version":"project18-evidence.v1","batch":"C1","stage":"zb","verified_at":"2026-08-22T11:18:00+08:00","code_dirty":false,
+  "evidence":{
+    "fixture:c1-beijing-project18":{"kind":"fixture","path":"reference/evidence/c1-htmlpdf-project18-20260822.json","code_commit":"eb0dd4e0c08df23b37ed777f552ec5312871bd63","code_dirty":false},
+    "fixture:c1-shanxi-project18":{"kind":"fixture","path":"reference/evidence/c1-htmlpdf-project18-20260822.json","code_commit":"d0e0331c8e4e5abe739b1edabc975acbf3a12cec","code_dirty":false},
+    "fixture:c1-hebei-project18":{"kind":"fixture","path":"reference/evidence/c1-htmlpdf-project18-20260822.json","code_commit":"41ed0ebaa64397ea13477daa7e5d346da019fce2","code_dirty":false},
+    "fixture:c1-shanghai-project18":{"kind":"fixture","path":"reference/evidence/c1-htmlpdf-project18-20260822.json","code_commit":"642661c5017a79266d34e8fb55ac3d207c119c6b","code_dirty":false},
+    "fixture:c1-shandong-project18":{"kind":"fixture","path":"reference/evidence/c1-htmlpdf-project18-20260822.json","code_commit":"a7e4ec60111d1085c507b033a3f810e0322306b6","code_dirty":false},
+    "fixture:c1-guangxi-project18":{"kind":"fixture","path":"reference/evidence/c1-htmlpdf-project18-20260822.json","code_commit":"eb0dd4e0c08df23b37ed777f552ec5312871bd63","code_dirty":false}
+  },
+  "samples":{
+    "beijing":[{"kind":"pipe","title":"天坛公园给水管网改造工程(监理)招标公告","official_url":"https://ggzyfw.beijing.gov.cn/jyxxggjtbyqs/20260813/5667858.html"},{"kind":"general","title":"2026年房山区普通公路健康工程储备项目勘察设计招标公告","official_url":"https://ggzyfw.beijing.gov.cn/jyxxggjtbyqs/20260821/5679652.html"}],
+    "shanxi":[{"kind":"pipe","title":"孝义市清洁取暖改造工程供热管网施工项目招标公告","official_url":"https://www.sxbid.com.cn/f/new/notice/1/edb60eb0a5154a27a799f4292f105da2"},{"kind":"general","title":"浑源古城历史文化街区保护传承项目一期工程施工招标公告","official_url":"https://www.sxbid.com.cn/f/new/notice/1/c1e5673bcff7433eac5a853046e6b7f2"}],
+    "hebei":[{"kind":"general","title":"首钢滦南马城矿业有限责任公司马城铁矿采选工程18吨柴油铲运机采购","official_url":"https://szj.hebei.gov.cn/hbjyzx/jydt/001002/001002002/001002002001/20260821/5eae2dcc-0ea6-470d-9e38-8922d11a1d8c.html"}],
+    "shanghai":[{"kind":"pipe","title":"2026年惠南镇镇管道路排水管网修复工程","official_url":"https://www.shggzy.com/jyxxgcgg/9012726?cExt=&isIndex=y"},{"kind":"general","title":"上海锦江花园饭店有限公司10楼至15楼客房装修项目","official_url":"https://www.shggzy.com/jyxxgcgg/9023733?cExt=&isIndex=y"}],
+    "shandong":[{"kind":"pipe-list","title":"福山区中心城区管网改造提升工程施工招标公告","official_url":"https://ggzyjy.shandong.gov.cn/jsgczbgg/14548651.jhtml"},{"kind":"general-list","title":"济南市莱芜人民医院主城院区提升改造项目招标公告","official_url":"https://ggzyjy.shandong.gov.cn/jsgczbgg/14549799.jhtml"}],
+    "guangxi":[{"kind":"pipe","title":"扶绥县乡镇人饮管网提升改造工程公开招标公告","official_url":"http://zbtb.gxi.gov.cn:9000/biddingBulletin/2026-08-21/571664.html"},{"kind":"general","title":"浦北县大红柑现代种业种质资源繁育保护项目公开招标公告","official_url":"http://zbtb.gxi.gov.cn:9000/biddingBulletin/2026-08-21/571714.html"}]
+  },
+  "terminal_notes":{
+    "beijing":{"duration":"管网样本错误监理残句已拒收","performance":"四条样本未披露独立企业业绩要求","bond":"公告及公开PDF未披露保证金金额","fullScore":"公告及公开PDF未披露评分总分"},
+    "shanxi":{"scope":"四条样本未披露独立招标范围字段","performance":"未披露独立企业业绩要求","controlPrice":"招标公告未披露控制价；控制价公示已从zb剔除","bond":"公告PDF未披露保证金金额","fullScore":"公告PDF未披露评分总分"},
+    "hebei":{"pipe_window":"管网30/90/365天均请求成功但无记录；能力证据来自无关键词官方公告，不冒充管网命中","qualification":"资质模板未给实际门槛，拒收后留空"},
+    "shanghai":{"scope":"三条样本未披露独立招标范围字段","funding":"三条样本未披露资金来源","evaluation":"评标办法未在公告披露","fullScore":"评分总分未在公告披露","docLink":"无公开招标文件直链"},
+    "shandong":{"detail":"列表可达且标题/日期/地区/官方URL可核对；详情Node和curl均连接失败，逐条DETAIL_FETCH_OR_PARSE，不重试冒充成功"},
+    "guangxi":{"detail":"详情由官方动态密钥加载PDF；四条均为无文本层扫描件，本轮不加入OCR","docLink":"动态token为短效入口，不写入业务表"}
+  },
+  "capability_updates":{
+    "beijing":{"evidence_id":"fixture:c1-beijing-project18","verified_at":"2026-08-22T11:18:00+08:00","statuses":{"FIELD_VERIFIED_LIST":["publishDate","title","url"],"FIELD_VERIFIED_DETAIL":["region","bidOpen","scale","scope","funding","duration","qualification","controlPrice","evaluation","consortium","docLink"],"FIELD_NOT_DISCLOSED":["performance","bond","fullScore"]}},
+    "shanxi":{"evidence_id":"fixture:c1-shanxi-project18","verified_at":"2026-08-22T11:18:00+08:00","statuses":{"FIELD_VERIFIED_LIST":["publishDate","region","title","url"],"FIELD_VERIFIED_DETAIL":["bidOpen","scale","funding","duration","qualification","evaluation","consortium","docLink"],"FIELD_NOT_DISCLOSED":["scope","performance","controlPrice","bond","fullScore"]}},
+    "hebei":{"evidence_id":"fixture:c1-hebei-project18","verified_at":"2026-08-22T11:18:00+08:00","statuses":{"FIELD_VERIFIED_LIST":["publishDate","title","url"],"FIELD_VERIFIED_DETAIL":["region","bidOpen","scale","scope","funding","performance","consortium"],"FIELD_NOT_DISCLOSED":["duration","qualification","controlPrice","bond","evaluation","fullScore","docLink"]}},
+    "shanghai":{"evidence_id":"fixture:c1-shanghai-project18","verified_at":"2026-08-22T11:18:00+08:00","statuses":{"FIELD_VERIFIED_LIST":["publishDate","title","url"],"FIELD_VERIFIED_DETAIL":["region","bidOpen","scale","duration","qualification","performance","controlPrice","bond","consortium"],"FIELD_NOT_DISCLOSED":["scope","funding","evaluation","fullScore","docLink"]}},
+    "shandong":{"evidence_id":"fixture:c1-shandong-project18","verified_at":"2026-08-22T11:18:00+08:00","statuses":{"FIELD_VERIFIED_LIST":["publishDate","region","title","url"],"FIELD_FAILED":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","bond","evaluation","consortium","fullScore","docLink"]}},
+    "guangxi":{"evidence_id":"fixture:c1-guangxi-project18","verified_at":"2026-08-22T11:18:00+08:00","statuses":{"FIELD_VERIFIED_LIST":["publishDate","region","title","url"],"FIELD_OCR_REQUIRED":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","bond","evaluation","consortium","fullScore"],"FIELD_RESTRICTED":["docLink"]}}
+  }
+}

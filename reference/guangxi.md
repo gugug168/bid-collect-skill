@@ -1,5 +1,9 @@
 # 广西壮族自治区 采集参考
 
+## 2026-08-22 C1 project18
+
+详情页通过官方动态密钥接口加载PDF，采集器已能取得文件；本批四条PDF均无文本层，详情字段按 `FIELD_OCR_REQUIRED` 收口，本轮不增加OCR。短效token不写入招标文件链接。证据见 `evidence/c1-htmlpdf-project18-20260822.json`。
+
 > 数据源 adapter：`guangxi` · kind=`html` · 验证状态：**⚠️ 部分通（列表通，详情待实现）**
 > 最后验证：2026-08-14（全量实测矩阵 + 单省复测）
 

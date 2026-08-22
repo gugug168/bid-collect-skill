@@ -10,6 +10,7 @@ require("dns").setDefaultResultOrder("ipv4first");
 const fs = require("fs");
 const os = require("os");
 const zlib = require("zlib");
+const crypto = require("crypto");
 const path = require("path");
 const { execFile, execFileSync } = require("child_process");
 const { pdfToText } = require(path.join(__dirname, "pdf-text.cjs"));
@@ -31,7 +32,7 @@ function classifyErr(e) {
   if (/schannel|handshake|ssl|tls|ecpoint|wrong_version|unexpected_eof|certificate|self.signed|unable_to_verify|depth_zero/.test(full)) return "tls";
   if (/getaddrinfo|enotfound|dns/.test(full)) return "dns";
   if (/etimedout|timeout/.test(full)) return "timeout";
-  if (/econnrefused|econnreset|proxy|tunnel|aborted|10053|10054/.test(full)) return "conn";
+  if (/fetch failed|econnrefused|econnreset|proxy|tunnel|aborted|10053|10054/.test(full)) return "conn";
   return "other";
 }
 
@@ -77,7 +78,7 @@ function curlFetch(url, opts = {}) {
       const nl = stdout.lastIndexOf(0x0a);
       const status = parseInt((nl >= 0 ? stdout.slice(nl + 1) : stdout).toString("utf8").trim(), 10) || 0;
       const body = nl >= 0 ? stdout.slice(0, nl) : Buffer.alloc(0);
-      resolve(_curlResp(status, body, { klass: "ok", transport: "curl" }));
+      resolve(_curlResp(status, body, { klass: status ? "ok" : "conn", transport: "curl" }));
     });
     if (opts.body != null) { try { child.stdin.write(opts.body); } catch (_) {} child.stdin.end(); }
   });
@@ -1062,6 +1063,7 @@ const ADAPTERS = {
     keepScheme: true, keepPort: true, // 保留 http 与非标端口 9000
     listUrl: (page) => `http://zbtb.gxi.gov.cn:9000/xxfbcms/category/bulletinList.html?categoryId=88&page=${page}&dates=300`,
     clientFilterOnly: true, // 无服务端关键词检索，采集时按标题客户端过滤
+    pdfResolver: guangxiPdfBody,
     defaultType: "招标公告",
     // ---- B 阶段（2026-08-15 枚举）：广西 zbtb 栏目 categoryId：候选=91(中标候选人公示)/结果=90(中标结果公示)；无独立合同公示栏目→不配 contract ----
     stages: {
@@ -2100,7 +2102,7 @@ const DUR_SCORE_NOISE = /得\s*\d+(?:\.\d+)?\s*分|得分|加分|扣分|每增�
 // 2026-08-16 Goal v3 回源核查新增：EPoint 表格拼接串（黑龙江"（天）监理费上限（万元）SZJL0504…2026年10月31日43537.62"、
 // 兵团"（天） E6699004… 第四师G218…"）内日期"2026年"会被 DUR_UNIT 误判为"N 年工期"；海南出现"要求：总工期或计划开工日期为"
 // 截断句。拒收特征：以（天）开头 / 含（万元）/ 含字母+长数字编号 / 以"为""："等截断词收尾。
-const DUR_GARBAGE = /^[(（]\s*天[)）]|[（(]\s*万元\s*[)）]|[A-Za-z]\d{6,}|[为：:]\s*$|标段划分|各标段划分/;
+const DUR_GARBAGE = /^[(（]\s*天[)）]|[（(]\s*万元\s*[)）]|[A-Za-z]\d{6,}|[为：:]\s*$|标段划分|各标段划分|^间[，,].{0,80}(?:总监理工程师|项目负责人)/;
 const DUR_SCOPE_NOISE = /工程量清单|施工图|图纸|招标范围|范围内所有工程|所有工程施工|工作内容/;
 
 function grabDuration(text, flat) {
@@ -2161,7 +2163,7 @@ const QUAL_OK = /(?:资质|许可证|甲级|乙级|丙级|[一二三四五六七
  *   （海南定安县龙门水厂监理公告实测；该公告全文压根没写投标人资质要求，正解是留空）
  * 特征：以连接词/形容词起头的半截句，或含"确定资质等级""的单位确定"这类评标规则用语。
  */
-const QUAL_BAD = /^(?:较低|较高|和|或|由|按|应|须|需|的)|确定资质等级|的单位确定|承担连带责任|各方均应|分工相同的成员组成的联合体|联合体成员中资质等级/;
+const QUAL_BAD = /^(?:较低|较高|和|或|由|按|应|须|需|的)|确定资质等级|的单位确定|承担连带责任|各方均应|分工相同的成员组成的联合体|联合体成员中资质等级|履行合同的能力[，,]?(?:包括)?资质|具备如下资质[、，,]*[，,]?并/;
 
 /**
  * 资质条款「整条」抽取（2026-08-10 浙江回归实测补强）。
@@ -2259,6 +2261,8 @@ function grabQualification(text, flat) {
 
 function cleanQualificationOutput(value, source = "") {
   let v = String(value || "").trim();
+  const compact = v.replace(/\s+/g, "");
+  if (/履行合同的能力[，,]?(?:包括)?资质|具备如下资质[、，,]*并/.test(compact)) return "";
   if (/^1\s*[.、]\s*资质等级及范围[：:]/.test(v)) {
     const recovered = String(source || "").match(/企业要求\s*[:：]\s*([\s\S]{10,800}?)(?=(?:(?:三、|3\s*[.、．])\s*(?:报名|报名及获取|获取招标文件)|(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取))|$)/)?.[1] || "";
     if (recovered) v = cleanVal(recovered.replace(/[\r\n]+/g, " "));
@@ -2266,6 +2270,7 @@ function cleanQualificationOutput(value, source = "") {
   const tail = v.search(/(?:(?:三、|3\s*[.、．])\s*(?:报名|报名及获取|获取招标文件)|(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取))/);
   if (tail >= 12) v = v.slice(0, tail).trim();
   v = v.replace(/[，,。]?\s*[\/／]?\s*业绩(?=\s*[，,并])/, "");
+  if (/具备如下资质[、，,\s]*并/.test(v.replace(/\s+/g, ""))) return "";
   return v;
 }
 
@@ -2539,6 +2544,7 @@ function extractProjectContent(html, text, flat) {
   scale = cleanProjectContent(scale);
   const scopeBeforeFinalClean = String(scope || "").replace(/\s+/g, " ").trim();
   scope = cleanProjectContent(scope);
+  if (/^\d+(?:\.\d+)+\s*(?:项目|工程|建设)规模\s*[:：]/.test(scopeBeforeFinalClean)) scope = "";
   // “以初步设计/工程量清单范围内全部内容为准”作为 scale 是法律尾句噪声，
   // 但在精确招标范围标签下它本身就是发布方给出的完整 scope，不能二次清洗成空。
   if (!scope && /^以[\s\S]{0,80}?(?:初步设计|施工图|工程量清单)[\s\S]{0,80}?范围内[\s\S]{0,40}?为准$/.test(scopeBeforeFinalClean)) scope = scopeBeforeFinalClean;
@@ -2611,7 +2617,7 @@ function extractNoticeTitle(html, fallback = "") {
 function isStrictZbTitle(title) {
   const text = String(title || "").replace(/\s+/g, " ").trim();
   if (!text) return false;
-  return !/(?:竞争性磋商|竞争性谈判|询价(?:采购)?公告|单一来源(?:采购)?公告|资格预审(?:文件|公告)?|资审文件公告|预审结果|答疑|澄清|更正|变更|补充公告|终止公告|暂停公告|流标|废标|中标(?:候选人|结果|公告|公示)|成交(?:公告|结果|公示)|评标结果|合同(?:公告|公示))/.test(text);
+  return !/(?:竞争性磋商|竞争性谈判|询价(?:采购)?公告|单一来源(?:采购)?公告|资格预审(?:文件|公告)?|资审文件公告|预审结果|答疑|澄清|更正|变更|补充公告|终止公告|暂停公告|流标|废标|最高投标限价(?:公告|公示)?|招标控制价(?:公告|公示)?$|中标(?:候选人|结果|公告|公示)|成交(?:公告|结果|公示)|评标结果|合同(?:公告|公示))/.test(text);
 }
 
 function extractDetail(ad, html, item, pdfText) {
@@ -5508,25 +5514,54 @@ async function requestWithRetry(url, delay = 500) {
         if (r.status === 429) {
           const bodyText = await r.text().catch(() => "");
           const ra = parseRetryAfterMs(r, bodyText);
-          const next = Math.max(ra, wait * 2);
-          bumpThrottle(next);                                        // 抬升全局闸门
-          wait = Math.min(THROTTLE_CEIL, next);
-          console.error("[req] 429 限流 → 全局降速至 %dms (attempt %d)", wait, attempt);
-          if (attempt === 5) throw new Error("HTTP 429 限流耗尽");
-          continue;
+          bumpThrottle(Math.max(ra, wait * 2));
+          throw new Error("RATE_LIMIT_STOP HTTP 429");
         }
+        if (r.status === 0) throw new Error(`TRANSPORT_STOP ${r.klass || "unknown"}`);
         if (!r.ok) throw new Error("HTTP " + r.status);
         relaxThrottle();
         return await r.text();
       } finally { clearTimeout(t); }
     } catch (e) {
       console.error("[req] attempt", attempt, "ERR", e && e.name, e && e.message);
+      if (/^(?:RATE_LIMIT_STOP|TRANSPORT_STOP)/.test(String(e && e.message || ""))) throw e;
       if (e.name === "AbortError") { bumpThrottle(Math.max(wait * 2, 5000)); await sleep(wait); wait = Math.min(THROTTLE_CEIL, wait * 2); continue; }
       if (attempt === 5) throw e;
       await sleep(wait); wait = Math.min(THROTTLE_CEIL, wait * 2);
     }
   }
   throw new Error("retry exhausted");
+}
+
+function decryptGuangxiSecret(ciphertext) {
+  let value = String(ciphertext || "").trim();
+  if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
+  const k = Buffer.from("Ctpsp@884*", "utf8").subarray(0, 8);
+  const decipher = crypto.createDecipheriv("des-ede3", Buffer.concat([k, k, k]), null);
+  const plain = decipher.update(value, "base64", "utf8") + decipher.final("utf8");
+  const parsed = JSON.parse(plain);
+  return parsed && /^[0-9a-f]{32}$/i.test(String(parsed.data || "")) ? String(parsed.data) : "";
+}
+
+async function guangxiPdfBody(html, pageUrl, delay) {
+  const detailId = String(html || "").match(/class=["'][^"']*mian_list_03[^"']*["'][^>]*\bindex=["']([0-9a-f]{32})["']/i)?.[1] || "";
+  if (!detailId) return { text: "", pdfUrl: "", note: "广西详情未找到官方PDF标识" };
+  const secretResp = await fetch("http://zbtb.gxi.gov.cn:8087/permission/getSecretKey", {
+    method: "POST", headers: { "User-Agent": UA_STR, Referer: pageUrl },
+  });
+  if (!secretResp.ok) return { text: "", pdfUrl: "", note: `广西PDF密钥接口HTTP ${secretResp.status}` };
+  let token = "";
+  try { token = decryptGuangxiSecret(await secretResp.text()); } catch (_) { }
+  if (!token) return { text: "", pdfUrl: "", note: "广西PDF动态密钥解析失败" };
+  const transientUrl = `http://zbtb.gxi.gov.cn:8087/bulletin/getBulletin/${token}/${detailId}`;
+  if (delay) await sleep(Math.min(delay, 3000));
+  try {
+    const buf = await fetchBuffer(transientUrl, delay);
+    const parsed = pdfToTextForAttachment(buf);
+    return { text: parsed.text || "", pdfUrl: "", note: parsed.text ? "广西官方动态PDF，已提取文本" : (parsed.note || "广西官方动态PDF无文本层") };
+  } catch (e) {
+    return { text: "", pdfUrl: "", note: `广西官方动态PDF获取失败:${e.message}` };
+  }
 }
 
 // ---- PDF 正文通道 ----
@@ -7338,6 +7373,12 @@ function resolveRecordRegion(ad, rec) {
   // “公共资源交易部/中心”等是发布机构，不是项目地区。此时保守回退到 adapter 明确管辖区，
   // 避免跨多城市项目从标题中随意挑一个城市。
   if (listed && /全国公共资源交易平台|公共资源交易(?:部|中心|平台|服务中心)|交易服务(?:部|中心)|招标投标管理/.test(listed)) return jurisdictionFromAdapter(ad);
+  if (/^(?:城区|市区|县城)$/.test(listed)) {
+    const stem = String(rec && rec.title || "").match(/^([\u4e00-\u9fa5]{2,6}?)城区/)?.[1] || "";
+    const district = stem ? `${stem}区` : "";
+    if (district && KNOWN_ADMIN_AREAS.includes(district)) return district;
+    return jurisdictionFromAdapter(ad);
+  }
   const listedArea = listed ? extractKnownArea(listed) : "";
   if (listedArea) return listedArea;
   if (listed && /(?:污水处理厂|水厂|医院|学校|研究院|项目|管道|管网|桩号)/.test(`${listed} ${rec && rec.title || ""}`)) return jurisdictionFromAdapter(ad);
@@ -7739,7 +7780,9 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
             else dhtml = await requestWithRetry(item.url, args.delay);
             let pdfText = "";
             if (ad.pdfBody !== false) {
-              const p = await maybePdfText(dhtml, item.url, args.delay);
+              const p = ad.pdfResolver
+                ? await ad.pdfResolver(dhtml, item.url, args.delay)
+                : await maybePdfText(dhtml, item.url, args.delay);
               pdfText = p.text;
               if (p.pdfUrl && !/downloadurl|%7[Bb]|%7[Dd]|[\{\}]/i.test(p.pdfUrl)) { rec.docLink = p.pdfUrl; }
             }
@@ -8164,3 +8207,4 @@ function resolveOutputPaths(args) {
 
 module.exports = { ADAPTERS, PROV_ALIAS, PROJECT18_AUDIT_FIELDS, XLSX_HEADER, BIAOBIAOTONG_HEADER, PROJECT18_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, resolveYgpCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, isStrictZbTitle, extractDetail, extractProjectContent, auditedFieldValue, isFilledFieldValue, ensureFieldSources, markFieldSource, buildFieldStats, xlsxColumnWidths, buildYgpDetailUrl, parseYgpListRows, unwrapYgpPayload, parseYgpJsonText, selectYgpTenderAttachment, parseYgpDetailPayload, extractYgpAttachmentFields, attachmentStatusFromNote, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, guizhouAttachmentUrl, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, ningboExactDuration, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseNanjingPayload, cleanNanjingQualification, nanjingDetail, parseHuizhouHtml, parseHuizhouSearchJsonp, normalizeHuizhouUrl, huizhouDetail, parseZhongshanPayload, zhongshanControlPrice, zhongshanDetail, parseJinanPayload, jinanDetail, parseWuhanHtml, wuhanDetail, parseQingdaoHtml, parseStrongTableFields, cleanA3ScopeAmountTail, cleanQingdaoPerformance, qingdaoDetail, parseShenzhenList, parseBgTableFields, shenzhenProjectContent, qualitativeFullScore, exactMoneyWan,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, fjDetail, mapFjDetailPayload, cqList, tjList, nmgList, lnList, normalizeGsCityName, gsList };
+module.exports.cleanQualificationOutput = cleanQualificationOutput;
