@@ -2,7 +2,7 @@
 
 ## 2026-08-22 D project18
 
-官方 `getGCJS_ZhaoBiao_GongGao` action与SPA详情路由已接通；管网30天为空、90天命中3条，另核对1条设备采购。结构化标段字段可取得控制价、保证金和评标办法；ZBJ评分细则记录为未解析形态。证据见 `evidence/d-restricted-project18-20260822.json`。
+官方 `getGCJS_ZhaoBiao_GongGao` action与SPA详情路由已接通；管网30天为空、90天命中3条，另核对1条设备采购。结构化标段字段可取得控制价、保证金和评标办法；ZBJ已识别为带密码的7z签名变体，记录 `ATTACHMENT_ZBJ_ENCRYPTED`，仅交由官方招标工具处理。证据见 `evidence/d-restricted-project18-20260822.json`。
 
 > 数据源 adapter：`yibin` · kind=`yibin` · 验证状态：**🟡 列表层可用·无详情直链（allowNoUrl 形态）**
 > 最后验证：2026-08-16（Goal v5 批次2 侦察接入实测）

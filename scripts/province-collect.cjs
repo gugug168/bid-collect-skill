@@ -735,6 +735,7 @@ const ADAPTERS = {
     kind: "yibin",
     base: "https://ggzy.yibin.gov.cn",
     allowNoUrl: false,
+    attachmentFields: ["controlPrice", "budget", "bond", "evaluation", "fullScore"],
     defaultType: "招标公告",
   },
   // ===== 定西（城市级 · 2026-08-16 实测新增 · 标准 EPoint · infodate 排序变体）=====
@@ -5843,6 +5844,11 @@ function extractFromZip(buf) {
 function parseAttachmentBuffer(buf, depth = 0) {
   if (!buf || !buf.length) return { text: "", note: "空附件" };
   if (depth > 3) return { text: "", note: "嵌套压缩超 3 层，停止解包" }; // 2026-08-16 V4A：递归深度上限
+  // 新点 ZBJ：实测文件头为 53 54 BC AF 27 1C，后四字节与7z一致；恢复7z签名后
+  // 官方容器仍要求密码。只识别形态并交由官方招标工具，不猜密码、不暴力解包。
+  if (buf.length >= 6 && buf.subarray(0, 6).equals(Buffer.from([0x53, 0x54, 0xbc, 0xaf, 0x27, 0x1c]))) {
+    return { text: "", note: "ZBJ加密7z容器，需官方招标工具打开，未尝试破解，按诚实政策留空" };
+  }
   const magic = buf.slice(0, 4).toString("latin1");
   if (magic === "%PDF") {
     const r = pdfToTextForAttachment(buf);
@@ -5939,6 +5945,7 @@ function attachmentSignal(args, rec, status, extra = {}) {
 function attachmentStatusFromNote(note) {
   const text = String(note || "");
   if (/验证码/.test(text)) return "ATTACHMENT_CAPTCHA_REQUIRED";
+  if (/ZBJ加密7z容器/.test(text)) return "ATTACHMENT_ZBJ_ENCRYPTED";
   if (/不支持的附件类型/.test(text)) return "ATTACHMENT_UNSUPPORTED";
   if (/下载失败|HTTP\s*[45]\d\d|POST失败/.test(text)) return "ATTACHMENT_DOWNLOAD_FAILED";
   return "ATTACHMENT_PARSE_FAILED";
@@ -6048,7 +6055,7 @@ async function enrichFromAttachment(rec, args, ad) {
     if (!text) {
       attachmentSignal(args, rec, attachmentStatusFromNote(note), { fields: need.join(","), file_url: rec.docLink, message: note || "", writeNote: false });
       // 诚实留空场景（验证码网关 / JS渲染下载页 / 不支持类型）也打印日志，便于审计"为何为空"
-      if (note && /验证码|JS渲染|非文件|不支持/.test(note)) console.error("[attach] ⊘", note, "|", (rec.title || "").slice(0, 24));
+      if (note && /验证码|JS渲染|非文件|不支持|ZBJ/.test(note)) console.error("[attach] ⊘", note, "|", (rec.title || "").slice(0, 24));
       return;
     }
     // 只记录「真实补到的字段」，不夸大（此前用 need=补抽前为空的字段列表，会写成未补到的字段）
