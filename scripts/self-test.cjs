@@ -528,6 +528,31 @@ test("C3 泉州动态详情映射且遵义资格模板去重", () => {
   assert.doesNotMatch(yyAgency.qualification, /□|？/);
 });
 
+test("D 宜宾官方详情映射并拒绝谈判采购阶段", () => {
+  assert.equal(M.isStrictZbTitle("自动氩弧焊项目-谈判采购公告"), false);
+  const yb = M.parseYibinDetailPayload({ data: {
+    zhaoBiao_GongGao: {
+      ZhaoBiao_XiangMu_No: "JACSZ1", ZhaoBiao_XiangMu_Name: "宜宾设备更新项目",
+      ZhaoBiao_TiaoJian: "建设资金来自上级补助资金和县级财政资金。",
+      ZhaoBiao_FanWei: "2.2本次招标采购设备的名称、数量、技术规格：一体化箱体5套。2.3交货期：60日历天；2.4招标范围：设备供应、安装、调试及验收。2.5标段划分：一个标段。",
+      ZiGe_YaoQiu: "3.1资质要求：市政公用工程施工总承包三级资质。3.1.2投标人业绩要求：☑无投标人业绩要求。3.2本次招标☐接受☑不接受联合体投标。",
+      TouBiao_EndTime: "2026-09-10 09:00:00",
+    },
+    biaoDuan_List: [{ biaoDuan: { HeTong_GuSuanJia: "4419112.10", HeTong_GuSuanJia_DanWei: "元", BaoZhengJin: "40000", BaoZhengJin_DanWei: "元", PingBiao_BanFa: "综合评估法", Is_JieShou_LianHeTi: false }, fuJian_List: [{ Old_FileName: "招标文件.ZBJ", New_FileName: "https://example.gov.cn/tender.ZBJ" }] }],
+  } }, { title: "宜宾设备更新项目", url: "https://example.invalid/yb", projectCode: "JACSZ1" });
+  assert.match(yb.scale, /箱体5套/);
+  assert.match(yb.scope, /安装、调试/);
+  assert.equal(yb.duration, "60日历天");
+  assert.equal(yb.controlPrice, "441.9112");
+  assert.equal(yb.bond, "4");
+  assert.equal(yb.evaluation, "综合评估法");
+  assert.equal(yb.consortium, "不接受");
+  assert.match(yb.docLink, /tender\.ZBJ/);
+  const sz = M.extractDetail({}, "<p>建设规模：（工程特征、结构层次、建筑高度、道路宽度长度等）：项目总建筑面积79326平方米</p><p>资金来源：自筹，项目建设采用：☑自建□代建</p>", { title: "苏州项目招标公告", url: "x" }, "");
+  assert.doesNotMatch(sz.scale, /工程特征/);
+  assert.equal(sz.funding, "自筹");
+});
+
 test("遵义只接收 announcement=交易公告，拒绝答疑澄清和更正", () => {
   assert.equal(M.isZunyiTenderRecord({ announcement: "交易公告", docTitle: "管网工程（二次）招标公告" }), true);
   assert.equal(M.isZunyiTenderRecord({ announcement: "变更公告（澄清与答疑）", docTitle: "管网工程答疑澄清文件" }), false);
