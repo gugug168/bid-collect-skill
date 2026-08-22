@@ -244,6 +244,8 @@ test("B2 拒绝标段划分、未勾选业绩模板与引用式规模", () => {
 test("B3 拒绝非招标采购、标段章节和项目名字段污染", () => {
   assert.equal(M.isStrictZbTitle("雨污管网在线监测项目竞争性磋商采购公告"), false);
   assert.equal(M.isStrictZbTitle("供水管网建设项目公开招标公告"), true);
+  assert.equal(M.grabConsortium("本项目是否接受联合体谈判：否"), "不接受");
+  assert.equal(M.grabConsortium("本项目是否接受联合体投标：是"), "接受");
   assert.equal(M.extractProjectContent("", "建设规模：1.项目名称：污水处理厂劳务分包", "").scale, "");
   assert.equal(M.extractProjectContent("", "招标范围：2.5.1施工标段：", "").scope, "");
   assert.equal(M.extractProjectContent("", "招标范围：2.5.1施工标段：繁荣广场等17个片区施工", "").scope, "繁荣广场等17个片区施工");
