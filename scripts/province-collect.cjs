@@ -734,7 +734,7 @@ const ADAPTERS = {
     verified: true, // 2026-08-16 侦察验证：xinXi_LeiXing=102 total=7952，管网命中 266
     kind: "yibin",
     base: "https://ggzy.yibin.gov.cn",
-    allowNoUrl: true, // 详情为 SPA hash 路由无直链（部分记录带 gongGao_URL 外链则用之），列表层诚实不伪造
+    allowNoUrl: false,
     defaultType: "招标公告",
   },
   // ===== 定西（城市级 · 2026-08-16 实测新增 · 标准 EPoint · infodate 排序变体）=====
@@ -2417,6 +2417,7 @@ const PROJECT_SPLIT_MARKERS = ["具体招标内容包括", "具体招标内容",
 
 function cleanProjectContent(value) {
   let v = String(value || "").replace(/^[\s\[【]+|[\s\]】]+$/g, "").replace(/\s+/g, " ").trim();
+  v = v.replace(/^[(（]工程特征、结构层次、建筑高度、道路宽度长度等[)）]\s*[:：]\s*/, "");
   v = v.replace(/^为\s*/, "").trim();
   v = v.replace(/^\d+\s*[;；]\s*(?=\S{4})/, "").trim();
   v = v.replace(/^\d+(?:\.\d+)+\s*(?:施工标段|监理标段|设计标段)\s*[:：]\s*/, "").trim();
@@ -2629,7 +2630,7 @@ function extractNoticeTitle(html, fallback = "") {
 function isStrictZbTitle(title) {
   const text = String(title || "").replace(/\s+/g, " ").trim();
   if (!text) return false;
-  return !/(?:竞争性磋商|竞争性谈判|询价(?:采购)?公告|单一来源(?:采购)?公告|资格预审(?:文件|公告)?|资审文件公告|预审结果|答疑|澄清|更正|变更|补充公告|终止公告|暂停公告|流标|废标|最高投标限价(?:公告|公示)?|招标控制价(?:公告|公示)?$|中标(?:候选人|结果|公告|公示)|成交(?:公告|结果|公示)|评标结果|合同(?:公告|公示))/.test(text);
+  return !/(?:竞争性磋商|竞争性谈判|磋商采购公告|谈判采购公告|询价(?:采购)?公告|单一来源(?:采购)?公告|资格预审(?:文件|公告)?|资审文件公告|预审结果|答疑|澄清|更正|变更|补充公告|终止公告|暂停公告|流标|废标|最高投标限价(?:公告|公示)?|招标控制价(?:公告|公示)?$|中标(?:候选人|结果|公告|公示)|成交(?:公告|结果|公示)|评标结果|合同(?:公告|公示))/.test(text);
 }
 
 function extractDetail(ad, html, item, pdfText) {
@@ -2695,6 +2696,7 @@ function cleanFundingValue(value) {
   return String(value || "").replace(/^[\u200B-\u200D\uFEFF\s：:]+/, "")
     .replace(/^(?:来源于|来自|于|为)(?=.{2})/, "")
     .replace(/[，,]?\s*项目已具备招标条件[\s\S]*$/, "")
+    .replace(/[，,]\s*项目建设采用[\s\S]*$/, "")
     .trim();
 }
 
@@ -5321,7 +5323,63 @@ async function jiaxingList(ad, page, args) {
   return parseJiaxingCmsList(html, ad);
 }
 
-// 宜宾：筑龙 SPA 统一网关 action RPC（xinXi_LeiXing=102 招标公告；详情为 SPA hash 无直链 → 部分 gongGao_URL 外链可用）
+function yibinMoneyWan(value, unit) {
+  const n = Number(String(value || "").replace(/[,，\s]/g, ""));
+  if (!Number.isFinite(n) || n < 0) return "";
+  return String(Math.round(((/元/.test(String(unit || "")) ? n / 10000 : n)) * 10000) / 10000);
+}
+
+function parseYibinDetailPayload(payload, item) {
+  const root = payload && payload.data || {};
+  const d = root.zhaoBiao_GongGao || {};
+  const segments = Array.isArray(root.biaoDuan_List) ? root.biaoDuan_List : [];
+  const seg = segments[0] && segments[0].biaoDuan || {};
+  const source = [d.ZhaoBiao_TiaoJian, d.ZhaoBiao_FanWei, d.ZiGe_YaoQiu].filter(Boolean).join("\n");
+  const out = extractDetail({}, `<p>${source.replace(/\n/g, "</p><p>")}</p>`, item, "");
+  const range = String(d.ZhaoBiao_FanWei || "");
+  const scale = range.match(/2\s*\.\s*[23]\s*(?:本次招标采购设备的名称、数量、技术规格|建设内容|建设规模)\s*[:：]\s*([\s\S]{4,3000}?)(?=2\s*\.\s*[3-5]\s*)/)?.[1] || "";
+  const duration = range.match(/2\s*\.\s*[34]\s*(?:计划工期|交货期|工期)\s*[:：]\s*([^；;\n]{3,300})/)?.[1] || "";
+  const scope = range.match(/2\s*\.\s*[45]\s*招标范围\s*[:：]\s*([\s\S]{10,2400}?)(?=2\s*\.\s*[56]\s*|3\s*\.\s*1\s*)/)?.[1] || "";
+  const qualificationText = String(d.ZiGe_YaoQiu || "");
+  const exactQualification = qualificationText.match(/3\s*\.\s*1\s*\.\s*1\s*资质(?:要求|条件)\s*[:：]\s*([\s\S]{8,1200}?)(?=3\s*\.\s*1\s*\.\s*2)/)?.[1] || "";
+  const checkedPerformance = qualificationText.match(/[☑√■⊠]\s*近年\s*([\s\S]{20,1600}?)(?=[☐□]\s*无业绩要求|3\s*\.\s*1\s*\.\s*3)/)?.[1] || "";
+  out.title = String(d.ZhaoBiao_XiangMu_Name || item && item.title || out.title || "").trim();
+  out.projectCode = String(d.ZhaoBiao_XiangMu_No || item && item.projectCode || out.projectCode || "").trim();
+  if (scale) out.scale = cleanProjectContent(scale);
+  if (scope) out.scope = cleanProjectContent(scope);
+  if (duration) out.duration = cleanVal(duration);
+  if (exactQualification) {
+    out.qualification = cleanVal(exactQualification.replace(/（对制造商资质有要求的[\s\S]*?）/g, "").replace(/\(对制造商资质有要求的[\s\S]*?\)/g, "").replace(/[\r\n]+/g, " "));
+  }
+  if (/[☑√■⊠]\s*无投标人业绩要求/.test(qualificationText)) out.performance = "不要求";
+  else if (/[☑√■⊠]\s*无业绩要求/.test(qualificationText)) out.performance = "不要求";
+  else if (checkedPerformance) out.performance = cleanVal(checkedPerformance.replace(/[\r\n]+/g, " "));
+  if (/^(?!1900-)/.test(String(d.TouBiao_EndTime || ""))) out.bidOpen = String(d.TouBiao_EndTime).trim();
+  const cp = yibinMoneyWan(seg.HeTong_GuSuanJia, seg.HeTong_GuSuanJia_DanWei);
+  const bond = yibinMoneyWan(seg.BaoZhengJin, seg.BaoZhengJin_DanWei);
+  if (cp) out.controlPrice = cp;
+  if (bond || Number(seg.BaoZhengJin) === 0) out.bond = bond || 0;
+  if (seg.PingBiao_BanFa) out.evaluation = String(seg.PingBiao_BanFa).trim();
+  if (typeof seg.Is_JieShou_LianHeTi === "boolean") out.consortium = seg.Is_JieShou_LianHeTi ? "接受" : "不接受";
+  const files = segments.flatMap(x => Array.isArray(x.fuJian_List) ? x.fuJian_List : []);
+  const tenderFile = files.find(x => /招标|\.ZBJ$/i.test(String(x.Old_FileName || "")));
+  if (tenderFile && /^https?:\/\//i.test(String(tenderFile.New_FileName || ""))) out.docLink = String(tenderFile.New_FileName);
+  return out;
+}
+
+async function yibinDetail(ad, item) {
+  const r = await fetch(ad.base + "/ggfwptwebapi/Web/service", {
+    method: "POST",
+    headers: { "Content-Type": "application/json; charset=utf-8", "User-Agent": UA_STR, Referer: ad.base + "/" },
+    body: JSON.stringify({ action: "getGCJS_ZhaoBiao_GongGao", guid: item.guid }),
+  });
+  if (!r.ok) throw new Error("yibin detail HTTP " + r.status);
+  const payload = JSON.parse(await r.text());
+  if (payload.code !== 200 || !payload.data) throw new Error("yibin detail payload failed");
+  return parseYibinDetailPayload(payload, item);
+}
+
+// 宜宾：筑龙 SPA 统一网关 action RPC（xinXi_LeiXing=102 招标公告）
 async function yibinList(ad, page, args) {
   const r = await fetch(ad.base + "/ggfwptwebapi/Web/service", {
     method: "POST",
@@ -5333,7 +5391,14 @@ async function yibinList(ad, page, args) {
   const arr = Array.isArray(j.data) ? j.data : [];
   return arr.map(it => {
     const m = String(it.publish_StartTime || "").match(/(\d{4}-\d{2}-\d{2})/);
-    return { url: it.gongGao_URL ? String(it.gongGao_URL) : "", title: String(it.zhaoBiao_XiangMu_Name || "").trim(), date: m ? m[1] : "" };
+    const guid = String(it.guid || "").trim();
+    const source = String(it.xinXi_LaiYuan || "").trim();
+    const route = guid ? `${ad.base}/#/transactionListDetail?guid=${encodeURIComponent(guid)}&leiXing=102&xinXi_LaiYuan=${encodeURIComponent(source)}` : "";
+    return {
+      url: it.gongGao_URL ? String(it.gongGao_URL) : route,
+      title: String(it.zhaoBiao_XiangMu_Name || "").trim(), date: m ? m[1] : "",
+      guid, projectCode: String(it.zhaoBiao_XiangMu_No || "").trim(), cityHint: extractKnownArea(String(it.zhaoBiao_XiangMu_Name || "")),
+    };
   }).filter(x => x.title);
 }
 
@@ -7948,6 +8013,9 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
           } else if (ad.kind === "quanzhou") {
             const dt = await quanzhouDetail(ad, item);
             for (const [k, v] of Object.entries(dt)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
+          } else if (ad.kind === "yibin") {
+            const dt = await yibinDetail(ad, item);
+            for (const [k, v] of Object.entries(dt)) { if (v !== "" && v != null && v !== "undefined" && v !== "null" && !/[\{\}]|downloadurl|%7[Bb]|%7[Dd]/.test(String(v))) rec[k] = v; }
           } else {
             // 2026-08-16 V5 批次2：岳阳等静态 CMS 站点详情页为 GBK 编码（charset=gb2312），
             // requestWithRetry 的 r.text() 按 UTF-8 解码会乱码导致厚字段全空——
@@ -8313,3 +8381,4 @@ module.exports = { ADAPTERS, PROV_ALIAS, PROJECT18_AUDIT_FIELDS, XLSX_HEADER, BI
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, fjDetail, mapFjDetailPayload, cqList, tjList, nmgList, lnList, normalizeGsCityName, gsList };
 module.exports.cleanQualificationOutput = cleanQualificationOutput;
 module.exports.parseQuanzhouPayload = parseQuanzhouPayload;
+module.exports.parseYibinDetailPayload = parseYibinDetailPayload;

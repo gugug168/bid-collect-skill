@@ -1,5 +1,9 @@
 # 苏州市 采集参考（城市级 · 静态 SSR）
 
+## 2026-08-22 D project18
+
+管网30/90/365天为空，非管网30天命中1条；详情字段可核对，公开附件无文本层，保证金和满分以 `FIELD_OCR_REQUIRED` 收口。证据见 `evidence/d-restricted-project18-20260822.json`。
+
 > 数据源 adapter：`suzhou` · kind=html（默认 SSR 分支） · 验证状态：**CONNECTED_NO_RECENT_DATA（2026-08-18 实时复测）**
 > 最后验证：2026-08-18（30 → 90 → 365 天，关键词“管网”均为 0；接口成功、非采集失败）
 

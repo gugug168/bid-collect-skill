@@ -57,9 +57,8 @@ test("招标公告实时状态总账覆盖全部 62 个 adapter", () => {
   const rows = [...text.matchAll(/^\| ([a-z][a-z0-9]+) \|/gm)].map((m) => m[1]).filter((adapter) => M.ADAPTERS[adapter]);
   assert.equal(new Set(rows).size, 62);
   assert.deepEqual([...new Set(rows)].sort(), Object.keys(M.ADAPTERS).sort());
-  assert.match(text, /`VERIFIED_RECORD`：56 个/);
-  assert.match(text, /`CONNECTED_NO_RECENT_DATA`：5 个/);
-  assert.match(text, /`FAILED`：1 个/);
+  assert.match(text, /62个 adapter ×17字段已无 `FIELD_UNVERIFIED`/);
+  assert.doesNotMatch(text, /^\| [a-z][a-z0-9]+ \| `FAILED` \|/m);
 });
 
 // 2026-08-16 V5 逐列取证回访：9 处漏抽修复（江西/遵义/海南/重庆/青海/烟台/江苏实测原文形态）
@@ -526,6 +525,37 @@ test("C3 泉州动态详情映射且遵义资格模板去重", () => {
   assert.equal(yyAgency.scope, "阶段性代建");
   assert.match(yyAgency.duration, /实体移交/);
   assert.doesNotMatch(yyAgency.qualification, /□|？/);
+});
+
+test("D 宜宾官方详情映射并拒绝谈判采购阶段", () => {
+  assert.equal(M.isStrictZbTitle("自动氩弧焊项目-谈判采购公告"), false);
+  const yb = M.parseYibinDetailPayload({ data: {
+    zhaoBiao_GongGao: {
+      ZhaoBiao_XiangMu_No: "JACSZ1", ZhaoBiao_XiangMu_Name: "宜宾设备更新项目",
+      ZhaoBiao_TiaoJian: "建设资金来自上级补助资金和县级财政资金。",
+      ZhaoBiao_FanWei: "2.2本次招标采购设备的名称、数量、技术规格：一体化箱体5套。2.3交货期：60日历天；2.4招标范围：设备供应、安装、调试及验收。2.5标段划分：一个标段。",
+      ZiGe_YaoQiu: "3.1资质要求：市政公用工程施工总承包三级资质。3.1.2投标人业绩要求：☑无投标人业绩要求。3.2本次招标☐接受☑不接受联合体投标。",
+      TouBiao_EndTime: "2026-09-10 09:00:00",
+    },
+    biaoDuan_List: [{ biaoDuan: { HeTong_GuSuanJia: "4419112.10", HeTong_GuSuanJia_DanWei: "元", BaoZhengJin: "40000", BaoZhengJin_DanWei: "元", PingBiao_BanFa: "综合评估法", Is_JieShou_LianHeTi: false }, fuJian_List: [{ Old_FileName: "招标文件.ZBJ", New_FileName: "https://example.gov.cn/tender.ZBJ" }] }],
+  } }, { title: "宜宾设备更新项目", url: "https://example.invalid/yb", projectCode: "JACSZ1" });
+  assert.match(yb.scale, /箱体5套/);
+  assert.match(yb.scope, /安装、调试/);
+  assert.equal(yb.duration, "60日历天");
+  assert.equal(yb.controlPrice, "441.9112");
+  assert.equal(yb.bond, "4");
+  assert.equal(yb.evaluation, "综合评估法");
+  assert.equal(yb.consortium, "不接受");
+  assert.equal(yb.performance, "不要求");
+  assert.match(yb.docLink, /tender\.ZBJ/);
+  const ybBuild = M.parseYibinDetailPayload({ data: { zhaoBiao_GongGao: { ZhaoBiao_FanWei: "2.2建设地点：珙县；2.3建设规模：改造141个小区、12204户；2.4计划工期：500日历天；2.5招标范围：施工图和工程量清单全部内容。", ZiGe_YaoQiu: "3.1.1资质条件：市政公用工程施工总承包三级资质。3.1.2业绩要求：☐近年不少于1个类似项目。☑无业绩要求。3.1.3项目经理要求：二级建造师。" }, biaoDuan_List: [] } }, { title: "珙县项目", url: "x" });
+  assert.match(ybBuild.scale, /141个小区/);
+  assert.doesNotMatch(ybBuild.scale, /^珙县/);
+  assert.equal(ybBuild.duration, "500日历天");
+  assert.equal(ybBuild.performance, "不要求");
+  const sz = M.extractDetail({}, "<p>建设规模：（工程特征、结构层次、建筑高度、道路宽度长度等）：项目总建筑面积79326平方米</p><p>资金来源：自筹，项目建设采用：☑自建□代建</p>", { title: "苏州项目招标公告", url: "x" }, "");
+  assert.doesNotMatch(sz.scale, /工程特征/);
+  assert.equal(sz.funding, "自筹");
 });
 
 test("遵义只接收 announcement=交易公告，拒绝答疑澄清和更正", () => {
@@ -1007,7 +1037,7 @@ test("project18 能力真相源覆盖62×17并锁定干净证据", () => {
   assert.equal(validation.adapter_count, 62);
   assert.equal(validation.field_count, 17);
   assert.equal(validation.cells, 1054);
-  assert.equal(validation.unverified, 68);
+  assert.equal(validation.unverified, 0);
   assert.equal(CAP.projectionMatches(doc), true);
   for (const adapter of ["guangdong", "hunan", "hubei", "guizhou", "yunnan", "neimenggu", "tianjin", "jilin",
     "anhui", "xizang", "gansu", "liaoning", "fujian", "chongqing", "henan",
@@ -1017,7 +1047,7 @@ test("project18 能力真相源覆盖62×17并锁定干净证据", () => {
     "xinjiang", "jiangxi", "qinghai", "yichang", "weifang", "wuxi",
     "hefei", "linyi", "yantai", "beijing", "shanxi", "hebei", "shanghai", "shandong", "guangxi",
     "mianyang", "qinhuangdao", "nantong", "huizhou", "jiaxing", "wenzhou",
-    "quanzhou", "yueyang", "zunyi"]) {
+    "quanzhou", "yueyang", "zunyi", "shaanxi", "yibin", "dingxi", "suzhou"]) {
     for (const field of doc.audited_fields) assert.notEqual(doc.adapters[adapter].fields[field].status, "FIELD_UNVERIFIED", `${adapter}.${field}`);
   }
   for (const evidence of Object.values(doc.evidence)) assert.equal(evidence.code_dirty, false);
