@@ -1,4 +1,4 @@
-# 招标公告实时状态总账（基线 2026-08-15；广东更新至 2026-08-19；A1/A2/A3/B1/B2/B3/B4 更新至 2026-08-22）
+# 招标公告实时状态总账（基线 2026-08-15；广东更新至 2026-08-19；A1/A2/A3/B1/B2/B3/B4/C1 更新至 2026-08-22）
 
 > 本表只记录招标公告（`zb`）的实时窗口结果，不包含候选人/中标/合同阶段。每次采集的 sidecar 才是单次运行的机器真相；这里是便于人审和 PR 追踪的当前快照。
 >
@@ -6,26 +6,26 @@
 
 | adapter | 30 天状态 | 条数 | 90/365 天 | 主要证据 | 备注 |
 |---|---|---:|---|---|---|
-| beijing | `VERIFIED_RECORD` | 3 | — | `beijing.run-report.json` | 标题/日期/官方 URL 齐全 |
+| beijing | `VERIFIED_RECORD` | 3 | 30 天命中3 | `reference/evidence/c1-htmlpdf-project18-20260822.json` | C1 管网3+非管网1；监理工期与资质模板残句已拒收 |
 | tianjin | `VERIFIED_RECORD` | 3 | — | `tianjin.run-report.json` | 列表层真实公告 |
-| hebei | `CONNECTED_NO_RECENT_DATA` | 0 | 90/365 仍 0 | `hebei.run-report.json`, `hebei-90d`, `hebei-365d` | 不升级为失败 |
-| shanxi | `VERIFIED_RECORD` | 3 | — | `shanxi.run-report.json` | PDF/列表入口可达 |
+| hebei | `VERIFIED_RECORD` | 1 | 管网30/90/365天均0 | `reference/evidence/c1-htmlpdf-project18-20260822.json` | C1 无关键词公告1条，不冒充管网命中；空资质模板已拒收 |
+| shanxi | `VERIFIED_RECORD` | 3 | 30 天命中3 | `reference/evidence/c1-htmlpdf-project18-20260822.json` | C1 控制价/限价公示剔除；管网3+非管网1 |
 | neimenggu | `VERIFIED_RECORD` | 3 | — | `neimenggu.run-report.json` | 官方 JSON 详情 |
 | liaoning | `VERIFIED_RECORD` | 1 | — | `reference/evidence/a2-structured-project18-20260821.json` | 管网1+非管网1条干净复测；发布机构不再冒充地区 |
 | jilin | `VERIFIED_RECORD` | 1 | — | `jilin.run-report.json` | 30 天仅 1 条，按规则停止 |
 | heilongjiang | `CONNECTED_NO_RECENT_DATA` | 0 | 30/90/365天0；无关键词30天0 | `reference/evidence/b1-epoint-project18-20260822.json` | B1 四次请求成功、零错误限流；17字段以NO_SAMPLE收口 |
-| shanghai | `VERIFIED_RECORD` | 3 | — | `shanghai.run-report.json` | DNS→curl 兜底后有记录 |
+| shanghai | `VERIFIED_RECORD` | 2 | 30 天命中2 | `reference/evidence/c1-htmlpdf-project18-20260822.json` | C1 管网2+非管网1；公告厚字段可核对 |
 | jiangsu | `VERIFIED_RECORD` | 3 | — | `reference/evidence/b1-epoint-project18-20260822.json` | B1 管网3+非管网1；服务范围与业绩门槛修复 |
 | zhejiang | `VERIFIED_RECORD` | 3 | — | `reference/evidence/b1-epoint-project18-20260822.json` | B1 PDF回源；零控制价、规模地点和scope尾噪声修复 |
 | anhui | `VERIFIED_RECORD` | 3 | — | `reference/evidence/a2-structured-project18-20260821.json` | 管网3+非管网1条；保证金账户噪声已修复 |
 | fujian | `VERIFIED_RECORD` | 3 | — | `reference/evidence/a2-structured-project18-20260821.json` | 官方签名详情API；管网3+学校1条干净复测 |
 | jiangxi | `VERIFIED_RECORD` | 3 | 30 天命中3，停止扩大 | `reference/evidence/b3-epointx-project18-20260822.json` | B3 排除竞争性谈判；管网3+非管网1，附件验证码单列 |
-| shandong | `VERIFIED_RECORD` | 3 | — | `shandong.run-report.json` | 现网已返回真实记录 |
+| shandong | `VERIFIED_RECORD` | 3 | 30 天列表命中3 | `reference/evidence/c1-htmlpdf-project18-20260822.json` | C1 列表硬字段已核对；详情Node/curl均连接失败，13字段记FAILED |
 | henan | `VERIFIED_RECORD` | 1 | 管网30/90天0；365天深页TLS失败 | `reference/evidence/a2-structured-project18-20260821.json` | 无关键词复扫命中1条，不冒充管网样本；附件需验证码 |
 | hubei | `VERIFIED_RECORD` | 3 | — | `hubei.run-report.json` | 武汉另有城市筛选证据 |
 | hunan | `VERIFIED_RECORD` | 3 | — | `hunan.run-report.json` | 官方 REST |
 | guangdong | `VERIFIED_RECORD` | 3 | 3 天广州3、珠海3 | `2026-08-19_project18实时验收/*.run-report.json` | `3C14` 纯招标；公开详情与附件链接；大文件/验证码单独记附件信号 |
-| guangxi | `VERIFIED_RECORD` | 3 | — | `guangxi.run-report.json` | HTTP 官方入口 |
+| guangxi | `VERIFIED_RECORD` | 3 | 30 天命中3 | `reference/evidence/c1-htmlpdf-project18-20260822.json` | C1 动态密钥PDF已定位；当前样本为扫描件，详情字段记OCR_REQUIRED |
 | hainan | `VERIFIED_RECORD` | 3 | — | `reference/evidence/b1-epoint-project18-20260822.json` | B1 管网3+河道疏浚1；附件验证码单列 |
 | chongqing | `VERIFIED_RECORD` | 3 | — | `reference/evidence/a2-structured-project18-20260821.json` | 管网3+非管网1条；Nuxt SSR详情复测 |
 | sichuan | `VERIFIED_RECORD` | 3 | — | `reference/evidence/b2-epoint-project18-20260822.json` | B2 管网3+储能EPC 1；未勾选业绩模板已清理 |
