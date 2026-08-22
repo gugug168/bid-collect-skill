@@ -461,6 +461,7 @@ test("B4 临沂锁定招标公告栏目且合肥平台标题不冒充地区", ()
 });
 
 test("C1 阶段与模板守卫并配置广西官方动态PDF", () => {
+  assert.equal(M.classifyErr(new TypeError("fetch failed")), "conn");
   assert.equal(M.isStrictZbTitle("体育公园施工最高投标限价公示"), false);
   assert.equal(M.isStrictZbTitle("安泽县工人文化宫项目招标控制价"), false);
   const bj = M.extractDetail({}, "<p>工期：间，拟派总监理工程师不可以同时担任其他建设工程总监理工程师</p><p>资质要求：履行合同的能力，包括资质</p>", { title: "北京监理招标公告", url: "https://example.invalid/bj" }, "");
@@ -468,6 +469,7 @@ test("C1 阶段与模板守卫并配置广西官方动态PDF", () => {
   assert.equal(bj.qualification, "");
   assert.equal(M.extractProjectContent("", "招标范围：2.1项目规模：中阳县综合管网更新改造工程", "").scope, "");
   assert.equal(M.grabQualification("本次招标要求投标人须具备如下资质、，并具有供货能力", ""), "");
+  assert.equal(M.cleanQualificationOutput("本次招标要求投标人须具备如下资质、 业绩，并具有供货能力。"), "");
   assert.equal(typeof M.ADAPTERS.guangxi.pdfResolver, "function");
 });
 
