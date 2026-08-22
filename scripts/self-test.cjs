@@ -474,6 +474,26 @@ test("C1 阶段与模板守卫并配置广西官方动态PDF", () => {
   assert.equal(M.resolveRecordRegion(M.ADAPTERS.shandong, { city: "城区", title: "定陶城区供水管网漏损治理工程招标公告" }), "定陶区");
 });
 
+test("C2 未勾选业绩与范围金额尾部不进入 project18", () => {
+  const perf = M.extractDetail({}, "<p>业绩要求：□近年（至投标截止时间，不少于3年，已完成或新承接或正在施工）1个类似项目</p>", { title: "绵阳施工招标公告", url: "https://example.invalid/my" }, "");
+  assert.equal(perf.performance, "");
+  const qhd = M.extractProjectContent("", "招标范围：按要求完成图纸及工程量清单全部内容；本次招标最高投标限价 9616.39 万元；计划工期93日历天", "");
+  assert.equal(qhd.scope, "按要求完成图纸及工程量清单全部内容");
+  const jx = M.extractProjectContent("", "招标范围：施工图设计、设备采购和工程施工。本次招标概算价控制价约9598.3458万元。", "");
+  assert.equal(jx.scope, "施工图设计、设备采购和工程施工");
+  const jxBudget = M.extractProjectContent("", "招标范围：施工图范围内装修工程，招标标准预算价442.1369万元", "");
+  assert.equal(jxBudget.scope, "施工图范围内装修工程");
+  const designPerf = M.extractDetail({}, "<p>业绩要求：（本项为多选）☑设计业绩要求：近年（2023年1月1日至今）不少于1个类似项目。类似项目是指：单项投资5000万元的水利工程设计。□施工业绩要求：无。☑无业绩要求。</p>", { title: "绵阳水利招标公告", url: "https://example.invalid/my2" }, "");
+  assert.match(designPerf.performance, /5000万元/);
+  const wzText = "2.2 项目规模及技术标准：实施里程10.941公里，修复路面。2.3 招标范围：施工阶段及缺陷责任期全过程监理。2.4 监理标段划分及其监理服务期：本工程设一个监理标段。监理服务期为17个月，其中施工阶段5个月，缺陷责任期12个月。3.1 本次招标要求投标人须具备公路工程乙级监理资质、投标人须知前附表附录2规定的业绩。þ";
+  const wz = M.extractDetail(M.ADAPTERS.wenzhou, "", { title: "温州公路监理招标公告", url: "https://example.invalid/wz" }, wzText);
+  assert.match(wz.scale, /10\.941公里/);
+  assert.match(wz.scope, /全过程监理/);
+  assert.match(wz.duration, /^17个月/);
+  assert.equal(wz.performance, "详见投标人须知前附表附录2");
+  assert.doesNotMatch(wz.qualification, /þ/);
+});
+
 test("遵义只接收 announcement=交易公告，拒绝答疑澄清和更正", () => {
   assert.equal(M.isZunyiTenderRecord({ announcement: "交易公告", docTitle: "管网工程（二次）招标公告" }), true);
   assert.equal(M.isZunyiTenderRecord({ announcement: "变更公告（澄清与答疑）", docTitle: "管网工程答疑澄清文件" }), false);
@@ -953,7 +973,7 @@ test("project18 能力真相源覆盖62×17并锁定干净证据", () => {
   assert.equal(validation.adapter_count, 62);
   assert.equal(validation.field_count, 17);
   assert.equal(validation.cells, 1054);
-  assert.equal(validation.unverified, 221);
+  assert.equal(validation.unverified, 119);
   assert.equal(CAP.projectionMatches(doc), true);
   for (const adapter of ["guangdong", "hunan", "hubei", "guizhou", "yunnan", "neimenggu", "tianjin", "jilin",
     "anhui", "xizang", "gansu", "liaoning", "fujian", "chongqing", "henan",
@@ -961,7 +981,8 @@ test("project18 能力真相源覆盖62×17并锁定干净证据", () => {
     "jiangsu", "zhejiang", "hainan", "heilongjiang", "anyang", "changzhou",
     "luoyang", "zhengzhou", "sichuan", "xinjiangbt", "xuzhou", "ningxia",
     "xinjiang", "jiangxi", "qinghai", "yichang", "weifang", "wuxi",
-    "hefei", "linyi", "yantai", "beijing", "shanxi", "hebei", "shanghai", "shandong", "guangxi"]) {
+    "hefei", "linyi", "yantai", "beijing", "shanxi", "hebei", "shanghai", "shandong", "guangxi",
+    "mianyang", "qinhuangdao", "nantong", "huizhou", "jiaxing", "wenzhou"]) {
     for (const field of doc.audited_fields) assert.notEqual(doc.adapters[adapter].fields[field].status, "FIELD_UNVERIFIED", `${adapter}.${field}`);
   }
   for (const evidence of Object.values(doc.evidence)) assert.equal(evidence.code_dirty, false);
