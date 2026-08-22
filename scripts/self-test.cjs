@@ -57,9 +57,8 @@ test("招标公告实时状态总账覆盖全部 62 个 adapter", () => {
   const rows = [...text.matchAll(/^\| ([a-z][a-z0-9]+) \|/gm)].map((m) => m[1]).filter((adapter) => M.ADAPTERS[adapter]);
   assert.equal(new Set(rows).size, 62);
   assert.deepEqual([...new Set(rows)].sort(), Object.keys(M.ADAPTERS).sort());
-  assert.match(text, /`VERIFIED_RECORD`：56 个/);
-  assert.match(text, /`CONNECTED_NO_RECENT_DATA`：5 个/);
-  assert.match(text, /`FAILED`：1 个/);
+  assert.match(text, /62个 adapter ×17字段已无 `FIELD_UNVERIFIED`/);
+  assert.doesNotMatch(text, /^\| [a-z][a-z0-9]+ \| `FAILED` \|/m);
 });
 
 // 2026-08-16 V5 逐列取证回访：9 处漏抽修复（江西/遵义/海南/重庆/青海/烟台/江苏实测原文形态）
