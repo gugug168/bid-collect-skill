@@ -1,4 +1,4 @@
-# 招标公告实时状态总账（基线 2026-08-15；广东更新至 2026-08-19；A1/A2/A3/B1/B2/B3 更新至 2026-08-22）
+# 招标公告实时状态总账（基线 2026-08-15；广东更新至 2026-08-19；A1/A2/A3/B1/B2/B3/B4 更新至 2026-08-22）
 
 > 本表只记录招标公告（`zb`）的实时窗口结果，不包含候选人/中标/合同阶段。每次采集的 sidecar 才是单次运行的机器真相；这里是便于人审和 PR 追踪的当前快照。
 >
@@ -54,9 +54,9 @@
 | suzhou | `CONNECTED_NO_RECENT_DATA` | 0 | 30/90/365 天均 0 | `city-retest-01/batch-summary.json` | 接口成功；历史 VERIFIED 路由证据保留，当前窗口空不冒充有记录 |
 | xuzhou | `VERIFIED_RECORD` | 3 | 30 天 0，90 天 3 | `reference/evidence/b2-epoint-project18-20260822.json` | B2 管网3+农村污水EPC 1；附件验证码单列 |
 | yichang | `VERIFIED_RECORD` | 3 | 30 天0，90 天3 | `reference/evidence/b3-epointx-project18-20260822.json` | B3 监理服务期与企业资质修复；管网3+非管网1 |
-| linyi | `VERIFIED_RECORD` | 3 | — | `b2_linyi.run-report.json` | 城市级（EPoint 双层包装）（V5 批次2 侦察接入） |
-| yantai | `VERIFIED_RECORD` | 2 | — | `city-semantic-retest-luna/batch-summary.json` | 锁 `003001003`/`003002002` 后复验；2/2 为招标/采购公告，无合同/中标结果 |
-| hefei | `VERIFIED_RECORD` | 2 | — | `hefei-sol-30d-v2/hefei.run-report.json` | 锁 `002001001` + 合肥行政区守卫；排除铜陵/芜湖/广德等异地项目 |
+| linyi | `VERIFIED_RECORD` | 3 | 30 天命中3，停止扩大 | `reference/evidence/b4-epoint-project18-20260822.json` | B4 锁 `012001001/012002001`；合同、结果、候选、计划均拒绝；管网3+非管网1 |
+| yantai | `VERIFIED_RECORD` | 2 | 30 天命中2，停止扩大 | `reference/evidence/b4-epoint-project18-20260822.json` | B4 管网2+非管网1；锁 `003001003/003002002`，无合同/中标结果 |
+| hefei | `VERIFIED_RECORD` | 2 | 30 天命中2，停止扩大 | `reference/evidence/b4-epoint-project18-20260822.json` | B4 管网2+非管网1；拒绝望江县等异地项目，平台标题不再冒充地区 |
 | wenzhou | `VERIFIED_RECORD` | 1 | 30 天 0，90 天 1 | `wenzhou-sol-90d-v2/wenzhou.run-report.json` | 锁温州市主站 `col1229696276`；官方 CMS 列表 + PDF 详情；16 列回源复验 |
 | ningbo | `VERIFIED_RECORD` | 1 | 30 天 1，停止扩大 | `reference/evidence/a3-city-structured-project18-20260821.json` | A3 管网1+非管网1；无工期时拒绝“施工期”误抽；附件HTTP 0单列 |
 | jiaxing | `VERIFIED_RECORD` | 1 | 30 天 1，停止扩大 | `jiaxing-sol-30d-v2/jiaxing.run-report.json` | 锁建设工程 `col1229743509` 招标公告；JPaas 列表 + HTML 详情；16 列回源复验 |

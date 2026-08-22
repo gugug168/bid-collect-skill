@@ -1,7 +1,7 @@
 # 烟台市 采集参考（城市级 · EPoint 双层包装）
 
 > 数据源 adapter：`yantai` · kind=`sdwrap` · 验证状态：**✅ VERIFIED_RECORD（2026-08-18 实时复测）**
-> 最后验证：2026-08-18（30 天“管网”2 条；Sol + Luna 双重复测）
+> 最后验证：2026-08-22（B4 project18 实时复测）
 
 ## 机制
 官方入口：https://ggzyjy.yantai.gov.cn/ 。EPoint 双层包装（与临沂同款 `sdwrap` kind；主字段为 title 而非 titlenew；含 categorynum/categoryname/xiaquname 结构化字段）。只采官方 `003001003=工程建设招标公告` 与 `003002002=政府采购公告`；服务端分栏目请求后，再按 `categorynum` 客户端校验，拒绝中标结果、采购合同、答疑与变更。
@@ -16,6 +16,10 @@ node scripts/province-collect.cjs -p yantai -k 管网 -d 30 --limit 3 --csv --xl
 
 ## 诚实留空字段（源页无则空，绝不伪造）
 B 阶段 `stages` 未配置（栏目码待逐项真机枚举，本轮只验收 zb）。
+
+## 2026-08-22 project18 复测
+
+30天“管网”2条并核对1条道路工程公告；规模、范围、资金、工期、资格、业绩和联合体均由官方详情核对。三条未披露具体控制价，且无公开招标文件直链，保证金、评标办法、满分和文件链接按未披露/受限分别收口。字段证据见 `evidence/b4-epoint-project18-20260822.json`。
 
 ## 中标/合同阶段（B 阶段 · Goal v1）
 

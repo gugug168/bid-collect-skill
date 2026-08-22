@@ -939,14 +939,15 @@ test("project18 能力真相源覆盖62×17并锁定干净证据", () => {
   assert.equal(validation.adapter_count, 62);
   assert.equal(validation.field_count, 17);
   assert.equal(validation.cells, 1054);
-  assert.equal(validation.unverified, 374);
+  assert.equal(validation.unverified, 323);
   assert.equal(CAP.projectionMatches(doc), true);
   for (const adapter of ["guangdong", "hunan", "hubei", "guizhou", "yunnan", "neimenggu", "tianjin", "jilin",
     "anhui", "xizang", "gansu", "liaoning", "fujian", "chongqing", "henan",
     "qingdao", "wuhan", "jinan", "ningbo", "zhongshan", "nanjing", "shenzhen",
     "jiangsu", "zhejiang", "hainan", "heilongjiang", "anyang", "changzhou",
     "luoyang", "zhengzhou", "sichuan", "xinjiangbt", "xuzhou", "ningxia",
-    "xinjiang", "jiangxi", "qinghai", "yichang", "weifang", "wuxi"]) {
+    "xinjiang", "jiangxi", "qinghai", "yichang", "weifang", "wuxi",
+    "hefei", "linyi", "yantai"]) {
     for (const field of doc.audited_fields) assert.notEqual(doc.adapters[adapter].fields[field].status, "FIELD_UNVERIFIED", `${adapter}.${field}`);
   }
   for (const evidence of Object.values(doc.evidence)) assert.equal(evidence.code_dirty, false);
