@@ -494,6 +494,40 @@ test("C2 未勾选业绩与范围金额尾部不进入 project18", () => {
   assert.doesNotMatch(wz.qualification, /þ/);
 });
 
+test("C3 泉州动态详情映射且遵义资格模板去重", () => {
+  const qz = M.parseQuanzhouPayload(
+    { data: { projName: "泉州管网项目", projNo: "QZ-1", buildArea: "福建省泉州市安溪县", fundSource: "财政资金", ownerdeptname: "招标人", agentDept: "代理机构", totalInvest: 1752.244 } },
+    { data: [{ fileTitle: "泉州管网项目（招标公告）", fileContent: '<p>建设规模：<input value="新建排水管网10公里"></p><p>招标范围：<input value="施工图及工程量清单全部内容"></p><p>计划工期：<input value="180日历天"></p><p>资质要求：<input value="市政公用工程施工总承包三级资质"></p>' }] },
+    { title: "泉州管网项目", url: "http://example.invalid/qz" },
+  );
+  assert.equal(qz.projectCode, "QZ-1");
+  assert.equal(qz.projectSite, "福建省泉州市安溪县");
+  assert.equal(qz.funding, "财政资金");
+  assert.equal(qz.budget, "1752.244");
+  assert.match(qz.scale, /10公里/);
+  assert.match(qz.scope, /工程量清单/);
+  assert.equal(qz.duration, "180日历天");
+  assert.match(qz.qualification, /市政公用工程施工总承包三级/);
+  const qzMoney = M.parseQuanzhouPayload({ data: {} }, { data: [{ fileTitle: "项目（招标公告）", fileContent: '<p>项目规模：<input value="工程总造价4131万元；2.3."></p><p>招标范围：<input value="新建污水管道1700米"></p>' }] }, { title: "项目", url: "x" });
+  assert.equal(qzMoney.scale, "");
+  assert.match(qzMoney.scope, /1700米/);
+  const zy = M.cleanQualificationOutput("本次招标要求投标人须具备具备水利水电工程施工总承包二级资质、，并在人员、设备、资金等方面具有相应的施工能力");
+  assert.equal(zy, "本次招标要求投标人须具备水利水电工程施工总承包二级资质");
+  assert.equal(M.cleanQualificationOutput(". 具备水利工程资质证书）资质"), "具备水利工程资质证书）");
+  const yy = M.extractDetail(M.ADAPTERS.yueyang, "", { title: "君山区燃气管网EPC", url: "https://example.invalid/yy" }, "1.2.3 项目基本情况：改造中压燃气管网13.23km。1.3 工期要求：270 ？天（日历日）□月□年；1.4 招标范围：建设规模范围内的设计、施工总承包。1.5 质量要求：合格。2.8 类似工程业绩要求：？不要求 □要求。");
+  assert.match(yy.scale, /13\.23km/);
+  assert.doesNotMatch(yy.scale, /最高投标限价/);
+  assert.match(yy.scope, /设计、施工总承包/);
+  assert.equal(yy.duration, "270日历天");
+  assert.equal(yy.performance, "不要求");
+  const yyAgency = M.extractDetail(M.ADAPTERS.yueyang, "", { title: "岳阳污水厂代建", url: "https://example.invalid/yy2" }, "2.4 项目建设内容及规模：对17万m3/d污水处理厂提标改造。2.5 代建范围：□全过程代建；？阶段性代建 2.10 代建周期：合同生效之日起至实体移交手续完成止。2.11 代建服务费招标控制价：151万元 资质要求：工程监理甲级资质；□同时还应具有类别资质；□另须满足涉密条件");
+  assert.match(yyAgency.scale, /17万m3\/d/);
+  assert.doesNotMatch(yyAgency.scale, /概算总投资/);
+  assert.equal(yyAgency.scope, "阶段性代建");
+  assert.match(yyAgency.duration, /实体移交/);
+  assert.doesNotMatch(yyAgency.qualification, /□|？/);
+});
+
 test("遵义只接收 announcement=交易公告，拒绝答疑澄清和更正", () => {
   assert.equal(M.isZunyiTenderRecord({ announcement: "交易公告", docTitle: "管网工程（二次）招标公告" }), true);
   assert.equal(M.isZunyiTenderRecord({ announcement: "变更公告（澄清与答疑）", docTitle: "管网工程答疑澄清文件" }), false);
@@ -973,7 +1007,7 @@ test("project18 能力真相源覆盖62×17并锁定干净证据", () => {
   assert.equal(validation.adapter_count, 62);
   assert.equal(validation.field_count, 17);
   assert.equal(validation.cells, 1054);
-  assert.equal(validation.unverified, 119);
+  assert.equal(validation.unverified, 68);
   assert.equal(CAP.projectionMatches(doc), true);
   for (const adapter of ["guangdong", "hunan", "hubei", "guizhou", "yunnan", "neimenggu", "tianjin", "jilin",
     "anhui", "xizang", "gansu", "liaoning", "fujian", "chongqing", "henan",
@@ -982,7 +1016,8 @@ test("project18 能力真相源覆盖62×17并锁定干净证据", () => {
     "luoyang", "zhengzhou", "sichuan", "xinjiangbt", "xuzhou", "ningxia",
     "xinjiang", "jiangxi", "qinghai", "yichang", "weifang", "wuxi",
     "hefei", "linyi", "yantai", "beijing", "shanxi", "hebei", "shanghai", "shandong", "guangxi",
-    "mianyang", "qinhuangdao", "nantong", "huizhou", "jiaxing", "wenzhou"]) {
+    "mianyang", "qinhuangdao", "nantong", "huizhou", "jiaxing", "wenzhou",
+    "quanzhou", "yueyang", "zunyi"]) {
     for (const field of doc.audited_fields) assert.notEqual(doc.adapters[adapter].fields[field].status, "FIELD_UNVERIFIED", `${adapter}.${field}`);
   }
   for (const evidence of Object.values(doc.evidence)) assert.equal(evidence.code_dirty, false);

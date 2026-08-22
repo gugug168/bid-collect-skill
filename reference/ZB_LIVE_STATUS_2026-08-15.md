@@ -1,4 +1,4 @@
-# 招标公告实时状态总账（基线 2026-08-15；广东更新至 2026-08-19；A1/A2/A3/B1/B2/B3/B4/C1/C2 更新至 2026-08-22）
+# 招标公告实时状态总账（基线 2026-08-15；广东更新至 2026-08-19；A1/A2/A3/B1/B2/B3/B4/C1/C2/C3 更新至 2026-08-22）
 
 > 本表只记录招标公告（`zb`）的实时窗口结果，不包含候选人/中标/合同阶段。每次采集的 sidecar 才是单次运行的机器真相；这里是便于人审和 PR 追踪的当前快照。
 >
@@ -64,9 +64,9 @@
 | qingdao | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `reference/evidence/a3-city-structured-project18-20260821.json` | A3 管网3+非管网1；范围尾数字与评审模板噪声已修复 |
 | shenzhen | `VERIFIED_RECORD` | 1 | 30 天 1，停止扩大 | `reference/evidence/a3-city-structured-project18-20260821.json` | A3 管网1+非管网1；双重阶段守卫、空标签与定性满分闭环 |
 | wuxi | `VERIFIED_RECORD` | 1 | 30 天命中1条纯招标公告 | `reference/evidence/b3-epointx-project18-20260822.json` | B3 详情纯度守卫剔除2条资格预审；管网1+非管网1，保证金附件已核对 |
-| quanzhou | `VERIFIED_RECORD` | 3 | — | `b2_quanzhou.run-report.json` | 城市级（Java .do·http）（V5 批次2 侦察接入） |
-| yueyang | `VERIFIED_RECORD` | 2 | — | `b2_yueyang.run-report.json` | 城市级（静态 CMS·GBK）（V5 批次2 侦察接入） |
-| zunyi | `VERIFIED_RECORD` | 3 | — | `city-semantic-retest-luna/batch-summary.json` | 只收 `announcement=交易公告`；3/3 无答疑、澄清或更正 |
+| quanzhou | `VERIFIED_RECORD` | 3 | 30 天命中3 | `reference/evidence/c3-specialhtml-project18-20260822.json` | C3 接通项目JSON与F001公告正文；管网3+非管网1 |
+| yueyang | `VERIFIED_RECORD` | 2 | 管网30/90天0，365天2 | `reference/evidence/c3-specialhtml-project18-20260822.json` | C3 GBK模板精确解析；管网2+非管网1 |
+| zunyi | `VERIFIED_RECORD` | 3 | 30 天命中3 | `reference/evidence/c3-specialhtml-project18-20260822.json` | C3 管网3+非管网1；保证金附件核对，资格模板去重 |
 | yibin | `FAILED` | 3 | — | `b2_yibin.run-report.json` | 城市级（筑龙 SPA）：3 条真实记录无详情直链，FAILED 系 allowNoUrl 诚实判定非采集失败（V5 批次2 侦察接入） |
 
 
