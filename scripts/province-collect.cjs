@@ -735,6 +735,7 @@ const ADAPTERS = {
     kind: "yibin",
     base: "https://ggzy.yibin.gov.cn",
     allowNoUrl: false,
+    attachmentFields: ["controlPrice", "budget", "bond", "evaluation", "fullScore"],
     defaultType: "招标公告",
   },
   // ===== 定西（城市级 · 2026-08-16 实测新增 · 标准 EPoint · infodate 排序变体）=====

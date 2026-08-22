@@ -529,6 +529,7 @@ test("C3 泉州动态详情映射且遵义资格模板去重", () => {
 
 test("D 宜宾官方详情映射并拒绝谈判采购阶段", () => {
   assert.equal(M.isStrictZbTitle("自动氩弧焊项目-谈判采购公告"), false);
+  assert.deepEqual(M.ADAPTERS.yibin.attachmentFields, ["controlPrice", "budget", "bond", "evaluation", "fullScore"]);
   const yb = M.parseYibinDetailPayload({ data: {
     zhaoBiao_GongGao: {
       ZhaoBiao_XiangMu_No: "JACSZ1", ZhaoBiao_XiangMu_Name: "宜宾设备更新项目",
