@@ -460,6 +460,16 @@ test("B4 临沂锁定招标公告栏目且合肥平台标题不冒充地区", ()
   assert.equal(M.extractProjectContent("", "项目规模：平邑县西部老城区供热管网提升及低本工程为平邑县西部老城区供热管网提升及低碳节能系统改造项目（一期），改造供热面积约140万平方米", "").scale, "本工程为平邑县西部老城区供热管网提升及低碳节能系统改造项目（一期），改造供热面积约140万平方米");
 });
 
+test("C1 阶段与模板守卫并配置广西官方动态PDF", () => {
+  assert.equal(M.isStrictZbTitle("体育公园施工最高投标限价公示"), false);
+  const bj = M.extractDetail({}, "<p>工期：间，拟派总监理工程师不可以同时担任其他建设工程总监理工程师</p><p>资质要求：履行合同的能力，包括资质</p>", { title: "北京监理招标公告", url: "https://example.invalid/bj" }, "");
+  assert.equal(bj.duration, "");
+  assert.equal(bj.qualification, "");
+  assert.equal(M.extractProjectContent("", "招标范围：2.1项目规模：中阳县综合管网更新改造工程", "").scope, "");
+  assert.equal(M.grabQualification("本次招标要求投标人须具备如下资质、，并具有供货能力", ""), "");
+  assert.equal(typeof M.ADAPTERS.guangxi.pdfResolver, "function");
+});
+
 test("遵义只接收 announcement=交易公告，拒绝答疑澄清和更正", () => {
   assert.equal(M.isZunyiTenderRecord({ announcement: "交易公告", docTitle: "管网工程（二次）招标公告" }), true);
   assert.equal(M.isZunyiTenderRecord({ announcement: "变更公告（澄清与答疑）", docTitle: "管网工程答疑澄清文件" }), false);
