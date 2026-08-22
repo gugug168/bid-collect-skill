@@ -520,11 +520,12 @@ test("C3 泉州动态详情映射且遵义资格模板去重", () => {
   assert.match(yy.scope, /设计、施工总承包/);
   assert.equal(yy.duration, "270日历天");
   assert.equal(yy.performance, "不要求");
-  const yyAgency = M.extractDetail(M.ADAPTERS.yueyang, "", { title: "岳阳污水厂代建", url: "https://example.invalid/yy2" }, "2.4 项目建设内容及规模：对17万m3/d污水处理厂提标改造。2.5 代建范围：□全过程代建；？阶段性代建 2.10 代建周期：合同生效之日起至实体移交手续完成止。2.11 代建服务费招标控制价：151万元");
+  const yyAgency = M.extractDetail(M.ADAPTERS.yueyang, "", { title: "岳阳污水厂代建", url: "https://example.invalid/yy2" }, "2.4 项目建设内容及规模：对17万m3/d污水处理厂提标改造。2.5 代建范围：□全过程代建；？阶段性代建 2.10 代建周期：合同生效之日起至实体移交手续完成止。2.11 代建服务费招标控制价：151万元 资质要求：工程监理甲级资质；□同时还应具有类别资质；□另须满足涉密条件");
   assert.match(yyAgency.scale, /17万m3\/d/);
   assert.doesNotMatch(yyAgency.scale, /概算总投资/);
   assert.equal(yyAgency.scope, "阶段性代建");
   assert.match(yyAgency.duration, /实体移交/);
+  assert.doesNotMatch(yyAgency.qualification, /□|？/);
 });
 
 test("遵义只接收 announcement=交易公告，拒绝答疑澄清和更正", () => {

@@ -5145,13 +5145,16 @@ function yueyangDetail(html, item, pdfText) {
   const agencyDuration = text.match(/2\s*\.\s*10\s*代建周期\s*[:：]\s*([\s\S]{10,800}?)(?=2\s*\.\s*11\s*)/)?.[1] || "";
   const epcDays = text.match(/1\s*\.\s*3\s*工期要求\s*[:：]\s*(\d+)\s*[？?þ√☑]?\s*天/)?.[1] || "";
   if (epcScale || agencyScale) {
-    out.scale = cleanProjectContent(epcScale || agencyScale).replace(/\s*本项目(?:最高投标限价|概算总投资)[\s\S]*$/, "").trim();
+    out.scale = cleanProjectContent(epcScale || agencyScale)
+      .replace(/\s*本项目(?:最高投标限价|概算总投资)[\s\S]*$/, "")
+      .replace(/[，,。；;\s]+$/, "").trim();
   }
-  if (epcScope) out.scope = cleanProjectContent(epcScope);
+  if (epcScope) out.scope = cleanProjectContent(epcScope).replace(/[，,。；;\s]+$/, "").trim();
   else if (/2\s*\.\s*5\s*代建范围\s*[:：][\s\S]{0,100}?[？?þ√☑]\s*阶段性代建/.test(text)) out.scope = "阶段性代建";
   if (epcDays) out.duration = `${epcDays}日历天`;
   else if (agencyDuration) out.duration = cleanVal(agencyDuration);
   if (/类似工程业绩要求\s*[:：]\s*[？?þ√☑]\s*不要求/.test(text)) out.performance = "不要求";
+  out.qualification = String(out.qualification || "").replace(/\s*[；;]?\s*□\s*同时还应具有[\s\S]*$/, "").trim();
   if (/^https?:\/\/ggzy\.yueyang\.gov\.cn\/?$/i.test(String(out.docLink || ""))) out.docLink = "";
   return out;
 }
