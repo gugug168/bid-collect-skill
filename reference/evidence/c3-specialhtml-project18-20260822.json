@@ -1,9 +1,9 @@
 {
   "schema_version":"project18-evidence.v1","batch":"C3","stage":"zb","verified_at":"2026-08-22T15:42:00+08:00","code_dirty":false,
   "evidence":{
-    "fixture:c3-quanzhou-project18":{"kind":"fixture","path":"reference/evidence/c3-specialhtml-project18-20260822.json","code_commit":"a65e19cce893a0bf091052049772b59cc0d2d7a1","code_dirty":false},
-    "fixture:c3-yueyang-project18":{"kind":"fixture","path":"reference/evidence/c3-specialhtml-project18-20260822.json","code_commit":"93829d8ac05246590259dc17d292b49512b093e8","code_dirty":false},
-    "fixture:c3-zunyi-project18":{"kind":"fixture","path":"reference/evidence/c3-specialhtml-project18-20260822.json","code_commit":"a65e19cce893a0bf091052049772b59cc0d2d7a1","code_dirty":false}
+    "fixture:c3-quanzhou-project18":{"kind":"fixture","path":"reference/evidence/c3-specialhtml-project18-20260822.json","code_commit":"e3bae3c7ba5d9dc49bbc256a3b869b831d06d166","code_dirty":false},
+    "fixture:c3-yueyang-project18":{"kind":"fixture","path":"reference/evidence/c3-specialhtml-project18-20260822.json","code_commit":"e3bae3c7ba5d9dc49bbc256a3b869b831d06d166","code_dirty":false},
+    "fixture:c3-zunyi-project18":{"kind":"fixture","path":"reference/evidence/c3-specialhtml-project18-20260822.json","code_commit":"e3bae3c7ba5d9dc49bbc256a3b869b831d06d166","code_dirty":false}
   },
   "samples":{
     "quanzhou":[{"kind":"pipe","title":"安溪县城东片区排水管网建设与泵站改造项目","official_url":"http://ggzyjy.quanzhou.gov.cn/project/projectInfo.do?projId=75430"},{"kind":"general","title":"南安市公共实训基地建设项目","official_url":"http://ggzyjy.quanzhou.gov.cn/project/projectInfo.do?projId=75554"}],
