@@ -78,7 +78,7 @@ function curlFetch(url, opts = {}) {
       const nl = stdout.lastIndexOf(0x0a);
       const status = parseInt((nl >= 0 ? stdout.slice(nl + 1) : stdout).toString("utf8").trim(), 10) || 0;
       const body = nl >= 0 ? stdout.slice(0, nl) : Buffer.alloc(0);
-      resolve(_curlResp(status, body, { klass: "ok", transport: "curl" }));
+      resolve(_curlResp(status, body, { klass: status ? "ok" : "conn", transport: "curl" }));
     });
     if (opts.body != null) { try { child.stdin.write(opts.body); } catch (_) {} child.stdin.end(); }
   });
@@ -7373,6 +7373,12 @@ function resolveRecordRegion(ad, rec) {
   // “公共资源交易部/中心”等是发布机构，不是项目地区。此时保守回退到 adapter 明确管辖区，
   // 避免跨多城市项目从标题中随意挑一个城市。
   if (listed && /全国公共资源交易平台|公共资源交易(?:部|中心|平台|服务中心)|交易服务(?:部|中心)|招标投标管理/.test(listed)) return jurisdictionFromAdapter(ad);
+  if (/^(?:城区|市区|县城)$/.test(listed)) {
+    const stem = String(rec && rec.title || "").match(/^([\u4e00-\u9fa5]{2,6}?)城区/)?.[1] || "";
+    const district = stem ? `${stem}区` : "";
+    if (district && KNOWN_ADMIN_AREAS.includes(district)) return district;
+    return jurisdictionFromAdapter(ad);
+  }
   const listedArea = listed ? extractKnownArea(listed) : "";
   if (listedArea) return listedArea;
   if (listed && /(?:污水处理厂|水厂|医院|学校|研究院|项目|管道|管网|桩号)/.test(`${listed} ${rec && rec.title || ""}`)) return jurisdictionFromAdapter(ad);

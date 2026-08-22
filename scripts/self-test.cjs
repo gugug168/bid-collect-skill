@@ -471,6 +471,7 @@ test("C1 阶段与模板守卫并配置广西官方动态PDF", () => {
   assert.equal(M.grabQualification("本次招标要求投标人须具备如下资质、，并具有供货能力", ""), "");
   assert.equal(M.cleanQualificationOutput("本次招标要求投标人须具备如下资质、 业绩，并具有供货能力。"), "");
   assert.equal(typeof M.ADAPTERS.guangxi.pdfResolver, "function");
+  assert.equal(M.resolveRecordRegion(M.ADAPTERS.shandong, { city: "城区", title: "定陶城区供水管网漏损治理工程招标公告" }), "定陶区");
 });
 
 test("遵义只接收 announcement=交易公告，拒绝答疑澄清和更正", () => {
