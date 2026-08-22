@@ -1,5 +1,9 @@
 # 定西市 采集参考（城市级 · infodate 排序变体）
 
+## 2026-08-22 D project18
+
+管网及无关键词30/90/365天均请求成功但无记录；门户最新数据停在2023年。17字段以 `FIELD_NO_SAMPLE` 收口。证据见 `evidence/d-restricted-project18-20260822.json`。
+
 > 数据源 adapter：`dingxi` · kind=`epoint` · 验证状态：**🟡 可达但源站停更（2023-04 后无新公告）**
 > 最后验证：2026-08-16（365 天窗口 0 条，CONNECTED_NO_RECENT_DATA，errors=0）
 

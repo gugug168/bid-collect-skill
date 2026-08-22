@@ -1,4 +1,4 @@
-# 招标公告实时状态总账（基线 2026-08-15；广东更新至 2026-08-19；A1/A2/A3/B1/B2/B3/B4/C1/C2/C3 更新至 2026-08-22）
+# 招标公告实时状态总账（全国 project18 字段终态更新至 2026-08-22）
 
 > 本表只记录招标公告（`zb`）的实时窗口结果，不包含候选人/中标/合同阶段。每次采集的 sidecar 才是单次运行的机器真相；这里是便于人审和 PR 追踪的当前快照。
 >
@@ -32,14 +32,14 @@
 | guizhou | `VERIFIED_RECORD` | 3 | — | `guizhou.run-report.json` | 官方 REST |
 | yunnan | `VERIFIED_RECORD` | 3 | — | `yunnan-detail-v3.run-report.json` | guid→官方详情 URL 修复后通过 |
 | xizang | `VERIFIED_RECORD` | 3 | — | `reference/evidence/a2-structured-project18-20260821.json` | 管网3+非管网1条；projectCode详情复测 |
-| shaanxi | `CONNECTED_NO_RECENT_DATA` | 0 | 90/365 仍 0 | `shaanxi-v2.run-report.json`, `shaanxi-90d`, `shaanxi-365d` | 既有登录墙证据仍保留 |
+| shaanxi | `CONNECTED_NO_RECENT_DATA` | 0 | 管网/无关键词30/90/365均无合格样本 | `reference/evidence/d-restricted-project18-20260822.json` | D 仅最新10条；谈判采购剔除，17字段NO_SAMPLE |
 | gansu | `VERIFIED_RECORD` | 3 | — | `reference/evidence/a2-structured-project18-20260821.json` | 管网3+非管网1条；文件入口HTML壳单独记受限 |
 | qinghai | `VERIFIED_RECORD` | 3 | 30 天命中3，停止扩大 | `reference/evidence/b3-epointx-project18-20260822.json` | B3 管网3+河湖治理1；评标模板不再污染建设规模 |
 | ningxia | `VERIFIED_RECORD` | 3 | — | `reference/evidence/b2-epoint-project18-20260822.json` | B2 管网3+非管网1；标段划分与资金前缀已清理 |
 | xinjiang | `VERIFIED_RECORD` | 3 | 无关键词30天0 | `reference/evidence/b3-epointx-project18-20260822.json` | B3 管网3；无关键词复扫为空，不冒充非管网样本 |
 | xinjiangbt | `VERIFIED_RECORD` | 1 | 管网30/90/365天0 | `reference/evidence/b2-epoint-project18-20260822.json` | 无关键词官方公路招标1条，不冒充管网命中 |
 | anyang | `VERIFIED_RECORD` | 1 | — | `reference/evidence/b1-epoint-project18-20260822.json` | B1 排除竞争性磋商等非招标采购，管网招标1条 |
-| dingxi | `CONNECTED_NO_RECENT_DATA` | 0 | 365 仍 0 | `dingxi-365d.run-report.json` | 城市级（infodate 排序变体）：可达 total=4621 但源站 2023-04 后停更，非近期数据源 |
+| dingxi | `CONNECTED_NO_RECENT_DATA` | 0 | 管网/无关键词30/90/365均0 | `reference/evidence/d-restricted-project18-20260822.json` | D 源站2023年后停更，17字段NO_SAMPLE |
 | changzhou | `VERIFIED_RECORD` | 3 | — | `reference/evidence/b1-epoint-project18-20260822.json` | B1 标题二次关键词过滤；附件补保证金 |
 | luoyang | `VERIFIED_RECORD` | 2 | 30 天 2，停止扩大 | `reference/evidence/b2-epoint-project18-20260822.json` | B2 管网2+医院设计1；scope章节尾已清理 |
 | zhengzhou | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `reference/evidence/b2-epoint-project18-20260822.json` | B2 管网3+供配电1；资金尾部已清理 |
@@ -51,7 +51,7 @@
 | zhongshan | `VERIFIED_RECORD` | 3 | 30/90 天 0，365 天 3 | `reference/evidence/a3-city-structured-project18-20260821.json` | A3 补全多专业资格；附件验证码留空 |
 | jinan | `VERIFIED_RECORD` | 1 | 30 天 1，停止扩大 | `reference/evidence/a3-city-structured-project18-20260821.json` | A3 管网1+非管网1；精确工期、企业资质和业绩金额 |
 | wuhan | `VERIFIED_RECORD` | 3 | 30 天 3，停止扩大 | `reference/evidence/a3-city-structured-project18-20260821.json` | A3 管网3+非管网1；结构化详情复测 |
-| suzhou | `CONNECTED_NO_RECENT_DATA` | 0 | 30/90/365 天均 0 | `city-retest-01/batch-summary.json` | 接口成功；历史 VERIFIED 路由证据保留，当前窗口空不冒充有记录 |
+| suzhou | `VERIFIED_RECORD` | 1 | 管网30/90/365均0 | `reference/evidence/d-restricted-project18-20260822.json` | D 无关键词公告1条；扫描附件的保证金/满分记OCR_REQUIRED |
 | xuzhou | `VERIFIED_RECORD` | 3 | 30 天 0，90 天 3 | `reference/evidence/b2-epoint-project18-20260822.json` | B2 管网3+农村污水EPC 1；附件验证码单列 |
 | yichang | `VERIFIED_RECORD` | 3 | 30 天0，90 天3 | `reference/evidence/b3-epointx-project18-20260822.json` | B3 监理服务期与企业资质修复；管网3+非管网1 |
 | linyi | `VERIFIED_RECORD` | 3 | 30 天命中3，停止扩大 | `reference/evidence/b4-epoint-project18-20260822.json` | B4 锁 `012001001/012002001`；合同、结果、候选、计划均拒绝；管网3+非管网1 |
@@ -67,14 +67,13 @@
 | quanzhou | `VERIFIED_RECORD` | 3 | 30 天命中3 | `reference/evidence/c3-specialhtml-project18-20260822.json` | C3 接通项目JSON与F001公告正文；管网3+非管网1 |
 | yueyang | `VERIFIED_RECORD` | 2 | 管网30/90天0，365天2 | `reference/evidence/c3-specialhtml-project18-20260822.json` | C3 GBK模板精确解析；管网2+非管网1 |
 | zunyi | `VERIFIED_RECORD` | 3 | 30 天命中3 | `reference/evidence/c3-specialhtml-project18-20260822.json` | C3 管网3+非管网1；保证金附件核对，资格模板去重 |
-| yibin | `FAILED` | 3 | — | `b2_yibin.run-report.json` | 城市级（筑龙 SPA）：3 条真实记录无详情直链，FAILED 系 allowNoUrl 诚实判定非采集失败（V5 批次2 侦察接入） |
+| yibin | `VERIFIED_RECORD` | 3 | 管网30天0，90天3 | `reference/evidence/d-restricted-project18-20260822.json` | D 官方详情action与SPA路由已接通；ZBJ评分细则记PRESENT_UNPARSED |
 
 
 ## 汇总
 
-- `VERIFIED_RECORD`：56 个（新疆兵团以无关键词官方招标公告样本转正，未冒充管网命中）
-- `CONNECTED_NO_RECENT_DATA`：5 个（河北、黑龙江、陕西、定西、苏州）
-- `FAILED`：1 个（宜宾 allowNoUrl 无直链形态）
+- 62个 adapter ×17字段已无 `FIELD_UNVERIFIED`；运行状态与字段终态分开统计。
+- 当前窗口中的空数据、失败、OCR和受限均保留原始语义，不等于历史无公告或字段未披露。
 - `BROWSER_REQUIRED`：本轮未新增；Chrome CDP 未连接，不能宣称浏览器路径可用。
 
 外部完整人读报告与逐次 XLSX/CSV/sidecar 位于 GOAL evidence 目录；本表不复制业务数据，也不把空结果写成 0 条历史事实。

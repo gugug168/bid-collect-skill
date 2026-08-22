@@ -33,7 +33,7 @@ sidecar 保存 `snapshot_at`、参数、来源、记录数量、状态、错误�
 - `reference/COVERAGE_MATRIX.md` 只作为机器真相源的人读投影；使用 `node scripts/project18-capabilities.cjs --render` 更新，不手改投影区。
 - `reference/ZB_LIVE_STATUS_2026-08-15.md` 继续只记录采集运行状态；不得用一次 `VERIFIED_RECORD` 自动替换字段能力状态。
 - 阶段批次允许保留 `FIELD_UNVERIFIED`；全国收口运行 `node scripts/project18-capabilities.cjs --require-complete`，确保 1,054 格都有诚实终态。
-- 截至 2026-08-22，广东基线至 C3（泉州、岳阳、遵义）共58个 adapter 已无 `FIELD_UNVERIFIED`；仅最终D批次4个受限源仍有68格待验收。受限附件与未披露字段均独立收口，不得冒充字段齐全或全国完成。
+- 截至 2026-08-22，全国62个 adapter ×17字段共1,054格均已形成可审计终态，`FIELD_UNVERIFIED=0`。陕西、定西以无样本终态，广西/苏州含OCR终态，山东含详情失败终态；不得把全国可审计误写成全国字段齐全。
 
 ## 开始前
 

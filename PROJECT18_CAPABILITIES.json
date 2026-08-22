@@ -390,6 +390,30 @@
       "path": "reference/evidence/c3-specialhtml-project18-20260822.json",
       "code_commit": "e3bae3c7ba5d9dc49bbc256a3b869b831d06d166",
       "code_dirty": false
+    },
+    "fixture:d-shaanxi-project18": {
+      "kind": "fixture",
+      "path": "reference/evidence/d-restricted-project18-20260822.json",
+      "code_commit": "5c3d8291acf963d04a6bf3bd4c0eb940d433927f",
+      "code_dirty": false
+    },
+    "fixture:d-yibin-project18": {
+      "kind": "fixture",
+      "path": "reference/evidence/d-restricted-project18-20260822.json",
+      "code_commit": "2bd0f0a8e4a30ea0e882bbf2e1bddc426b5583ee",
+      "code_dirty": false
+    },
+    "fixture:d-dingxi-project18": {
+      "kind": "fixture",
+      "path": "reference/evidence/d-restricted-project18-20260822.json",
+      "code_commit": "5c3d8291acf963d04a6bf3bd4c0eb940d433927f",
+      "code_dirty": false
+    },
+    "fixture:d-suzhou-project18": {
+      "kind": "fixture",
+      "path": "reference/evidence/d-restricted-project18-20260822.json",
+      "code_commit": "b104b177e40fb3b4b7b052bfe01c958649a10e01",
+      "code_dirty": false
     }
   },
   "adapters": {
@@ -500,23 +524,23 @@
     },
     "suzhou": {
       "fields": {
-        "publishDate": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "region": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "bidOpen": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "title": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "scale": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "scope": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "funding": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "duration": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "qualification": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "performance": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "controlPrice": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "bond": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "evaluation": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "consortium": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "fullScore": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "url": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "docLink": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"}
+        "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "scope": {"status":"FIELD_NOT_DISCLOSED","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "funding": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "duration": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "qualification": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "performance": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "controlPrice": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "bond": {"status":"FIELD_OCR_REQUIRED","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "evaluation": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "consortium": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "fullScore": {"status":"FIELD_OCR_REQUIRED","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "url": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "docLink": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"}
       }
     },
     "xuzhou": {
@@ -1088,44 +1112,44 @@
     },
     "yibin": {
       "fields": {
-        "publishDate": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "region": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "bidOpen": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "title": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "scale": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "scope": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "funding": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "duration": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "qualification": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "performance": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "controlPrice": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "bond": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "evaluation": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "consortium": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "fullScore": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "url": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "docLink": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"}
+        "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "scope": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "funding": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "duration": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "qualification": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "performance": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "controlPrice": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "bond": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "evaluation": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "consortium": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "fullScore": {"status":"FIELD_PRESENT_UNPARSED","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "url": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "docLink": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"}
       }
     },
     "dingxi": {
       "fields": {
-        "publishDate": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "region": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "bidOpen": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "title": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "scale": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "scope": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "funding": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "duration": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "qualification": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "performance": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "controlPrice": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "bond": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "evaluation": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "consortium": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "fullScore": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "url": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "docLink": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"}
+        "publishDate": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "region": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "bidOpen": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "title": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "scale": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "scope": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "funding": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "duration": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "qualification": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "performance": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "controlPrice": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "bond": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "evaluation": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "consortium": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "fullScore": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "url": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "docLink": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00"}
       }
     },
     "guangdong": {
@@ -1256,23 +1280,23 @@
     },
     "shaanxi": {
       "fields": {
-        "publishDate": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "region": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "bidOpen": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "title": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "scale": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "scope": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "funding": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "duration": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "qualification": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "performance": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "controlPrice": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "bond": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "evaluation": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "consortium": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "fullScore": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "url": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"},
-        "docLink": {"status":"FIELD_UNVERIFIED","evidence_id":"bootstrap:inventory-20260820","verified_at":"2026-08-20T00:00:00+08:00"}
+        "publishDate": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "region": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "bidOpen": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "title": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "scale": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "scope": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "funding": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "duration": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "qualification": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "performance": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "controlPrice": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "bond": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "evaluation": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "consortium": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "fullScore": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "url": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "docLink": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00"}
       }
     },
     "ningxia": {

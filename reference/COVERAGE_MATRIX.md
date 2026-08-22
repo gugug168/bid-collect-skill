@@ -15,7 +15,7 @@
 | zhejiang | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | VD |
 | hainan | VL | VL | VD | VD | VD | VD | VD | VD | VD | ND | VD | VD | VD | VD | R | VL | VD |
 | heilongjiang | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS |
-| suzhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| suzhou | VL | VL | VD | VL | VD | ND | VD | VD | VD | VD | VD | OCR | VD | VD | OCR | VL | VD |
 | xuzhou | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | VD | VD | VD | VL | VD |
 | anyang | VL | VD | VD | VL | VD | VD | VD | VD | VD | ND | VD | R | R | VD | R | VL | VD |
 | changzhou | VL | VD | VD | VL | VD | VD | VD | VD | VD | VD | VD | VA | VD | VD | R | VL | VD |
@@ -43,15 +43,15 @@
 | quanzhou | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | VD | VD | VD | ND | VL | R |
 | yueyang | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | VD | VD | VD | ND | VL | R |
 | zunyi | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | VA | R | VD | R | VL | VD |
-| yibin | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
-| dingxi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| yibin | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | VD | VD | VD | PU | VL | VD |
+| dingxi | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS |
 | guangdong | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | VA | VA | VD | VA | VL | VD |
 | henan | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | VD |
 | anhui | VL | VL | VD | VD | VD | VD | VD | VD | VD | VD | VD | VD | VD | VD | R | VL | R |
 | sichuan | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | VD |
 | xinjiangbt | VL | VL | VD | VD | VD | ND | VD | ND | VD | ND | ND | R | R | VD | R | VL | R |
 | xizang | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | VD | R | R | VD | R | VL | R |
-| shaanxi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| shaanxi | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS |
 | ningxia | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | ND | R | R | VD | R | VL | VD |
 | xinjiang | VL | VL | VD | VL | VD | VD | VD | ND | VD | VD | ND | R | VD | VD | R | VL | R |
 | jiangxi | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | VD | R | VD | VD | R | VL | VD |

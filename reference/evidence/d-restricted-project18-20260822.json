@@ -1,0 +1,27 @@
+{
+  "schema_version":"project18-evidence.v1","batch":"D","stage":"zb","verified_at":"2026-08-22T16:22:00+08:00","code_dirty":false,
+  "evidence":{
+    "fixture:d-shaanxi-project18":{"kind":"fixture","path":"reference/evidence/d-restricted-project18-20260822.json","code_commit":"5c3d8291acf963d04a6bf3bd4c0eb940d433927f","code_dirty":false},
+    "fixture:d-yibin-project18":{"kind":"fixture","path":"reference/evidence/d-restricted-project18-20260822.json","code_commit":"2bd0f0a8e4a30ea0e882bbf2e1bddc426b5583ee","code_dirty":false},
+    "fixture:d-dingxi-project18":{"kind":"fixture","path":"reference/evidence/d-restricted-project18-20260822.json","code_commit":"5c3d8291acf963d04a6bf3bd4c0eb940d433927f","code_dirty":false},
+    "fixture:d-suzhou-project18":{"kind":"fixture","path":"reference/evidence/d-restricted-project18-20260822.json","code_commit":"b104b177e40fb3b4b7b052bfe01c958649a10e01","code_dirty":false}
+  },
+  "samples":{
+    "shaanxi":[],
+    "yibin":[{"kind":"pipe90","title":"金沙江宜宾赵场片区排水管网改造完善项目监理","official_url":"https://ggzy.yibin.gov.cn/#/transactionListDetail?guid=4169c6ab-93cf-433c-90d7-8b510ba5eabc&leiXing=102&xinXi_LaiYuan=2"},{"kind":"general","title":"江安县污水处理设施设备更新项目","official_url":"https://ggzy.yibin.gov.cn/#/transactionListDetail?guid=98bf5a5e-ecc5-4253-a3ad-635674696ae6&leiXing=102&xinXi_LaiYuan=2"}],
+    "dingxi":[],
+    "suzhou":[{"kind":"general","title":"相城长旺新材料技术创新基地配套设施建设项目","official_url":"https://ggzy.suzhou.gov.cn/jyxx/003001/003001001/20260821/621d9400-52de-411e-8bbe-5be193c58b99.html"}]
+  },
+  "terminal_notes":{
+    "shaanxi":{"sample":"匿名接口仅返回最新10条；30/90/365天管网及无关键词复扫均无合格招标公告，谈判采购已剔除；17字段以NO_SAMPLE收口，不推断未披露"},
+    "yibin":{"fullScore":"官方招标文件为ZBJ专有格式，链接存在但当前解析器不支持；记录FIELD_PRESENT_UNPARSED"},
+    "dingxi":{"sample":"30/90/365天管网及无关键词均请求成功无记录；门户最新数据停在2023年，17字段以NO_SAMPLE收口"},
+    "suzhou":{"scope":"当前样本未披露独立招标范围字段","bond":"公开附件为无文本层扫描件","fullScore":"公开附件为无文本层扫描件","pipe_window":"管网30/90/365天均为空；能力证据来自无关键词官方公告，不冒充管网命中"}
+  },
+  "capability_updates":{
+    "shaanxi":{"evidence_id":"fixture:d-shaanxi-project18","verified_at":"2026-08-22T16:22:00+08:00","statuses":{"FIELD_NO_SAMPLE":["publishDate","region","bidOpen","title","scale","scope","funding","duration","qualification","performance","controlPrice","bond","evaluation","consortium","fullScore","url","docLink"]}},
+    "yibin":{"evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00","statuses":{"FIELD_VERIFIED_LIST":["publishDate","region","title","url"],"FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","bond","evaluation","consortium","docLink"],"FIELD_PRESENT_UNPARSED":["fullScore"]}},
+    "dingxi":{"evidence_id":"fixture:d-dingxi-project18","verified_at":"2026-08-22T16:22:00+08:00","statuses":{"FIELD_NO_SAMPLE":["publishDate","region","bidOpen","title","scale","scope","funding","duration","qualification","performance","controlPrice","bond","evaluation","consortium","fullScore","url","docLink"]}},
+    "suzhou":{"evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00","statuses":{"FIELD_VERIFIED_LIST":["publishDate","region","title","url"],"FIELD_VERIFIED_DETAIL":["bidOpen","scale","funding","duration","qualification","performance","controlPrice","evaluation","consortium","docLink"],"FIELD_NOT_DISCLOSED":["scope"],"FIELD_OCR_REQUIRED":["bond","fullScore"]}}
+  }
+}
