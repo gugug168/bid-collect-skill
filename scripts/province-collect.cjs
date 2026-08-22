@@ -2261,6 +2261,7 @@ function grabQualification(text, flat) {
 
 function cleanQualificationOutput(value, source = "") {
   let v = String(value || "").trim();
+  if (/履行合同的能力[，,]?(?:包括)?资质|具备如下资质[、，,\s]*并/.test(v)) return "";
   if (/^1\s*[.、]\s*资质等级及范围[：:]/.test(v)) {
     const recovered = String(source || "").match(/企业要求\s*[:：]\s*([\s\S]{10,800}?)(?=(?:(?:三、|3\s*[.、．])\s*(?:报名|报名及获取|获取招标文件)|(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取))|$)/)?.[1] || "";
     if (recovered) v = cleanVal(recovered.replace(/[\r\n]+/g, " "));
@@ -2614,7 +2615,7 @@ function extractNoticeTitle(html, fallback = "") {
 function isStrictZbTitle(title) {
   const text = String(title || "").replace(/\s+/g, " ").trim();
   if (!text) return false;
-  return !/(?:竞争性磋商|竞争性谈判|询价(?:采购)?公告|单一来源(?:采购)?公告|资格预审(?:文件|公告)?|资审文件公告|预审结果|答疑|澄清|更正|变更|补充公告|终止公告|暂停公告|流标|废标|最高投标限价(?:公告|公示)|招标控制价(?:公告|公示)|中标(?:候选人|结果|公告|公示)|成交(?:公告|结果|公示)|评标结果|合同(?:公告|公示))/.test(text);
+  return !/(?:竞争性磋商|竞争性谈判|询价(?:采购)?公告|单一来源(?:采购)?公告|资格预审(?:文件|公告)?|资审文件公告|预审结果|答疑|澄清|更正|变更|补充公告|终止公告|暂停公告|流标|废标|最高投标限价(?:公告|公示)?|招标控制价(?:公告|公示)?$|中标(?:候选人|结果|公告|公示)|成交(?:公告|结果|公示)|评标结果|合同(?:公告|公示))/.test(text);
 }
 
 function extractDetail(ad, html, item, pdfText) {

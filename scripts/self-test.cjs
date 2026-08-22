@@ -462,6 +462,7 @@ test("B4 临沂锁定招标公告栏目且合肥平台标题不冒充地区", ()
 
 test("C1 阶段与模板守卫并配置广西官方动态PDF", () => {
   assert.equal(M.isStrictZbTitle("体育公园施工最高投标限价公示"), false);
+  assert.equal(M.isStrictZbTitle("安泽县工人文化宫项目招标控制价"), false);
   const bj = M.extractDetail({}, "<p>工期：间，拟派总监理工程师不可以同时担任其他建设工程总监理工程师</p><p>资质要求：履行合同的能力，包括资质</p>", { title: "北京监理招标公告", url: "https://example.invalid/bj" }, "");
   assert.equal(bj.duration, "");
   assert.equal(bj.qualification, "");
