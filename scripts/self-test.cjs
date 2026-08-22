@@ -241,6 +241,35 @@ test("B2 拒绝标段划分、未勾选业绩模板与引用式规模", () => {
   assert.equal(funding.funding, "市财政资金35%，企业自筹65%");
 });
 
+test("B3 拒绝非招标采购、标段章节和项目名字段污染", () => {
+  assert.equal(M.isStrictZbTitle("雨污管网在线监测项目竞争性磋商采购公告"), false);
+  assert.equal(M.isStrictZbTitle("供水管网建设项目公开招标公告"), true);
+  assert.equal(M.grabConsortium("本项目是否接受联合体谈判：否"), "不接受");
+  assert.equal(M.grabConsortium("本项目是否接受联合体投标：是"), "接受");
+  assert.equal(M.extractProjectContent("", "建设规模：1.项目名称：污水处理厂劳务分包", "").scale, "");
+  assert.equal(M.extractProjectContent("", "招标范围：2.5.1施工标段：", "").scope, "");
+  assert.equal(M.extractProjectContent("", "招标范围：2.5.1施工标段：繁荣广场等17个片区施工", "").scope, "繁荣广场等17个片区施工");
+  assert.equal(M.extractProjectContent("", "招标范围：该项目位于寿光市城区，该工程概况", "").scope, "");
+  assert.equal(M.extractProjectContent("", "招标范围：2.3招标工程标段划分及计划工期：本次招标工程共划分1个标段", "").scope, "");
+  const duration = M.extractDetail({}, "<p>计划工期：本次招标工程共划分1个标段，各标段划分及工期要求如下。计划工期:140.0天</p>", { title: "青海排水工程招标公告", url: "https://example.invalid/qh" }, "");
+  assert.equal(duration.duration, "140.0天");
+  const funding = M.extractDetail({}, "<p>资金来源：：国债资金和自有资金</p>", { title: "潍坊供热工程招标公告", url: "https://example.invalid/wf" }, "");
+  assert.equal(funding.funding, "国债资金和自有资金");
+  const qual = M.extractDetail({}, "<p>资质要求：市政公用工程施工总承包三级资质，/业绩，并在人员、设备方面具备能力</p>", { title: "青海供水工程招标公告", url: "https://example.invalid/qh2" }, "");
+  assert.doesNotMatch(qual.qualification, /[\/／]?业绩/);
+  assert.equal(M.ADAPTERS.wuxi.detailReject.test("第一章 资格预审公告 6.资格预审文件的获取"), true);
+  const performance = M.extractDetail({}, "<p>类似工程认定标准：企业自2021年8月21日以来承担过单项合同金额不低于3700万元且管径不低于DN1000的市政管线工程。类似工程业绩必须同时提供中标通知书和合同。</p>", { title: "无锡管网工程招标公告", url: "https://example.invalid/wx" }, "");
+  assert.match(performance.performance, /3700万元/);
+  assert.doesNotMatch(performance.performance, /必须同时提供/);
+  const yichang = M.extractDetail({}, "<p>2.5计划监理与相关服务期：施工阶段监理服务期为项目实际施工工期的基础上增加90日历天（协助前期施工准备），保修阶段监理服务期为单项工程竣工验收合格后2年。</p><p>三、投标人资格要求</p><p>3.1 具有有效法人营业执照。</p><p>3.2 投标人具备市政公用工程施工总承包三级及以上资质。</p><p>联合体中不同且分工相同的成员组成的联合体投标人，以联合体成员中资质等级较低者确定资质等级。</p>", { title: "监理招标公告", url: "https://example.invalid/yc" }, "");
+  assert.match(yichang.duration, /^施工阶段监理服务期为项目实际施工工期的基础上增加90日历天/);
+  assert.match(yichang.qualification, /市政公用工程施工总承包三级及以上资质/);
+  assert.doesNotMatch(yichang.qualification, /联合体成员中资质等级/);
+  const qinghai = M.extractProjectContent("", "2.1 项目概况\n建设地点：青海省西宁市\n招标范围：河湖系统治理及配套设施。\n经评审的最低投标价法一般适用于工程规模较小、技术含量较低，或者招标人对技术、性能没有特殊要求的招标项目。", "2.1 项目概况 建设地点：青海省西宁市 招标范围：河湖系统治理及配套设施。 经评审的最低投标价法一般适用于工程规模较小、技术含量较低，或者招标人对技术、性能没有特殊要求的招标项目。");
+  assert.equal(qinghai.scale, "");
+  assert.equal(qinghai.scope, "河湖系统治理及配套设施。");
+});
+
 test("洛阳与郑州复用标准 EPoint 并锁定城市招标公告边界", () => {
   assert.equal(M.ADAPTERS.luoyang.kind, "epoint");
   assert.equal(M.ADAPTERS.luoyang.keepScheme, true);
@@ -892,13 +921,14 @@ test("project18 能力真相源覆盖62×17并锁定干净证据", () => {
   assert.equal(validation.adapter_count, 62);
   assert.equal(validation.field_count, 17);
   assert.equal(validation.cells, 1054);
-  assert.equal(validation.unverified, 476);
+  assert.equal(validation.unverified, 374);
   assert.equal(CAP.projectionMatches(doc), true);
   for (const adapter of ["guangdong", "hunan", "hubei", "guizhou", "yunnan", "neimenggu", "tianjin", "jilin",
     "anhui", "xizang", "gansu", "liaoning", "fujian", "chongqing", "henan",
     "qingdao", "wuhan", "jinan", "ningbo", "zhongshan", "nanjing", "shenzhen",
     "jiangsu", "zhejiang", "hainan", "heilongjiang", "anyang", "changzhou",
-    "luoyang", "zhengzhou", "sichuan", "xinjiangbt", "xuzhou", "ningxia"]) {
+    "luoyang", "zhengzhou", "sichuan", "xinjiangbt", "xuzhou", "ningxia",
+    "xinjiang", "jiangxi", "qinghai", "yichang", "weifang", "wuxi"]) {
     for (const field of doc.audited_fields) assert.notEqual(doc.adapters[adapter].fields[field].status, "FIELD_UNVERIFIED", `${adapter}.${field}`);
   }
   for (const evidence of Object.values(doc.evidence)) assert.equal(evidence.code_dirty, false);

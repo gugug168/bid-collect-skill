@@ -1,7 +1,7 @@
 # 新疆维吾尔自治区 采集参考
 
 > 数据源 adapter：`xinjiang` · kind=`epointX` · 验证状态：**✅ 已打通（厚字段可重复采集）**
-> 最后验证：2026-08-14（全量实测矩阵 + 单省复测）
+> 最后验证：2026-08-22（B3 project18 实时复测）
 
 ## 机制
 EPoint 自定义 `/inteligentsearchnew/.../getFullTextDataNew`（标准 `/EpointWebBuilder/` 路径 401，须用此逆向路径）。
@@ -19,6 +19,10 @@ HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p xinjiang -k 管�
 
 ## 诚实留空字段（源页无则空，绝不伪造）
 performance / fullScore（源页普遍无评分细则/业绩要求，全省一致诚实留空）；projectSite / city / type 依省而异（源页无则空）
+
+## 2026-08-22 project18 复测
+
+30天“管网”命中3条真实招标公告；建设规模、招标范围、资金、资格、业绩、评标办法可从官方详情核对。无关键词30天为空，不冒充非管网样本。工期、控制价未披露；保证金、满分和招标文件直链以受限终态记录。字段证据见 `evidence/b3-epointx-project18-20260822.json`。
 
 ## 中标/合同阶段（B 阶段 · Goal v1）
 

@@ -691,6 +691,7 @@ const ADAPTERS = {
     referer: "https://ggzyjy.wuxi.gov.cn/wxsggzyjyzxzl/jyxx/jsgc/zbgg/gcl/index.shtml",
     chanId: "53051", // 建设工程-招标公告-工程类栏目
     clientFilterOnly: true, // 无服务端关键词参数
+    detailReject: /资格预审公告|资格预审文件的获取|资格预审申请文件/,
     defaultType: "招标公告",
   },
   quanzhou: {
@@ -1567,6 +1568,10 @@ function grabEvaluation(text) {
 
 // 联合体：标标通该列只关心"接受/不接受"，规范化为二值，识别不到才留空
 function grabConsortium(text) {
+  // 政府采购表单常写「本项目是否接受联合体谈判：否」。若只扫“接受+联合体”，
+  // 会把明确的“否”判成接受；是/否字段必须先于通用关键词规则。
+  const yesNo = text.match(/是否\s*接受\s*联合体(?:投标|谈判|响应)?\s*[:：]?\s*(是|否)/);
+  if (yesNo) return yesNo[1] === "是" ? "接受" : "不接受";
   // v4：复选框式表述（浙江 PDF 常见）「本次招标（R接受/□不接受）联合体投标」
   // R/☑/√/■/⊠ = 已勾选，□ = 未勾选。必须先判勾选，否则关键词规则会先命中"不接受"而判反。
   const cb = text.match(/[（(]\s*([R☑√■⊠□])\s*接受\s*[\/／、]\s*([R☑√■⊠□])\s*不接受\s*[）)]/);
@@ -1842,6 +1847,8 @@ function grabPerformance(text, flat) {
   if (/(?:业绩要求|业绩条件|企业业绩)\s*[:：]\s*[\/／]\s*(?=\d+\.\d|[。；;\n]|$)/.test(text)) return "不要求";
   const directSimilar = text.match(/具有与本工程相类似项目的(?:设计|施工|监理)?业绩\s*[:：]\s*([\s\S]{10,700}?)(?=类似业绩证明材料|证明材料需提供|\n\s*3\s*\.\s*4\s*\.\s*2)/);
   if (directSimilar) return cleanVal(directSimilar[1].replace(/[\r\n]+/g, " ")).slice(0, 500);
+  const recognizedSimilar = text.match(/类似工程认定标准\s*[:：]\s*([\s\S]{10,700}?)(?=类似工程业绩必须同时提供|必须同时提供)/);
+  if (recognizedSimilar) return cleanVal(recognizedSimilar[1].replace(/[\r\n]+/g, " ")).slice(0, 500);
   // 福建施工公告模板把答案放在“用于确定类似工程业绩的相关数据”后。
   // 明确写“无”或“/”就是不要求，不能把标签尾巴“的相关数据”当成业绩事实。
   if (/用于确定类似工程业绩的相关数据\s*[:：]\s*(?:无|[\/／])(?=\s|[（(；;。]|$)/.test(text)) return "不要求";
@@ -2014,7 +2021,7 @@ const FUND_LABELS = ["资金来源及比例", "建设资金来自", "资金来�
 //   放在"工期"前会抢先命中评分条款，把原本正确的"3年"污染成一整句评分描述（r5 回归实测退化）。
 // 上海等平台用「建设周期/设计周期」而非「工期」（2026-08-15 上海实测：详情页写
 // "设计周期：20日历天 建设周期：240日历天"，原 DUR_LABELS 无此标签 → 工期全空/误抓导航脏值）。
-const DUR_LABELS = ["勘察设计服务期限", "设计服务期限", "服务期限", "计划工期", "建设工期", "建设周期", "设计周期", "工期", "服务周期", "服务期",
+const DUR_LABELS = ["计划监理与相关服务期", "勘察设计服务期限", "设计服务期限", "服务期限", "计划工期", "建设工期", "建设周期", "设计周期", "工期", "服务周期", "服务期",
   // 2026-08-16 V5 取证回访补词（江西政采公告）：「合同履行期限： 自合同签订生效之日起 45 天内完成…」
   // ——政采/磋商类公告以"合同履行期限"表达工期/服务期。放泛标签后（垫底层，防服务合同外误抓）。
   "合同履行期限"];
@@ -2087,7 +2094,7 @@ const DUR_SCORE_NOISE = /得\s*\d+(?:\.\d+)?\s*分|得分|加分|扣分|每增�
 // 2026-08-16 Goal v3 回源核查新增：EPoint 表格拼接串（黑龙江"（天）监理费上限（万元）SZJL0504…2026年10月31日43537.62"、
 // 兵团"（天） E6699004… 第四师G218…"）内日期"2026年"会被 DUR_UNIT 误判为"N 年工期"；海南出现"要求：总工期或计划开工日期为"
 // 截断句。拒收特征：以（天）开头 / 含（万元）/ 含字母+长数字编号 / 以"为""："等截断词收尾。
-const DUR_GARBAGE = /^[(（]\s*天[)）]|[（(]\s*万元\s*[)）]|[A-Za-z]\d{6,}|[为：:]\s*$/;
+const DUR_GARBAGE = /^[(（]\s*天[)）]|[（(]\s*万元\s*[)）]|[A-Za-z]\d{6,}|[为：:]\s*$|标段划分|各标段划分/;
 const DUR_SCOPE_NOISE = /工程量清单|施工图|图纸|招标范围|范围内所有工程|所有工程施工|工作内容/;
 
 function grabDuration(text, flat) {
@@ -2099,7 +2106,7 @@ function grabDuration(text, flat) {
   const durUnitHit = (s) => DUR_UNIT.test(String(s).replace(/(?:19|20)\d{2}\s*年(?:\s*\d{1,2}\s*月(?:\s*\d{1,2}\s*日)?)?/g, ""));
   // 先取紧邻“计划工期/工期”的数字时间值，避开复合标题“招标范围及标段划分、计划工期”
   // 后面尚有大量复选框时，兜底扫描会把“☑其他：施工图纸……”错当工期（绵阳公路公告实测）。
-  const directRe = /(?:计划工期|总工期|工期)\s*(?:要求\s*)?[:：]?\s*(?:为\s*)?(\d+\s*(?:个日历天|日历天|个工作日|工作日|天|个月|月|年))/g;
+  const directRe = /(?:计划工期|总工期|工期)\s*(?:要求\s*)?[:：]?\s*(?:为\s*)?(\d+(?:\.\d+)?\s*(?:个日历天|日历天|个工作日|工作日|天|个月|月|年))/g;
   let direct;
   while ((direct = directRe.exec(text))) {
     const candidate = durClean(direct[1]);
@@ -2148,7 +2155,7 @@ const QUAL_OK = /(?:资质|许可证|甲级|乙级|丙级|[一二三四五六七
  *   （海南定安县龙门水厂监理公告实测；该公告全文压根没写投标人资质要求，正解是留空）
  * 特征：以连接词/形容词起头的半截句，或含"确定资质等级""的单位确定"这类评标规则用语。
  */
-const QUAL_BAD = /^(?:较低|较高|和|或|由|按|应|须|需|的)|确定资质等级|的单位确定|承担连带责任|各方均应/;
+const QUAL_BAD = /^(?:较低|较高|和|或|由|按|应|须|需|的)|确定资质等级|的单位确定|承担连带责任|各方均应|分工相同的成员组成的联合体|联合体成员中资质等级/;
 
 /**
  * 资质条款「整条」抽取（2026-08-10 浙江回归实测补强）。
@@ -2242,11 +2249,12 @@ function grabQualification(text, flat) {
 function cleanQualificationOutput(value, source = "") {
   let v = String(value || "").trim();
   if (/^1\s*[.、]\s*资质等级及范围[：:]/.test(v)) {
-    const recovered = String(source || "").match(/企业要求\s*[:：]\s*([\s\S]{10,800}?)(?=(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取)|$)/)?.[1] || "";
+    const recovered = String(source || "").match(/企业要求\s*[:：]\s*([\s\S]{10,800}?)(?=(?:(?:三、|3\s*[.、．])\s*(?:报名|报名及获取|获取招标文件)|(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取))|$)/)?.[1] || "";
     if (recovered) v = cleanVal(recovered.replace(/[\r\n]+/g, " "));
   }
-  const tail = v.search(/(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取)/);
+  const tail = v.search(/(?:(?:三、|3\s*[.、．])\s*(?:报名|报名及获取|获取招标文件)|(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取))/);
   if (tail >= 12) v = v.slice(0, tail).trim();
+  v = v.replace(/[，,。]?\s*[\/／]?\s*业绩(?=\s*[，,并])/, "");
   return v;
 }
 
@@ -2385,16 +2393,21 @@ function cleanProjectContent(value) {
   let v = String(value || "").replace(/^[\s\[【]+|[\s\]】]+$/g, "").replace(/\s+/g, " ").trim();
   v = v.replace(/^为\s*/, "").trim();
   v = v.replace(/^\d+\s*[;；]\s*(?=\S{4})/, "").trim();
+  v = v.replace(/^\d+(?:\.\d+)+\s*(?:施工标段|监理标段|设计标段)\s*[:：]\s*/, "").trim();
   // 云南等结构化详情会把记录 GUID 拼在建设规模正文尾部；仅清理独立 UUID 尾段，不碰项目编号正文。
   v = v.replace(/(?<![0-9a-f])[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "").trim();
   if (!v || PROJECT_TAIL_ONLY.test(v)) return "";
-  if (/^(?:(?:\d+(?:\.\d+)*)[、.．]?\s*)?(?:投资规模|建设规模|工程规模|项目规模|项目概况|工程概况|标段概况|标段名称|供货期[（(]?天[）)]?|服务期[（(]?天[）)]?|项目编号|招标编号|标段编号|交易编号)$/.test(v)) return "";
-  if (/^(?:\d+(?:\.\d+)+\s*)?(?:(?:招标)?项目(?:或标段)?名称|标段名称|工程名称)\s*[:：]/.test(v)) return "";
+  if (/^(?:(?:\d+(?:\.\d+)*)[、.．]?\s*)?(?:投资规模|建设规模|工程规模|项目规模|项目概况|工程概况|标段概况|标段名称|招标工程标段划分及?|供货期[（(]?天[）)]?|服务期[（(]?天[）)]?|项目编号|招标编号|标段编号|交易编号)$/.test(v)) return "";
+  if (/^(?:\d+(?:\.\d+)*[.、．]?\s*)?(?:(?:招标)?项目(?:或标段)?名称|标段名称|工程名称)\s*[:：]/.test(v)) return "";
   if (/^(?:\d+(?:\.\d+)*[.、．]?\s*)?(?:工程建设地点|建设地点|项目地点|招标项目所在实施地区)\s*[:：]/.test(v)) return "";
   if (/^[\/／]\s*[，,；;]?\s*(?:工程建设地点|建设地点|项目地点)\s*[:：]/.test(v)) return "";
   if (/^(?:工程|服务|货物)-/.test(v) && (v.match(/-/g) || []).length >= 2) return "";
   if (/^[A-Za-z]{2,}[A-Za-z0-9_.\-/]{4,}$/.test(v)) return "";
   if (/^同[^，,。；;]{0,80}(?:标段)?的建设规模$/.test(v)) return "";
+  if (/^(?:\d+(?:\.\d+)*[.、．]?\s*)?(?:施工标段|监理标段|设计标段)\s*[:：]?$/.test(v)) return "";
+  if (/^(?:\d+(?:\.\d+)*[.、．]?\s*)?招标工程标段划分及计划工期[\s\S]*$/.test(v)) return "";
+  if (/^该项目位于[\s\S]{0,100}?该工程概况$/.test(v)) return "";
+  if (/^(?:工程规模)?较小、?技术含量较低[\s\S]{0,120}?招标人对技术、?性能/.test(v)) return "";
   // 仅删除有实质正文后的法律保留尾句，不删除正文中的“以清单为准”等必要描述。
   const tail = v.search(/[。；;，,]\s*(?:招标人有权|建设内容.*?增减|中标人不得有异议)/);
   if (tail >= 12) v = v.slice(0, tail + 1).trim();
@@ -2583,7 +2596,7 @@ function extractNoticeTitle(html, fallback = "") {
 function isStrictZbTitle(title) {
   const text = String(title || "").replace(/\s+/g, " ").trim();
   if (!text) return false;
-  return !/(?:资格预审(?:文件|公告)?|资审文件公告|预审结果|答疑|澄清|更正|变更|补充公告|终止公告|暂停公告|流标|废标|中标(?:候选人|结果|公告|公示)|成交(?:公告|结果|公示)|评标结果|合同(?:公告|公示))/.test(text);
+  return !/(?:竞争性磋商|竞争性谈判|询价(?:采购)?公告|单一来源(?:采购)?公告|资格预审(?:文件|公告)?|资审文件公告|预审结果|答疑|澄清|更正|变更|补充公告|终止公告|暂停公告|流标|废标|中标(?:候选人|结果|公告|公示)|成交(?:公告|结果|公示)|评标结果|合同(?:公告|公示))/.test(text);
 }
 
 function extractDetail(ad, html, item, pdfText) {
@@ -2615,9 +2628,7 @@ function extractDetail(ad, html, item, pdfText) {
     // 倒装标签放前面：江苏为"建设资金来自自筹资金（资金来源）"，若先匹配"资金来源"会抓到右括号后文
     // "建设资金" 兜底：缙云公告写成「建设资金\n通过争取上级补助及县财政统筹安排」，无"来源/来自"字样
     // 扁平化兜底 minLen=2：武义县公告资金来源就是"自筹"两个字，属完整有效答案
-    funding: grabBoth(text, flat, FUND_LABELS, 2)
-      .replace(/^(?:来源于|来自|于|为)(?=.{2})/, "")
-      .replace(/[，,]?\s*项目已具备招标条件[\s\S]*$/, ""),
+    funding: cleanFundingValue(grabBoth(text, flat, FUND_LABELS, 2)),
     duration: grabDuration(text, flat),
     // v4 增补：浙江 PDF 用「①设计资质：… ②施工资质：…」「资格条件：」表述，无"资质要求"字样
     qualification: cleanQualificationOutput(grabQualification(text, flat), text),
@@ -2645,6 +2656,13 @@ function extractDetail(ad, html, item, pdfText) {
     phone: grabPhone(text),
     docLink,
   };
+}
+
+function cleanFundingValue(value) {
+  return String(value || "").replace(/^[\u200B-\u200D\uFEFF\s：:]+/, "")
+    .replace(/^(?:来源于|来自|于|为)(?=.{2})/, "")
+    .replace(/[，,]?\s*项目已具备招标条件[\s\S]*$/, "")
+    .trim();
 }
 
 function tianjinDetail(html, item, pdfText) {
@@ -7773,6 +7791,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
             const dhtml = ad.gbkDetail
               ? new TextDecoder("gbk").decode(Buffer.from(await (await fetch(item.url)).arrayBuffer()))
               : await requestWithRetry(item.url, args.delay);
+            if (!ad.stageKey && ad.detailReject && ad.detailReject.test(htmlToText(dhtml))) continue;
             // 正文可能在 PDF 附件里（浙江等）；HTML 够厚时此步直接跳过，不产生额外请求
             let pdfText = "";
             if (ad.pdfBody !== false) {
@@ -7831,6 +7850,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
       markChangedDetailSources(rec, beforeDetail);
       // 列表栏目锁定仍可能被详情阶段标题覆盖成资审/变更/终止/结果；入结果集前再做最终纯度守卫。
       if (!ad.stageKey && !isStrictZbTitle(rec.title)) continue;
+      rec.funding = cleanFundingValue(rec.funding);
       // 地区是业务表硬字段：优先保留列表/详情的精确区县，其次从已知行政区词表识别，
       // 最后只回退到该官方 adapter 的明确管辖区（省/市），不臆造更细粒度城市。
       rec.city = resolveRecordRegion(ad, rec);

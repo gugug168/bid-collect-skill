@@ -29,8 +29,8 @@
 | zhongshan | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | VD | R | R | VD | R | VL | R |
 | jinan | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | R |
 | wuhan | VL | VL | VD | VD | ND | VD | ND | VD | VD | VD | ND | R | VD | VD | R | VL | R |
-| yichang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
-| weifang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| yichang | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | ND | VD | VD | VD | R | VL | VD |
+| weifang | VL | VL | VD | VD | VD | VD | VD | VD | VD | ND | VD | R | R | VD | R | VL | VD |
 | qingdao | VL | VL | VD | VL | VD | VD | VD | ND | VD | VD | VD | R | VD | VD | R | VL | VD |
 | shenzhen | VL | VL | VD | VL | ND | VD | ND | VD | VD | VD | VD | VD | VD | VD | VD | VL | R |
 | linyi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
@@ -39,7 +39,7 @@
 | wenzhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
 | ningbo | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | VD |
 | jiaxing | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
-| wuxi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| wuxi | VL | VD | VD | VL | VD | ND | VD | VD | VD | VD | VD | VA | VD | VD | ND | VL | VD |
 | quanzhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
 | yueyang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
 | zunyi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
@@ -53,8 +53,8 @@
 | xizang | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | VD | R | R | VD | R | VL | R |
 | shaanxi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
 | ningxia | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | ND | R | R | VD | R | VL | VD |
-| xinjiang | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
-| jiangxi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| xinjiang | VL | VL | VD | VL | VD | VD | VD | ND | VD | VD | ND | R | VD | VD | R | VL | R |
+| jiangxi | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | VD | R | VD | VD | R | VL | VD |
 | hunan | VL | VD | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | VD | VD | R | VL | R |
 | guangxi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
 | chongqing | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | VD | R | VD | VD | R | VL | R |
@@ -71,7 +71,7 @@
 | liaoning | VL | VD | VD | VL | VD | ND | VD | VD | VD | ND | ND | R | VD | VD | R | VL | R |
 | gansu | VL | VD | VD | VL | ND | VD | VD | VD | VD | ND | R | R | R | VD | R | VL | VD |
 | shanghai | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
-| qinghai | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| qinghai | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | VD | R | VD | VD | R | VL | VD |
 
 <!-- PROJECT18_CAPABILITIES:END -->
 

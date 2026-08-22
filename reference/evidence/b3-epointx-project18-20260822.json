@@ -1,0 +1,86 @@
+{
+  "schema_version": "project18-evidence.v1",
+  "batch": "B3",
+  "stage": "zb",
+  "verified_at": "2026-08-22T10:22:00+08:00",
+  "code_dirty": false,
+  "evidence": {
+    "fixture:b3-xinjiang-project18": {"kind":"fixture","path":"reference/evidence/b3-epointx-project18-20260822.json","code_commit":"28d1994d62768a5df9c823fe5633b3a69a0e99aa","code_dirty":false},
+    "fixture:b3-jiangxi-project18": {"kind":"fixture","path":"reference/evidence/b3-epointx-project18-20260822.json","code_commit":"64257d1eda6e251b6f77f0431b85775b8e0a7c72","code_dirty":false},
+    "fixture:b3-qinghai-project18": {"kind":"fixture","path":"reference/evidence/b3-epointx-project18-20260822.json","code_commit":"356e541fbfdefafd817c01a81c084c61ae946265","code_dirty":false},
+    "fixture:b3-yichang-project18": {"kind":"fixture","path":"reference/evidence/b3-epointx-project18-20260822.json","code_commit":"356e541fbfdefafd817c01a81c084c61ae946265","code_dirty":false},
+    "fixture:b3-weifang-project18": {"kind":"fixture","path":"reference/evidence/b3-epointx-project18-20260822.json","code_commit":"d7962bb6856ddd23b782209b99321933d92aee73","code_dirty":false},
+    "fixture:b3-wuxi-project18": {"kind":"fixture","path":"reference/evidence/b3-epointx-project18-20260822.json","code_commit":"d7962bb6856ddd23b782209b99321933d92aee73","code_dirty":false}
+  },
+  "samples": {
+    "xinjiang": [
+      {"kind":"pipe","title":"喀什地区岳普湖县老城区供水管网建设项目工程总承包","official_url":"https://ggzy.xinjiang.gov.cn/jyxx/001001/001001001/20260811/6a6c92f3-7c67-420a-8984-4115db93d408.html"}
+    ],
+    "jiangxi": [
+      {"kind":"pipe","title":"泰和县城区污水管网提升改造工程公开招标公告","official_url":"https://ggzy.jiangxi.gov.cn/jyxx/002006/002006001/20260822/e64d84d7-26f0-4fa2-8756-a624789f8617.html"},
+      {"kind":"general","title":"芦溪县妇幼保健院婴儿培养箱采购项目招标公告","official_url":"https://ggzy.jiangxi.gov.cn/jyxx/002013/002013001/20260822/541f19d9-c40f-4a23-9814-0ffb9542ad97.html"}
+    ],
+    "qinghai": [
+      {"kind":"pipe","title":"曲麻莱县县城供水管网建设项目标段一","official_url":"https://www.qhggzyjy.gov.cn/yus/jyxx/001001/001001001/20260820/46882599-c31c-4082-931b-61db5a73e62c.html"},
+      {"kind":"general","title":"青海省南川河幸福河湖建设项目标段三","official_url":"https://www.qhggzyjy.gov.cn/ggzy/jyxx/001001/001001001/20260821/356cd983-dc0c-47d1-afd6-5721d0ec6f24.html"}
+    ],
+    "yichang": [
+      {"kind":"pipe90","title":"宜昌市伍家岗区南灵片区污水管网新建和升级改造项目（二标段）监理招标公告","official_url":"https://ggzy.sc.yichang.gov.cn/jyxx/003001/003001002/20260611/441a814f-e31f-4ab1-a93c-7e5d68bcca08.html"},
+      {"kind":"general","title":"宜都市城乡供水一体化建设项目施工监理招标公告","official_url":"https://ggzy.sc.yichang.gov.cn/jyxx/003001/003001002/20260819/eefcf8ca-9e8a-4482-b3fa-179fba27d4de.html"}
+    ],
+    "weifang": [
+      {"kind":"pipe","title":"诸城市河东片区供热设施更新改造和智能化提升项目招标公告","official_url":"http://ggzy.weifang.gov.cn:8082/wfggzy/jyxx/007001/007001001/20260821/816e6876-60c3-4a1e-a905-f25396b66f18.html"},
+      {"kind":"general","title":"诸城市河东片区供热设施更新改造和智能化提升项目（二期站前一次网工程）招标公告","official_url":"http://ggzy.weifang.gov.cn:8082/wfggzy/jyxx/007001/007001001/20260821/898d7c64-50ae-4f17-a8de-e1f26be4a484.html"}
+    ],
+    "wuxi": [
+      {"kind":"pipe","title":"无锡（国家）软件园三期景观及自来水管网改造工程施工","official_url":"https://ggzyjy.wuxi.gov.cn/doc/2026/08/07/4815551.shtml"},
+      {"kind":"general","title":"2026年新吴区上跨高速桥梁安全整治工程施工","official_url":"https://ggzyjy.wuxi.gov.cn/doc/2026/08/21/4821306.shtml"}
+    ]
+  },
+  "terminal_notes": {
+    "xinjiang": {"duration":"三条样本未披露可确认工期","controlPrice":"三条样本未披露具体控制价","bond":"无公开招标文件直链","fullScore":"评分细则未公开披露","docLink":"无公开招标文件直链","general_window":"无关键词30天请求成功但无记录；不冒充非管网样本"},
+    "jiangxi": {"performance":"四条样本未披露独立企业业绩要求","bond":"招标文件下载需验证码","fullScore":"评分细则位于验证码附件"},
+    "qinghai": {"performance":"四条样本未披露独立企业业绩要求","bond":"官方附件入口返回HTML壳，无法静态解析","fullScore":"评分细则位于受限附件"},
+    "yichang": {"performance":"四条样本未披露独立企业业绩要求","controlPrice":"四条样本未披露具体控制价","fullScore":"评分细则位于验证码附件","pipe_window":"管网30天为空，90天命中3条"},
+    "weifang": {"performance":"三条样本未披露独立企业业绩要求","bond":"附件下载需验证码","evaluation":"评标办法位于验证码附件","fullScore":"评分细则位于验证码附件"},
+    "wuxi": {"scope":"两条样本未披露独立招标范围字段，建设内容保留在scale","fullScore":"公告及已解析PDF未披露评分总分","purity":"管网窗口原3条中2条为资格预审，详情守卫后仅保留1条招标公告"}
+  },
+  "capability_updates": {
+    "xinjiang": {"evidence_id":"fixture:b3-xinjiang-project18","verified_at":"2026-08-22T10:22:00+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","qualification","performance","evaluation","consortium"],
+      "FIELD_NOT_DISCLOSED":["duration","controlPrice"],
+      "FIELD_RESTRICTED":["bond","fullScore","docLink"]
+    }},
+    "jiangxi": {"evidence_id":"fixture:b3-jiangxi-project18","verified_at":"2026-08-22T10:22:00+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","controlPrice","evaluation","consortium","docLink"],
+      "FIELD_NOT_DISCLOSED":["performance"],
+      "FIELD_RESTRICTED":["bond","fullScore"]
+    }},
+    "qinghai": {"evidence_id":"fixture:b3-qinghai-project18","verified_at":"2026-08-22T10:22:00+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","controlPrice","evaluation","consortium","docLink"],
+      "FIELD_NOT_DISCLOSED":["performance"],
+      "FIELD_RESTRICTED":["bond","fullScore"]
+    }},
+    "yichang": {"evidence_id":"fixture:b3-yichang-project18","verified_at":"2026-08-22T10:22:00+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","bond","evaluation","consortium","docLink"],
+      "FIELD_NOT_DISCLOSED":["performance","controlPrice"],
+      "FIELD_RESTRICTED":["fullScore"]
+    }},
+    "weifang": {"evidence_id":"fixture:b3-weifang-project18","verified_at":"2026-08-22T10:22:00+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","title","scale","scope","funding","duration","qualification","controlPrice","consortium","docLink"],
+      "FIELD_NOT_DISCLOSED":["performance"],
+      "FIELD_RESTRICTED":["bond","evaluation","fullScore"]
+    }},
+    "wuxi": {"evidence_id":"fixture:b3-wuxi-project18","verified_at":"2026-08-22T10:22:00+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","title","url"],
+      "FIELD_VERIFIED_DETAIL":["region","bidOpen","scale","funding","duration","qualification","performance","controlPrice","evaluation","consortium","docLink"],
+      "FIELD_VERIFIED_ATTACHMENT":["bond"],
+      "FIELD_NOT_DISCLOSED":["scope","fullScore"]
+    }}
+  }
+}

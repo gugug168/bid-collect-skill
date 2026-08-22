@@ -1,7 +1,7 @@
 # 江西省 采集参考
 
 > 数据源 adapter：`jiangxi` · kind=`epointX` · 验证状态：**✅ 已打通（厚字段可重复采集）**
-> 最后验证：2026-08-14（全量实测矩阵 + 单省复测）
+> 最后验证：2026-08-22（B3 project18 实时复测）
 
 ## 机制
 EPoint 自定义 `/XZinterface/.../getFullTextDataNew`，`noWd:true` 拉全量后客户端过滤。
@@ -19,6 +19,10 @@ HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p jiangxi -k 管网
 
 ## 诚实留空字段（源页无则空，绝不伪造）
 performance / fullScore（源页普遍无评分细则/业绩要求，全省一致诚实留空）；projectSite / city / type 依省而异（源页无则空）
+
+## 2026-08-22 project18 复测
+
+30天“管网”命中3条，另核对1条非管网招标公告；竞争性谈判等非招标采购已由阶段守卫剔除。招标文件下载验证码不绕过，保证金与满分以受限终态记录。字段证据见 `evidence/b3-epointx-project18-20260822.json`。
 
 ## 中标/合同阶段（B 阶段 · Goal v1）
 
