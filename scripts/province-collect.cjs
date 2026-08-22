@@ -2209,7 +2209,6 @@ function grabQualification(text, flat) {
   if (exact) {
     const value = cleanVal(exact[1]).replace(/\s+/g, " ").trim();
     if (/^(?:无|不要求)$/.test(value)) return "不要求";
-    if (QUAL_OK.test(value) && !QUAL_BAD.test(value)) return value;
   }
   // 天津等公告把企业资格写成「本次招标要求投标人具有：一标段: 资质:市政…一级及以上，资格:…」。
   // 通用标签会在“投标人具有”处过早截断；先取紧邻“资质:”的值，且仍用资质闸门避免把人员资格写入企业资质。
