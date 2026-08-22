@@ -259,6 +259,13 @@ test("B3 拒绝非招标采购、标段章节和项目名字段污染", () => {
   const performance = M.extractDetail({}, "<p>类似工程认定标准：企业自2021年8月21日以来承担过单项合同金额不低于3700万元且管径不低于DN1000的市政管线工程。类似工程业绩必须同时提供中标通知书和合同。</p>", { title: "无锡管网工程招标公告", url: "https://example.invalid/wx" }, "");
   assert.match(performance.performance, /3700万元/);
   assert.doesNotMatch(performance.performance, /必须同时提供/);
+  const yichang = M.extractDetail({}, "<p>2.5计划监理与相关服务期：施工阶段监理服务期为项目实际施工工期的基础上增加90日历天（协助前期施工准备），保修阶段监理服务期为单项工程竣工验收合格后2年。</p><p>三、投标人资格要求</p><p>3.1 具有有效法人营业执照。</p><p>3.2 投标人具备市政公用工程施工总承包三级及以上资质。</p><p>联合体中不同且分工相同的成员组成的联合体投标人，以联合体成员中资质等级较低者确定资质等级。</p>", { title: "监理招标公告", url: "https://example.invalid/yc" }, "");
+  assert.match(yichang.duration, /^施工阶段监理服务期为项目实际施工工期的基础上增加90日历天/);
+  assert.match(yichang.qualification, /市政公用工程施工总承包三级及以上资质/);
+  assert.doesNotMatch(yichang.qualification, /联合体成员中资质等级/);
+  const qinghai = M.extractProjectContent("", "2.1 项目概况\n建设地点：青海省西宁市\n招标范围：河湖系统治理及配套设施。\n经评审的最低投标价法一般适用于工程规模较小、技术含量较低，或者招标人对技术、性能没有特殊要求的招标项目。", "2.1 项目概况 建设地点：青海省西宁市 招标范围：河湖系统治理及配套设施。 经评审的最低投标价法一般适用于工程规模较小、技术含量较低，或者招标人对技术、性能没有特殊要求的招标项目。");
+  assert.equal(qinghai.scale, "");
+  assert.equal(qinghai.scope, "河湖系统治理及配套设施。");
 });
 
 test("洛阳与郑州复用标准 EPoint 并锁定城市招标公告边界", () => {
