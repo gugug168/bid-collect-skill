@@ -1,7 +1,7 @@
 # 合肥市采集参考（城市级 · webBuilder Service）
 
 > 数据源 adapter：`hefei` · kind=`hefei` · 验证状态：**✅ VERIFIED_RECORD（2026-08-18 实时复测）**
-> 最后验证：2026-08-18（30 天“管网”2 条；Sol 实测）
+> 最后验证：2026-08-22（B4 project18 实时复测）
 
 ## 机制
 官方入口：https://ggzy.hefei.gov.cn/jyxx/002001/engineer2.html 。官方 `engineer2.js` 调用 `/EpointWebBuilderService/hfggzyGetGgInfo.action?cmd=getinfojyxxlistZfcg`；锁 `002001001=招标公告`，服务端按标题关键词分页。详情 URL 由官方分类、发布日期和 `infoid` 组成。
@@ -18,6 +18,10 @@ node scripts/province-collect.cjs -p 合肥 -k 管网 -d 30 --limit 3 --csv --xl
 
 ## 诚实留空字段（源页无则空，绝不伪造）
 源页未披露的保证金、满分标准等字段保持空白；当前只验收 `zb` 招标公告。
+
+## 2026-08-22 project18 复测
+
+30天“管网”命中2条并核对1条智能网联非管网公告。辖区守卫已删除“经开区/高新区”这类全国重名弱证据，望江县项目不再冒充合肥；平台抬头不再写入地区。三条详情与可解析PDF未披露保证金及评分总分，以未披露终态收口。字段证据见 `evidence/b4-epoint-project18-20260822.json`。
 
 ## 家族与通用纪律
 见 `FAMILY_INDEX.md`。同类独立市级平台总账见 [`CITY_PLATFORMS.md`](CITY_PLATFORMS.md)。

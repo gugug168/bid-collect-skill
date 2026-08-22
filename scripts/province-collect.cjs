@@ -609,6 +609,11 @@ const ADAPTERS = {
     kind: "sdwrap",
     base: "https://ggzyjy.linyi.gov.cn",
     referer: "https://ggzyjy.linyi.gov.cn/jyxx/trade_info.html",
+    // 2026-08-22 实时分类反查：012001001=工程建设招标公告，012002001=政府采购公告。
+    // 全站搜索会混入 012002006 合同、012002003 结果、012001007 候选、012001009 计划。
+    cats: ["012001001", "012002001"],
+    allowedCategoryNums: ["012001001", "012002001"],
+    itemAllowed: (item) => isStrictZbTitle(String(item && item.title || "")),
     defaultType: "招标公告",
   },
   yantai: {
@@ -631,6 +636,7 @@ const ADAPTERS = {
     referer: "https://ggzy.hefei.gov.cn/jyxx/002001/engineer2.html",
     siteGuid: "7eb5f7f1-9041-43ad-8e13-8fcb82ea831a",
     categoryNum: "002001001", // 官方 JS cateStr：招标公告
+    cityName: "合肥市",
     defaultType: "招标公告",
   },
   // ===== 温州（城市级 · 2026-08-18 接入 · JPaas CMS AuthorizedRead）=====
@@ -2199,6 +2205,11 @@ function countQual(s) {
 }
 
 function grabQualification(text, flat) {
+  const exact = text.match(/(?:\d+(?:\.\d+)+\s*)?投标人资质要求\s*[:：]\s*([^\n。；;]{1,300})/);
+  if (exact) {
+    const value = cleanVal(exact[1]).replace(/\s+/g, " ").trim();
+    if (/^(?:无|不要求)$/.test(value)) return "不要求";
+  }
   // 天津等公告把企业资格写成「本次招标要求投标人具有：一标段: 资质:市政…一级及以上，资格:…」。
   // 通用标签会在“投标人具有”处过早截断；先取紧邻“资质:”的值，且仍用资质闸门避免把人员资格写入企业资质。
   const tenderMatch = text.match(/本次招标要求投标人具有[\s\S]{0,120}?(?:资质|资格)\s*[:：]\s*([^\n，,；;]{4,160})/);
@@ -2394,6 +2405,10 @@ function cleanProjectContent(value) {
   v = v.replace(/^为\s*/, "").trim();
   v = v.replace(/^\d+\s*[;；]\s*(?=\S{4})/, "").trim();
   v = v.replace(/^\d+(?:\.\d+)+\s*(?:施工标段|监理标段|设计标段)\s*[:：]\s*/, "").trim();
+  const embeddedProjectSentence = v.indexOf("本工程为");
+  if (embeddedProjectSentence >= 8 && embeddedProjectSentence <= 120 && PROJECT_SCALE_SIGNAL.test(v.slice(embeddedProjectSentence))) {
+    v = v.slice(embeddedProjectSentence).trim();
+  }
   // 云南等结构化详情会把记录 GUID 拼在建设规模正文尾部；仅清理独立 UUID 尾段，不碰项目编号正文。
   v = v.replace(/(?<![0-9a-f])[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "").trim();
   if (!v || PROJECT_TAIL_ONLY.test(v)) return "";
@@ -2413,7 +2428,7 @@ function cleanProjectContent(value) {
   if (tail >= 12) v = v.slice(0, tail + 1).trim();
   const nextSection = v.search(/(?:(?:\d+(?:\.\d+)*)[、.．]\s*|\s+)(?:投标人|申请人|供应商)资格要求/);
   if (nextSection >= 4) v = v.slice(0, nextSection).trim();
-  const numberedSection = v.search(/\s*\d+\.\d+\.?\s*(?:工程建设地点|工程建设规模|招标范围和内容|招标范围|建筑安装工程费|招标控制价|最高投标限价|工期要求|服务期限|质量要求|标段划分)\s*[:：]/);
+  const numberedSection = v.search(/\s*\d+\.\d+\.?\s*(?:工程建设地点|工程建设规模|招标范围和内容|招标范围|建筑安装工程费|合同预算价|合同估算价|标段估算价|招标控制价|最高投标限价|工期要求|服务期限|质量要求|标段划分)\s*[:：]/);
   if (numberedSection >= 4) v = v.slice(0, numberedSection).trim();
   const tenderAmountTail = v.search(/\s*[，,；;]?\s*(?:其中\s*[，,]?\s*□?\s*建筑面积|本次招标建安工程造价)/);
   if (tenderAmountTail >= 4) v = v.slice(0, tenderAmountTail).trim();
@@ -4983,7 +4998,8 @@ function isZunyiTenderRecord(it) {
 
 // 合肥：官方 webBuilder Service。该中心同时承载少量省级集团异地项目，故不能仅凭来源站
 // 就把每条都标成合肥；列表层必须再用项目标题中的合肥行政区实体做城市真实性守卫。
-const HEFEI_AREA_RE = /合肥|肥东|肥西|长丰|庐江|巢湖|瑶海|庐阳|蜀山|包河|高新(?:区)?|经开(?:区)?|新站(?:区|高新区)?/;
+// “高新区/经开区”全国重名，不能单独作为合肥证据（望江县经开区曾被误收为合肥）。
+const HEFEI_AREA_RE = /合肥|肥东|肥西|长丰|庐江|巢湖|瑶海|庐阳|蜀山|包河|新站(?:区|高新区)?/;
 function isHefeiCityRecord(it) {
   return String(it && it.categorynum || "") === "002001001" && HEFEI_AREA_RE.test(String(it && it.title || ""));
 }
@@ -7311,6 +7327,7 @@ function extractKnownArea(text) {
 }
 
 function jurisdictionFromAdapter(ad) {
+  if (ad && ad.cityName) return String(ad.cityName).trim();
   const name = String(ad && ad.name || "").trim();
   const m = name.match(/^(.{2,16}?(?:壮族自治区|维吾尔自治区|回族自治区|自治区|生产建设兵团|省|市))/);
   return m ? m[1] : "";
@@ -7320,7 +7337,7 @@ function resolveRecordRegion(ad, rec) {
   const listed = rec && String(rec.city || "").trim();
   // “公共资源交易部/中心”等是发布机构，不是项目地区。此时保守回退到 adapter 明确管辖区，
   // 避免跨多城市项目从标题中随意挑一个城市。
-  if (listed && /公共资源交易(?:部|中心|平台|服务中心)|交易服务(?:部|中心)|招标投标管理/.test(listed)) return jurisdictionFromAdapter(ad);
+  if (listed && /全国公共资源交易平台|公共资源交易(?:部|中心|平台|服务中心)|交易服务(?:部|中心)|招标投标管理/.test(listed)) return jurisdictionFromAdapter(ad);
   const listedArea = listed ? extractKnownArea(listed) : "";
   if (listedArea) return listedArea;
   if (listed && /(?:污水处理厂|水厂|医院|学校|研究院|项目|管道|管网|桩号)/.test(`${listed} ${rec && rec.title || ""}`)) return jurisdictionFromAdapter(ad);

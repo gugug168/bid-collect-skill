@@ -33,9 +33,9 @@
 | weifang | VL | VL | VD | VD | VD | VD | VD | VD | VD | ND | VD | R | R | VD | R | VL | VD |
 | qingdao | VL | VL | VD | VL | VD | VD | VD | ND | VD | VD | VD | R | VD | VD | R | VL | VD |
 | shenzhen | VL | VL | VD | VL | ND | VD | ND | VD | VD | VD | VD | VD | VD | VD | VD | VL | R |
-| linyi | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
-| yantai | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
-| hefei | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
+| linyi | VL | VD | VD | VL | VD | VD | VD | VD | VD | ND | VD | R | R | VD | R | VL | R |
+| yantai | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | ND | R | R | VD | R | VL | R |
+| hefei | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | ND | VD | VD | ND | VL | VD |
 | wenzhou | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |
 | ningbo | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | VD |
 | jiaxing | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U | U |

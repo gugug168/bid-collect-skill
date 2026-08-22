@@ -1,0 +1,50 @@
+{
+  "schema_version": "project18-evidence.v1",
+  "batch": "B4",
+  "stage": "zb",
+  "verified_at": "2026-08-22T10:42:00+08:00",
+  "code_dirty": false,
+  "evidence": {
+    "fixture:b4-hefei-project18": {"kind":"fixture","path":"reference/evidence/b4-epoint-project18-20260822.json","code_commit":"b3fa3f5127e2503f23f21ab3066fc681d6522b92","code_dirty":false},
+    "fixture:b4-linyi-project18": {"kind":"fixture","path":"reference/evidence/b4-epoint-project18-20260822.json","code_commit":"6b9561cb31ecfc193cc83bf22f9a9ff6236f3cdb","code_dirty":false},
+    "fixture:b4-yantai-project18": {"kind":"fixture","path":"reference/evidence/b4-epoint-project18-20260822.json","code_commit":"b3fa3f5127e2503f23f21ab3066fc681d6522b92","code_dirty":false}
+  },
+  "samples": {
+    "hefei": [
+      {"kind":"pipe","title":"新站区淮海大道等5个排口及管网整治工程勘察设计总承包招标公告","official_url":"https://ggzy.hefei.gov.cn/jyxx/002001/002001001/20260817/07187856-e0e5-6ccc-eb36-e14291229394.html"},
+      {"kind":"general","title":"合肥市智能网联汽车“车路云一体化”应用和综合赋能平台项目招标公告","official_url":"https://ggzy.hefei.gov.cn/jyxx/002001/002001001/20260821/fe599301-8873-4a27-a5ca-80d458f8b8d3.html"}
+    ],
+    "linyi": [
+      {"kind":"pipe","title":"平邑县西部老城区供热管网提升及低碳节能系统改造项目（一期）招标公告","official_url":"https://ggzyjy.linyi.gov.cn/jyxx/012001/012001001/20260814/4883480c-3054-4a1d-b3c3-1b6e062d23c7.html"},
+      {"kind":"general","title":"临沭县2024年第二批老旧小区改造工程十三标段（五次）","official_url":"https://ggzyjy.linyi.gov.cn/jyxx/012001/012001001/20260821/b4415ffe-bd33-40b3-9051-9c76c3fea176.html"}
+    ],
+    "yantai": [
+      {"kind":"pipe","title":"福山区中心城区管网改造提升工程-福山区排水管网缺陷修复工程（一期）施工招标公告","official_url":"https://ggzyjy.yantai.gov.cn/jyxx/003001/003001003/20260821/34d2cdfb-b6f9-4121-a992-179162112b4f.html"},
+      {"kind":"general","title":"烟台南站西路北延跨高铁高速工程非涉铁段施工总承包（政府采购工程）招标公告","official_url":"https://ggzyjy.yantai.gov.cn/jyxx/003001/003001003/20260821/ecaa88fb-1892-4a78-b047-5c11cb8da302.html"}
+    ]
+  },
+  "terminal_notes": {
+    "hefei": {"bond":"三条官方详情及已解析PDF未披露保证金金额","fullScore":"三条官方详情及已解析PDF未披露评分总分","purity":"望江县经开区项目已由合肥辖区守卫拒绝"},
+    "linyi": {"performance":"四条样本未披露独立企业业绩要求","bond":"无公开招标文件直链","evaluation":"评标办法位于未公开交易文件","fullScore":"评分细则位于未公开交易文件","docLink":"无公开招标文件直链","purity":"仅允许012001001工程招标公告和012002001政府采购公告；合同、结果、候选、计划均拒绝"},
+    "yantai": {"controlPrice":"三条样本未披露具体控制价","bond":"无公开招标文件直链","evaluation":"评标办法位于未公开交易文件","fullScore":"评分细则位于未公开交易文件","docLink":"无公开招标文件直链"}
+  },
+  "capability_updates": {
+    "hefei": {"evidence_id":"fixture:b4-hefei-project18","verified_at":"2026-08-22T10:42:00+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","controlPrice","evaluation","consortium","docLink"],
+      "FIELD_NOT_DISCLOSED":["bond","fullScore"]
+    }},
+    "linyi": {"evidence_id":"fixture:b4-linyi-project18","verified_at":"2026-08-22T10:42:00+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","title","url"],
+      "FIELD_VERIFIED_DETAIL":["region","bidOpen","scale","scope","funding","duration","qualification","controlPrice","consortium"],
+      "FIELD_NOT_DISCLOSED":["performance"],
+      "FIELD_RESTRICTED":["bond","evaluation","fullScore","docLink"]
+    }},
+    "yantai": {"evidence_id":"fixture:b4-yantai-project18","verified_at":"2026-08-22T10:42:00+08:00","statuses":{
+      "FIELD_VERIFIED_LIST":["publishDate","region","title","url"],
+      "FIELD_VERIFIED_DETAIL":["bidOpen","scale","scope","funding","duration","qualification","performance","consortium"],
+      "FIELD_NOT_DISCLOSED":["controlPrice"],
+      "FIELD_RESTRICTED":["bond","evaluation","fullScore","docLink"]
+    }}
+  }
+}
