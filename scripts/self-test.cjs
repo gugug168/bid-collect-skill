@@ -452,6 +452,12 @@ test("B4 临沂锁定招标公告栏目且合肥平台标题不冒充地区", ()
   assert.equal(M.isAllowedSdWrapRecord(linyi, { categorynum: "012001009", title: "排水管网招标计划" }), false);
   assert.equal(linyi.itemAllowed({ title: "污水管网竞争性磋商公告" }), false);
   assert.equal(M.resolveRecordRegion(M.ADAPTERS.hefei, { city: "全国公共资源交易平台（安徽省", title: "合肥市平台项目招标公告" }), "合肥市");
+  assert.equal(M.isHefeiCityRecord({ categorynum: "002001001", title: "望江县南部片区城市污水管网及经开区排水管网更新改造项目招标公告" }), false);
+  assert.equal(M.isHefeiCityRecord({ categorynum: "002001001", title: "合肥经开区排水管网更新改造项目招标公告" }), true);
+  const noQual = M.extractDetail({}, "<p>3.1.1 投标人资质要求：无。3.1.2 投标人业绩要求：自2021年以来具有信息化项目业绩。</p>", { title: "合肥平台项目招标公告", url: "https://example.invalid/hf" }, "");
+  assert.equal(noQual.qualification, "不要求");
+  assert.equal(M.extractProjectContent("", "项目规模：平邑生活污水管网建设和运行维护项目(一期) 2.4合同预算价：13175.765465万元", "").scale, "平邑生活污水管网建设和运行维护项目(一期)");
+  assert.equal(M.extractProjectContent("", "项目规模：平邑县西部老城区供热管网提升及低本工程为平邑县西部老城区供热管网提升及低碳节能系统改造项目（一期），改造供热面积约140万平方米", "").scale, "本工程为平邑县西部老城区供热管网提升及低碳节能系统改造项目（一期），改造供热面积约140万平方米");
 });
 
 test("遵义只接收 announcement=交易公告，拒绝答疑澄清和更正", () => {
