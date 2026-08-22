@@ -442,6 +442,18 @@ test("烟台只允许官方招标/采购公告栏目，拒绝中标结果和合�
   assert.equal(M.isAllowedSdWrapRecord(ad, { categorynum: "003002006", title: "地下管网项目采购合同" }), false);
 });
 
+test("B4 临沂锁定招标公告栏目且合肥平台标题不冒充地区", () => {
+  const linyi = M.ADAPTERS.linyi;
+  assert.deepEqual(linyi.cats, ["012001001", "012002001"]);
+  assert.equal(M.isAllowedSdWrapRecord(linyi, { categorynum: "012001001", title: "地下管网工程招标公告" }), true);
+  assert.equal(M.isAllowedSdWrapRecord(linyi, { categorynum: "012002001", title: "设备公开招标公告" }), true);
+  assert.equal(M.isAllowedSdWrapRecord(linyi, { categorynum: "012002006", title: "道路排水管网项目合同" }), false);
+  assert.equal(M.isAllowedSdWrapRecord(linyi, { categorynum: "012002003", title: "中标结果公告" }), false);
+  assert.equal(M.isAllowedSdWrapRecord(linyi, { categorynum: "012001009", title: "排水管网招标计划" }), false);
+  assert.equal(linyi.itemAllowed({ title: "污水管网竞争性磋商公告" }), false);
+  assert.equal(M.resolveRecordRegion(M.ADAPTERS.hefei, { city: "全国公共资源交易平台（安徽省", title: "合肥市平台项目招标公告" }), "合肥市");
+});
+
 test("遵义只接收 announcement=交易公告，拒绝答疑澄清和更正", () => {
   assert.equal(M.isZunyiTenderRecord({ announcement: "交易公告", docTitle: "管网工程（二次）招标公告" }), true);
   assert.equal(M.isZunyiTenderRecord({ announcement: "变更公告（澄清与答疑）", docTitle: "管网工程答疑澄清文件" }), false);

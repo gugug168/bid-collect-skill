@@ -609,6 +609,11 @@ const ADAPTERS = {
     kind: "sdwrap",
     base: "https://ggzyjy.linyi.gov.cn",
     referer: "https://ggzyjy.linyi.gov.cn/jyxx/trade_info.html",
+    // 2026-08-22 实时分类反查：012001001=工程建设招标公告，012002001=政府采购公告。
+    // 全站搜索会混入 012002006 合同、012002003 结果、012001007 候选、012001009 计划。
+    cats: ["012001001", "012002001"],
+    allowedCategoryNums: ["012001001", "012002001"],
+    itemAllowed: (item) => isStrictZbTitle(String(item && item.title || "")),
     defaultType: "招标公告",
   },
   yantai: {
@@ -631,6 +636,7 @@ const ADAPTERS = {
     referer: "https://ggzy.hefei.gov.cn/jyxx/002001/engineer2.html",
     siteGuid: "7eb5f7f1-9041-43ad-8e13-8fcb82ea831a",
     categoryNum: "002001001", // 官方 JS cateStr：招标公告
+    cityName: "合肥市",
     defaultType: "招标公告",
   },
   // ===== 温州（城市级 · 2026-08-18 接入 · JPaas CMS AuthorizedRead）=====
@@ -7311,6 +7317,7 @@ function extractKnownArea(text) {
 }
 
 function jurisdictionFromAdapter(ad) {
+  if (ad && ad.cityName) return String(ad.cityName).trim();
   const name = String(ad && ad.name || "").trim();
   const m = name.match(/^(.{2,16}?(?:壮族自治区|维吾尔自治区|回族自治区|自治区|生产建设兵团|省|市))/);
   return m ? m[1] : "";
@@ -7320,7 +7327,7 @@ function resolveRecordRegion(ad, rec) {
   const listed = rec && String(rec.city || "").trim();
   // “公共资源交易部/中心”等是发布机构，不是项目地区。此时保守回退到 adapter 明确管辖区，
   // 避免跨多城市项目从标题中随意挑一个城市。
-  if (listed && /公共资源交易(?:部|中心|平台|服务中心)|交易服务(?:部|中心)|招标投标管理/.test(listed)) return jurisdictionFromAdapter(ad);
+  if (listed && /全国公共资源交易平台|公共资源交易(?:部|中心|平台|服务中心)|交易服务(?:部|中心)|招标投标管理/.test(listed)) return jurisdictionFromAdapter(ad);
   const listedArea = listed ? extractKnownArea(listed) : "";
   if (listedArea) return listedArea;
   if (listed && /(?:污水处理厂|水厂|医院|学校|研究院|项目|管道|管网|桩号)/.test(`${listed} ${rec && rec.title || ""}`)) return jurisdictionFromAdapter(ad);
