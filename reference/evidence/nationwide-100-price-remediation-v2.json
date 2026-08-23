@@ -1,0 +1,76 @@
+{
+  "schema_version": "project18-evidence.v1",
+  "batch": "nationwide-100-price-remediation-v2",
+  "stage": "zb",
+  "verified_at": "2026-08-23T14:34:21+08:00",
+  "code_dirty": false,
+  "oracle": {
+    "gold_path": "reference/evidence/nationwide-100-gold-v2.json",
+    "positive_samples": 100,
+    "stage_negative_samples": ["S012", "S073"],
+    "replacement_samples": ["R001", "R002"],
+    "field": "controlPrice",
+    "correct": 27,
+    "wrong": 0,
+    "false_positive": 0,
+    "false_negative": 0,
+    "excluded": 73,
+    "union_accuracy": 1,
+    "precision": 1,
+    "recall": 1
+  },
+  "live_run": {
+    "adapter_count": 59,
+    "verified_record_adapters": 58,
+    "connected_no_recent_data_adapters": 1,
+    "records": 116,
+    "rate_limited_adapters": 0,
+    "qingdao_deep_records": 4
+  },
+  "hashes": {
+    "source_commit_province_collect_sha256": "8027d47dfab9e0caca7f192107ffd5b0e3d8db782fca294e83b05337fc03e484",
+    "source_commit_self_test_sha256": "f7934d5eda240f6709a764943999a54b23aaf8626008690b3a1e7b0f1c70e461"
+  },
+  "evidence": {
+    "fixture:nationwide-100-price-remediation-v2": {
+      "kind": "accuracy_audit",
+      "path": "reference/evidence/nationwide-100-price-remediation-v2.json",
+      "code_commit": "12d8bb43c74d705480761ab3f44736ec3dec1775",
+      "code_dirty": false,
+      "note": "Frozen v2 controlPrice oracle: 27/27 correct, zero estimate/budget false positives; 59-adapter clean live run"
+    }
+  },
+  "capability_updates": {
+    "fujian": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["controlPrice"]}},
+    "guizhou": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["controlPrice"]}},
+    "hunan": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["controlPrice"]}},
+    "ningbo": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["controlPrice"]}},
+    "qingdao": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["controlPrice"]}},
+    "quanzhou": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["controlPrice"]}},
+    "zhongshan": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["controlPrice"]}},
+    "shandong": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_RESTRICTED":["controlPrice"]}},
+    "jiangsu": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "suzhou": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "xuzhou": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "zhengzhou": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "nantong": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "nanjing": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "jinan": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "weifang": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "shenzhen": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "linyi": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "hefei": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "jiaxing": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "wuxi": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "yibin": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "henan": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "anhui": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "sichuan": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "chongqing": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "yunnan": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "hubei": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "beijing": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "liaoning": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}},
+    "qinghai": {"evidence_id":"fixture:nationwide-100-price-remediation-v2","verified_at":"2026-08-23T14:34:21+08:00","statuses":{"FIELD_NOT_DISCLOSED":["controlPrice"]}}
+  }
+}

@@ -1,6 +1,6 @@
 {
   "schema_version": "nationwide-100-gold.v2",
-  "frozen_at": "2026-08-23T06:14:03.785Z",
+  "frozen_at": "2026-08-23T06:31:47.049Z",
   "source_commit": "c5c8dfa61e9f263fcfb6b1f75d2786e176c1af3e",
   "source_audit": "2026-08-23_全国100条准确率抽样验收",
   "fields": [
@@ -2278,6 +2278,13 @@
       "adapter": "neimenggu",
       "title": "中央储备粮通辽直属库智能扦样器改造项目询比采购采购公告",
       "official_url": "https://ggzyjy.nmg.gov.cn/jyxx/index_39.html?id=fyfbz1-642341787333121000",
+      "expected_stage": "REJECT_FROM_ZB"
+    },
+    {
+      "sample_id": "S073",
+      "adapter": "shanghai",
+      "title": "虹口区98街坊HK381-05地块新建学校项目",
+      "official_url": "https://www.shggzy.com/jyxxgcgg/9024671?cExt=&isIndex=y",
       "expected_stage": "REJECT_FROM_ZB"
     }
   ],
@@ -14514,171 +14521,6 @@
       }
     },
     {
-      "sample_id": "S073",
-      "adapter": "shanghai",
-      "family": "C1_HTML_PDF",
-      "official_url": "https://www.shggzy.com/jyxxgcgg/9024671?cExt=&isIndex=y",
-      "expected": {
-        "publishDate": {
-          "state": "VALUE",
-          "value": "2026-08-22",
-          "comparison": "date",
-          "reason": "official response or official route readback verified",
-          "evidence": [
-            "shanghai-36364-001.json",
-            "shanghai-36364-002.json"
-          ]
-        },
-        "region": {
-          "state": "VALUE",
-          "value": "虹口区",
-          "comparison": "normalized_text",
-          "reason": "official response or official route readback verified",
-          "evidence": [
-            "shanghai-36364-001.json",
-            "shanghai-36364-002.json"
-          ]
-        },
-        "bidOpen": {
-          "state": "VALUE",
-          "value": "2026-09-03 10:00",
-          "comparison": "datetime_minute",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
-          "evidence": [
-            "shanghai-36364-002.json"
-          ]
-        },
-        "title": {
-          "state": "VALUE",
-          "value": "虹口区98街坊HK381-05地块新建学校项目",
-          "comparison": "normalized_text",
-          "reason": "official response or official route readback verified",
-          "evidence": [
-            "shanghai-36364-001.json",
-            "shanghai-36364-002.json"
-          ]
-        },
-        "scale": {
-          "state": "VALUE",
-          "value": "包括:新建1栋地上10 层地下3 层的综合教学楼（含550 平方米风貌部分）",
-          "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
-          "evidence": [
-            "shanghai-36364-002.json"
-          ]
-        },
-        "scope": {
-          "state": "VALUE",
-          "value": "内）工程总投资： 183527.09万元人民币本标段建安工程费： 57073.78万元人民币是否设置",
-          "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
-          "evidence": [
-            "shanghai-36364-002.json"
-          ]
-        },
-        "funding": {
-          "state": "NOT_DISCLOSED_OR_RESTRICTED",
-          "value": "",
-          "comparison": "normalized_text",
-          "reason": "not disclosed conclusively or official detail/attachment restricted",
-          "evidence": [
-            "shanghai-36364-002.json"
-          ]
-        },
-        "duration": {
-          "state": "VALUE",
-          "value": "981日历天",
-          "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
-          "evidence": [
-            "shanghai-36364-002.json"
-          ]
-        },
-        "qualification": {
-          "state": "VALUE",
-          "value": "施工资质要求 第一条 建筑工程施工总承包二级及其以上以上施工资质要求，投标人只要符合任何一条，但同一条中的多项资质要求需同时满足",
-          "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
-          "evidence": [
-            "shanghai-36364-002.json"
-          ]
-        },
-        "performance": {
-          "state": "VALUE",
-          "value": "投标人近8年内（2018年8月1日起至投标截止日，以合同签订日期为准）承接至少1个合同金额不小于38000万元的新建民用建筑工程施工业绩（业绩要求仅为企业业绩）",
-          "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
-          "evidence": [
-            "shanghai-36364-002.json"
-          ]
-        },
-        "controlPrice": {
-          "state": "VALUE",
-          "value": "57071.1405",
-          "comparison": "money_or_controlled_text",
-          "reason": "explicit official control/limit price supports extracted value",
-          "evidence": [
-            "shanghai-36364-002.json"
-          ]
-        },
-        "bond": {
-          "state": "VALUE",
-          "value": "50",
-          "comparison": "money_or_controlled_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
-          "evidence": [
-            "shanghai-36364-002.json"
-          ]
-        },
-        "evaluation": {
-          "state": "NOT_DISCLOSED_OR_RESTRICTED",
-          "value": "",
-          "comparison": "normalized_text",
-          "reason": "not disclosed conclusively or official detail/attachment restricted",
-          "evidence": [
-            "shanghai-36364-002.json"
-          ]
-        },
-        "consortium": {
-          "state": "VALUE",
-          "value": "不接受",
-          "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
-          "evidence": [
-            "shanghai-36364-002.json"
-          ]
-        },
-        "fullScore": {
-          "state": "NOT_DISCLOSED_OR_RESTRICTED",
-          "value": "",
-          "comparison": "money_or_controlled_text",
-          "reason": "not disclosed conclusively or official detail/attachment restricted",
-          "evidence": [
-            "shanghai-36364-002.json"
-          ]
-        },
-        "url": {
-          "state": "VALUE",
-          "value": "https://www.shggzy.com/jyxxgcgg/9024671?cExt=&isIndex=y",
-          "comparison": "url",
-          "reason": "official response or official route readback verified",
-          "evidence": [
-            "shanghai-36364-001.json",
-            "shanghai-36364-002.json"
-          ]
-        },
-        "docLink": {
-          "state": "NOT_DISCLOSED_OR_RESTRICTED",
-          "value": "",
-          "comparison": "url",
-          "reason": "not disclosed conclusively or official detail/attachment restricted",
-          "evidence": [
-            "shanghai-36364-002.json"
-          ]
-        }
-      }
-    },
-    {
       "sample_id": "S074",
       "adapter": "shandong",
       "family": "C1_HTML_PDF",
@@ -19603,6 +19445,197 @@
           "evidence": [
             "tianjin-28032-004.json",
             "tianjin-37316-004.json"
+          ]
+        }
+      }
+    },
+    {
+      "sample_id": "R002",
+      "adapter": "shandong",
+      "family": "C1_HTML_PDF",
+      "official_url": "https://ggzyjy.shandong.gov.cn/jsgczbgg/14549923.jhtml",
+      "expected": {
+        "publishDate": {
+          "state": "VALUE",
+          "value": "2026-08-22",
+          "comparison": "date",
+          "reason": "PRE_REGISTERED_RESERVE_LIST_VERIFIED",
+          "evidence": [
+            "shandong-37320-001.json",
+            "shandong-37552-001.json"
+          ]
+        },
+        "region": {
+          "state": "VALUE",
+          "value": "山东省",
+          "comparison": "normalized_text",
+          "reason": "PRE_REGISTERED_RESERVE_LIST_VERIFIED",
+          "evidence": [
+            "shandong-37320-001.json",
+            "shandong-37552-001.json"
+          ]
+        },
+        "bidOpen": {
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
+          "comparison": "datetime_minute",
+          "reason": "PRE_REGISTERED_RESERVE_DETAIL_TRANSPORT_RESTRICTED",
+          "evidence": [
+            "shandong-37320-001.json",
+            "shandong-37552-001.json",
+            "shandong-37320-003.curl.json"
+          ]
+        },
+        "title": {
+          "state": "VALUE",
+          "value": "平邑县2026年高标准农田建设项目规划设计招标公告",
+          "comparison": "normalized_text",
+          "reason": "PRE_REGISTERED_RESERVE_LIST_VERIFIED",
+          "evidence": [
+            "shandong-37320-001.json",
+            "shandong-37552-001.json"
+          ]
+        },
+        "scale": {
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
+          "comparison": "normalized_text",
+          "reason": "PRE_REGISTERED_RESERVE_DETAIL_TRANSPORT_RESTRICTED",
+          "evidence": [
+            "shandong-37320-001.json",
+            "shandong-37552-001.json",
+            "shandong-37320-003.curl.json"
+          ]
+        },
+        "scope": {
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
+          "comparison": "normalized_text",
+          "reason": "PRE_REGISTERED_RESERVE_DETAIL_TRANSPORT_RESTRICTED",
+          "evidence": [
+            "shandong-37320-001.json",
+            "shandong-37552-001.json",
+            "shandong-37320-003.curl.json"
+          ]
+        },
+        "funding": {
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
+          "comparison": "normalized_text",
+          "reason": "PRE_REGISTERED_RESERVE_DETAIL_TRANSPORT_RESTRICTED",
+          "evidence": [
+            "shandong-37320-001.json",
+            "shandong-37552-001.json",
+            "shandong-37320-003.curl.json"
+          ]
+        },
+        "duration": {
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
+          "comparison": "normalized_text",
+          "reason": "PRE_REGISTERED_RESERVE_DETAIL_TRANSPORT_RESTRICTED",
+          "evidence": [
+            "shandong-37320-001.json",
+            "shandong-37552-001.json",
+            "shandong-37320-003.curl.json"
+          ]
+        },
+        "qualification": {
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
+          "comparison": "normalized_text",
+          "reason": "PRE_REGISTERED_RESERVE_DETAIL_TRANSPORT_RESTRICTED",
+          "evidence": [
+            "shandong-37320-001.json",
+            "shandong-37552-001.json",
+            "shandong-37320-003.curl.json"
+          ]
+        },
+        "performance": {
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
+          "comparison": "normalized_text",
+          "reason": "PRE_REGISTERED_RESERVE_DETAIL_TRANSPORT_RESTRICTED",
+          "evidence": [
+            "shandong-37320-001.json",
+            "shandong-37552-001.json",
+            "shandong-37320-003.curl.json"
+          ]
+        },
+        "controlPrice": {
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
+          "comparison": "money_or_controlled_text",
+          "reason": "PRE_REGISTERED_RESERVE_DETAIL_TRANSPORT_RESTRICTED",
+          "evidence": [
+            "shandong-37320-001.json",
+            "shandong-37552-001.json",
+            "shandong-37320-003.curl.json"
+          ]
+        },
+        "bond": {
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
+          "comparison": "money_or_controlled_text",
+          "reason": "PRE_REGISTERED_RESERVE_DETAIL_TRANSPORT_RESTRICTED",
+          "evidence": [
+            "shandong-37320-001.json",
+            "shandong-37552-001.json",
+            "shandong-37320-003.curl.json"
+          ]
+        },
+        "evaluation": {
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
+          "comparison": "normalized_text",
+          "reason": "PRE_REGISTERED_RESERVE_DETAIL_TRANSPORT_RESTRICTED",
+          "evidence": [
+            "shandong-37320-001.json",
+            "shandong-37552-001.json",
+            "shandong-37320-003.curl.json"
+          ]
+        },
+        "consortium": {
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
+          "comparison": "normalized_text",
+          "reason": "PRE_REGISTERED_RESERVE_DETAIL_TRANSPORT_RESTRICTED",
+          "evidence": [
+            "shandong-37320-001.json",
+            "shandong-37552-001.json",
+            "shandong-37320-003.curl.json"
+          ]
+        },
+        "fullScore": {
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
+          "comparison": "money_or_controlled_text",
+          "reason": "PRE_REGISTERED_RESERVE_DETAIL_TRANSPORT_RESTRICTED",
+          "evidence": [
+            "shandong-37320-001.json",
+            "shandong-37552-001.json",
+            "shandong-37320-003.curl.json"
+          ]
+        },
+        "url": {
+          "state": "VALUE",
+          "value": "https://ggzyjy.shandong.gov.cn/jsgczbgg/14549923.jhtml",
+          "comparison": "url",
+          "reason": "PRE_REGISTERED_RESERVE_LIST_VERIFIED",
+          "evidence": [
+            "shandong-37320-001.json",
+            "shandong-37552-001.json"
+          ]
+        },
+        "docLink": {
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
+          "comparison": "url",
+          "reason": "PRE_REGISTERED_RESERVE_DETAIL_TRANSPORT_RESTRICTED",
+          "evidence": [
+            "shandong-37320-001.json",
+            "shandong-37552-001.json",
+            "shandong-37320-003.curl.json"
           ]
         }
       }

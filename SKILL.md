@@ -114,6 +114,7 @@ node scripts/province-collect.cjs -p 浙江 -k 管网 -d 365 --verify
 - Skill 日常业务表使用 `project18`：在项目名称后增加“建设规模/招标范围”，分别回答整个项目做什么与本次招标做什么。`biaobiaotong16` 保持严格兼容；`full29`/CSV 保持旧调用兼容。
 - Excel 只保存官方确定性事实，不生成 AI 摘要。合并字段无法可靠拆分时不复制到两列，机器原因写 sidecar/短备注。
 - XLSX 与 CSV 不是同一列集。预算 `budget` 与控制价 `controlPrice` 是两个事实，禁止合并。
+- `controlPrice` 只接受官方明确的“最高投标限价/招标控制价/最高限价/投标报价上限”事实；合同估算价、项目投资、工程造价、采购预算、发包估价和有总价时的单个分项价必须拒绝。被拒事实仅进入 run-report 的 `signals.price_rejections[]`，不写业务表或备注。
 - 输出层清理 `undefined`、`null`、`NaN` 和未渲染 `{{downloadurl}}`；合法数值 `0` 不会被当成缺失。
 
 ## 62 个 adapter 与家族（32 省级 + 30 城市级）

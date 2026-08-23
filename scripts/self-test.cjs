@@ -112,8 +112,11 @@ test("全国100条 v2 gold 固定替补与价格 Oracle", () => {
   const gold = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "nationwide-100-gold-v2.json"), "utf8"));
   assert.equal(gold.samples.length, 100);
   assert.equal(gold.samples.some((row) => row.sample_id === "S012"), false);
+  assert.equal(gold.samples.some((row) => row.sample_id === "S073"), false);
   assert.equal(gold.samples.find((row) => row.sample_id === "R001").official_url, "https://ggzy.zwfwb.tj.gov.cn/p54/1764175.html");
+  assert.equal(gold.samples.find((row) => row.sample_id === "R002").official_url, "https://ggzyjy.shandong.gov.cn/jsgczbgg/14549923.jhtml");
   assert.equal(gold.stage_negatives[0].sample_id, "S012");
+  assert.equal(gold.stage_negatives[1].sample_id, "S073");
   assert.equal(gold.samples.find((row) => row.sample_id === "S003").expected.controlPrice.value, "9469.330265");
   assert.equal(gold.samples.find((row) => row.sample_id === "S017").expected.controlPrice.value, "3513.4951");
   assert.equal(gold.samples.find((row) => row.sample_id === "S029").expected.controlPrice.value, "1015.62");
