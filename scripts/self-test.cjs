@@ -943,6 +943,24 @@ test("房建市政分类覆盖学校与老旧街区项目", () => {
   assert.equal(M.classifySheet("贾汪区老矿片区老旧街区改造提升工程"), "房建市政");
 });
 
+test("生产P01-P05地区与Sheet分类按冻结官方证据回放", () => {
+  const fixture = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "production-routing-region-v1.json"), "utf8"));
+  const adapters = { P01: "guangdong", P02: "guangdong", P03: "wuhan", P04: "zhejiang", P05: "beijing" };
+  for (const sample of fixture.samples) {
+    assert.equal(M.classifySheet(sample.title), sample.expected_sheet, `${sample.id}.sheet`);
+    const rec = { city: sample.listed_region, projectSite: sample.project_site, title: sample.title, _regionSiteCode: sample.site_code };
+    assert.equal(M.resolveRecordRegion(M.ADAPTERS[adapters[sample.id]], rec), sample.expected_region, `${sample.id}.region`);
+  }
+  for (const sample of fixture.negative_classification_samples) {
+    assert.equal(M.classifySheet(sample.title), sample.expected_sheet, sample.title);
+  }
+  assert.equal(M.classifySheetEvidence(fixture.samples[0].title).rule, "MUNICIPAL_STRONG");
+  assert.equal(M.matchesCityFilter("珠海", ["横琴粤澳深度合作区"]), true);
+  const run = { region_rejections: [] };
+  assert.equal(M.resolveRecordRegion(M.ADAPTERS.guangdong, { city: "广东省", projectSite: "", title: "项目招标公告", _regionSiteCode: "440400" }, run), "珠海市");
+  assert.equal(run.region_rejections.at(-1).reason_code, "REGION_DETAIL_FALLBACK_TO_SITECODE");
+});
+
 test("未勾选的江苏 3.4.1 模板不误报为业绩要求", () => {
   const html = "<p>3.4资格审查可选条件： □3.4.1 □企业 □项目负责人 承担过类似工程；类似工程认定标准：企业或者项目负责人 年 月 日以来承担过类似工程（类似工程设置要求为：1、类似工程业绩的企业或者项目负责人仅可选1项；）</p>";
   const out = M.extractDetail(M.ADAPTERS.xuzhou, html, { title: "某校舍工程", url: "https://example.invalid/xz" }, "");

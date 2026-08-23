@@ -1,0 +1,22 @@
+{
+  "schema_version": "production-routing-region.v1",
+  "frozen_at": "2026-08-23T17:07:22+08:00",
+  "source_commit": "10e8ce28ebf5b94c2944aa281e94de5951802d67",
+  "external_capture_root": "E:/工程项目/招投标采集结果/2026-08-23_生产试运行01/official-responses-pr1",
+  "samples": [
+    {"id":"P01","title":"知识城储能园区市政道路及配套工程（一期）第三方检测招标公告-知识城储能园区市政道路及配套工程（一期）","listed_region":"广东省","project_site":"广州市黄埔区中新广州知识城","site_code":"440100","expected_region":"黄埔区","expected_sheet":"房建市政","source_file":"P01-ygp-detail.json","source_sha256":"fc035792c685a9508e9066a765f8774c9517fd4eb5431f8a453626f69979629e"},
+    {"id":"P02","title":"国际居住区初中桥梁及配套市政工程招标公告","listed_region":"广东省","project_site":"横琴粤澳深度合作区","site_code":"440400","expected_region":"横琴粤澳深度合作区","expected_sheet":"房建市政","source_file":"P02-ygp-detail.json","source_sha256":"670f4e91c1dd77e7aeca168de030847945c5a4513fc7520a4f415e210ec3471e"},
+    {"id":"P03","title":"东湖高新区市政供水管网完善工程（一期）初步设计","listed_region":"武汉市","project_site":"东湖高新区未来城、佛祖岭、综保区及左岭片区","site_code":"","expected_region":"武汉市","expected_sheet":"房建市政","source_file":"P03-wuhan.html","source_sha256":"2980bf8acb98464e03ac39c9a4475f5575e10215d9b7e3887666bd042cb22ea1"},
+    {"id":"P04","title":"东部湾市政设施安全改造项目-市政机器人智造园招标公告[A3300000090004639001001]","listed_region":"钱塘区","project_site":"杭州市钱塘区","site_code":"","expected_region":"钱塘区","expected_sheet":"房建市政","source_file":"P04-zhejiang.pdf","source_sha256":"aaaa7e281105e94c4d070e72517544478d6bc210afd83ea17a567804df4a8463"},
+    {"id":"P05","title":"顺义区马头庄村剩余地块综合改造土地一级开发项目二期城市支路及配套市政管线工程（初步设计、施工图设计）招标公告","listed_region":"顺义区","project_site":"北京市顺义区后沙峪镇","site_code":"","expected_region":"顺义区","expected_sheet":"房建市政","source_file":"P05-beijing.html","source_sha256":"d626cc1b693f7b2d4f75d679bf2d6f8fd4262ef1fb7f5e4e9255ee69f94220af"}
+  ],
+  "negative_classification_samples": [
+    {"title":"某高速公路连接线及配套市政工程招标公告","expected_sheet":"公路"},
+    {"title":"G318国道路面改造工程施工招标公告","expected_sheet":"公路"},
+    {"title":"S203省道路基路面养护工程招标公告","expected_sheet":"公路"},
+    {"title":"某县农村公路提升工程招标公告","expected_sheet":"公路"},
+    {"title":"某水库除险加固水利工程招标公告","expected_sheet":"水利"},
+    {"title":"大型灌区续建配套与现代化改造工程招标公告","expected_sheet":"水利"},
+    {"title":"某河道治理及堤防加固工程招标公告","expected_sheet":"水利"}
+  ]
+}
