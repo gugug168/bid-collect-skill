@@ -1,6 +1,6 @@
 {
   "schema_version": "nationwide-100-gold.v2",
-  "frozen_at": "2026-08-23T06:31:47.049Z",
+  "frozen_at": "2026-08-23T06:50:01.412Z",
   "source_commit": "c5c8dfa61e9f263fcfb6b1f75d2786e176c1af3e",
   "source_audit": "2026-08-23_全国100条准确率抽样验收",
   "fields": [
@@ -3001,7 +3001,7 @@
         },
         "region": {
           "state": "VALUE",
-          "value": "和谐小区",
+          "value": "内蒙古自治区",
           "comparison": "normalized_text",
           "reason": "official response or official route readback verified",
           "evidence": [
@@ -7959,7 +7959,7 @@
         },
         "region": {
           "state": "VALUE",
-          "value": "宁波市",
+          "value": "鄞州区",
           "comparison": "normalized_text",
           "reason": "official response or official route readback verified",
           "evidence": [
@@ -9685,7 +9685,7 @@
         },
         "region": {
           "state": "VALUE",
-          "value": "滑县",
+          "value": "安阳市",
           "comparison": "normalized_text",
           "reason": "official response or official route readback verified",
           "evidence": [
