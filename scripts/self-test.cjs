@@ -961,6 +961,26 @@ test("生产P01-P05地区与Sheet分类按冻结官方证据回放", () => {
   assert.equal(run.region_rejections.at(-1).reason_code, "REGION_DETAIL_FALLBACK_TO_SITECODE");
 });
 
+test("生产盲测10条分类覆盖真公路真水利与市政冲突", () => {
+  const fixture = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "production-blind10-classification-v1.json"), "utf8"));
+  for (const sample of fixture.samples) assert.equal(M.classifySheet(sample.title), sample.expected_sheet, sample.id);
+  assert.equal(M.classifySheet(fixture.location_conflict_guard.title), fixture.location_conflict_guard.expected_sheet);
+  const roadQualification = M.ADAPTERS.beijing.detail(
+    "<p>本次招标要求投标人须具备 工程测量专业资质乙级及以上 与 公路行业（公路）专业设计甲级及以上 资质，投标人近五年完成过一级公路勘察设计业绩。业绩。本次招标接受联合体投标。</p>",
+    { title: "普通公路勘察设计招标公告", url: "https://example.invalid/beijing-road" }, "",
+  ).qualification;
+  assert.equal(roadQualification, "工程测量专业资质乙级及以上 与 公路行业（公路）专业设计甲级及以上 资质");
+  assert.equal(
+    M.hubeiCompleteScope("2.2招标范围 招标范围：对水库除险加固工程提供全过程监理和项目管理服务。 标段划分：本项目分两个标段。 计划工期：365日历天 2.3其他"),
+    "对水库除险加固工程提供全过程监理和项目管理服务。",
+  );
+  const zhejiangSupply = M.ADAPTERS.zhejiang.detail("", { title: "供水管网工程", url: "https://example.invalid/zhejiang-supply" },
+    "2.1 项目概况：工程概算38624万元，其中建安工程造价30632万元，建设规模：/，建设地点：衢州市。\n2.2 招标范围：新建DN1500管道18.026km及沿线附属构筑物，其中上余段3.127km，具体详见工程量清单，其中，□建筑面积㎡。本次招标建安工程造价0万元。\n2.3 施工工期：1095日历天。\n3. 投标人资格要求\n☑3.1 具备市政公用工程施工总承包二级或以上资质。\n☑3.2 具备有效安全生产许可证。\n3.3 其他要求");
+  assert.equal(zhejiangSupply.scale, "");
+  assert.equal(zhejiangSupply.scope, "新建DN1500管道18.026km及沿线附属构筑物，其中上余段3.127km，具体详见工程量清单");
+  assert.equal(zhejiangSupply.qualification, "具备市政公用工程施工总承包二级或以上资质。");
+});
+
 test("生产P01-P05详情完整性按冻结官方摘录回放", () => {
   const fixture = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "production-detail-completeness-v1.json"), "utf8")).replay;
   const ygp = (html, title) => M.parseYgpDetailPayload(

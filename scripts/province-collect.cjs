@@ -2942,19 +2942,23 @@ function beijingDetail(html, item, pdfText) {
   const text = htmlToText(html);
   const scale = text.match(/(?:^|\n|\s)规模\s*[:：]\s*([\s\S]{20,6000}?)(?=\s*招标范围\s*[:：])/m)?.[1] || "";
   const qualification = text.match(/投标人需具备\s*[:：]\s*([\s\S]{8,3000}?)(?=\s*本次招标项目\s*[:：]|\s*四[、.]\s*是否有投标补偿|$)/m)?.[1] || "";
+  const publicWorksQualification = text.match(/本次招标要求投标人须具备\s*([\s\S]{10,5000}?资质)(?=\s*[，,]?\s*投标人近\s*(?:\d+|[一二三四五六七八九十]+)\s*年|\s*[，,]?\s*并在人员|\s*业绩[。.]?\s*本次招标)/m)?.[1] || "";
   if (scale) out.scale = cleanFullProjectFact(scale);
-  if (qualification) out.qualification = cleanQualificationOutput(cleanFactText(qualification.replace(/[\r\n]+/g, " ")), text, 0);
+  if (qualification || publicWorksQualification) out.qualification = cleanQualificationOutput(cleanFactText((qualification || publicWorksQualification).replace(/[\r\n]+/g, " ")), text, 0);
   return out;
 }
 
 function zhejiangDetail(html, item, pdfText) {
   const out = extractDetail({}, html, item, pdfText);
   const text = String(pdfText || htmlToText(html));
+  const overview = text.match(/(?:^|\n)\s*2\.1\s*项目概况\s*[:：]?\s*([\s\S]{4,6000}?)(?=\n\s*2\.2\s*招标范围)/m)?.[1] || "";
+  const overviewScale = overview.match(/建设规模\s*[:：]\s*([\s\S]{1,2000}?)(?=\s*[，,]?\s*建设地点\s*[:：]|$)/)?.[1] || "";
   const scale = text.match(/(?:^|\n)\s*\d+(?:\.\d+)*\s*建设规模\s*[:：]?\s*([\s\S]{4,12000}?)(?=\n\s*\d+(?:\.\d+)*\s*招标范围\s*[:：]?)/m)?.[1] || "";
-  const scope = text.match(/(?:^|\n)\s*\d+(?:\.\d+)*\s*招标范围\s*[:：]?\s*([\s\S]{4,12000}?)(?=\n\s*\d+(?:\.\d+)*\s*(?:勘察设计服务期限|计划工期|投标人资格要求|是否属于政府采购工程)\s*[:：]?)/m)?.[1] || "";
-  const qualification = text.match(/(?:^|\n)\s*[☑√■⊠□]?\s*3\.1\s*([\s\S]{8,6000}?)(?=\n\s*[☑√■⊠□]?\s*3\.2\s*)/m)?.[1] || "";
-  if (scale) out.scale = cleanFullProjectFact(scale);
-  if (scope) out.scope = cleanFullProjectFact(scope);
+  const scope = text.match(/(?:^|\n)\s*\d+(?:\.\d+)*\s*招标范围\s*[:：]?\s*([\s\S]{4,12000}?)(?=\n\s*\d+(?:\.\d+)*\s*(?:勘察设计服务期限|计划工期|施工工期|工期|投标人资格要求|是否属于政府采购工程)\s*[:：]?)/m)?.[1] || "";
+  const qualification = text.match(/(?:^|\n)\s*[☑√■⊠□]?\s*3\.1(?!\d)\s*([\s\S]{8,6000}?)(?=\n\s*[☑√■⊠□]?\s*3\.2(?!\d)\s*)/m)?.[1] || "";
+  if (/^[\/／]\s*$/.test(overviewScale.trim())) out.scale = "";
+  else if (scale || overviewScale) out.scale = cleanFullProjectFact(scale || overviewScale);
+  if (scope) out.scope = cleanFullProjectFact(scope).replace(/[，,]\s*其中\s*[，,]?\s*□\s*建筑面积[\s\S]*$/, "").trim();
   if (qualification) out.qualification = cleanQualificationOutput(cleanFactText(qualification), text, 0);
   return out;
 }
@@ -3537,6 +3541,11 @@ async function ynDetail(ad, item) {
 // ---- 湖北：详情走结构化 JSON 接口（列表 guid → /jyxxAjax/jsgcZbggDetail）----
 // 列表层 url = /jyxx/jsgcZbggDetail?guid=<guid>（含 guid）；真实详情 JSON 在 /jyxxAjax/ 同路径。
 // 返回 { tender: { bulletinContent(HTML table), tenderProjectCode, bidSectionCode, bulletinName, regionCode, ... } }。
+function hubeiCompleteScope(text) {
+  const value = String(text || "").match(/(?:2\.2\s*招标范围\s*)?招标范围\s*[:：]\s*([\s\S]{20,6000}?)(?=\s*标段划分\s*[:：]|\s*计划工期\s*[:：]|\s*2\.3\s*)/)?.[1] || "";
+  return cleanFullProjectFact(value);
+}
+
 async function hbDetail(ad, item) {
   const guid = (item.url && /[?&]guid=([^&]+)/.test(item.url)) ? decodeURIComponent(RegExp.$1) : "";
   if (!guid) return {};
@@ -3551,6 +3560,8 @@ async function hbDetail(ad, item) {
   if (!t.bulletinContent) return {};
   const df = extractDetail(ad, t.bulletinContent, item, "");
   const out = { ...df };
+  const completeScope = hubeiCompleteScope(htmlToText(t.bulletinContent));
+  if (completeScope) out.scope = completeScope;
   if (t.tenderProjectCode || t.projectCode) out.projectCode = t.tenderProjectCode || t.projectCode;
   if (t.bidSectionCode) out.bidSectionNo = t.bidSectionCode;
   if (t.bulletinName) out.type = t.bulletinName;
@@ -7982,10 +7993,10 @@ function resolveYgpCityTargets(args) {
 // 强语义解决“市政道路→公路”“市政供水→水利”的先到先得误判；弱语义只作兼容兜底。
 function classifySheetEvidence(title) {
   const text = String(title || "").replace(/\s+/g, "").trim();
-  const highwayStrong = /高速公路|国道(?:[GＧ]?\d+)?|省道(?:[SＳ]?\d+)?|农村公路|公路工程|路基路面|互通(?:立交)?|收费站/;
+  const highwayStrong = /高速公路|国道(?:[GＧ]?\d+)?|省道(?:[SＳ]?\d+)?|农村公路|公路工程|路基路面|(?:高速互通|互通式?立交)|收费站/;
   const highwayMunicipalAccessory = /(?:配套市政|市政配套)/;
-  const municipalStrong = /市政(?:道路|桥梁|供水|排水|污水|管网|设施)|城市(?:支路|次干路|主干路|道路)|配套市政工程/;
-  const waterStrong = /水利(?:工程|枢纽)|水库|灌区|灌渠|堤防|水闸|河道(?:治理|整治)|防洪(?:工程|治理)|农田水利/;
+  const municipalStrong = /市政(?:道路|桥梁|供水|排水|污水|管网|设施)|城市(?:支路|次干路|主干路|道路)|配套市政工程|供水管网(?:互联互通|提升改造)|二次供水设施|(?:片区|城区|城镇)[^，。；]{0,20}排水防涝|(?:路|街|大道)(?:（[^）]*）|\([^)]*\))?道路工程/;
+  const waterStrong = /水利(?:工程|枢纽)|水库(?:除险|加固|工程|建设|治理|扩容)|灌区|灌渠|堤防|水闸|河道(?:治理|整治)|防洪(?:工程|治理)|农田水利|水资源配置|输水管?工程/;
   if (highwayStrong.test(text) && (!municipalStrong.test(text) || highwayMunicipalAccessory.test(text))) return { sheet: "公路", rule: "HIGHWAY_STRONG" };
   if (municipalStrong.test(text)) return { sheet: "房建市政", rule: "MUNICIPAL_STRONG" };
   if (waterStrong.test(text)) return { sheet: "水利", rule: "WATER_STRONG" };
@@ -8801,6 +8812,7 @@ module.exports.cleanQualificationOutput = cleanQualificationOutput;
 module.exports.classifySheetEvidence = classifySheetEvidence;
 module.exports.prepareFactForOutput = prepareFactForOutput;
 module.exports.wuhanDetail = wuhanDetail;
+module.exports.hubeiCompleteScope = hubeiCompleteScope;
 module.exports.guizhouCompleteScope = guizhouCompleteScope;
 module.exports.parseQuanzhouPayload = parseQuanzhouPayload;
 module.exports.parseYibinDetailPayload = parseYibinDetailPayload;

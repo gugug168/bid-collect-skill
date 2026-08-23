@@ -28,3 +28,7 @@ performance / fullScore（源页普遍无评分细则/业绩要求，全省一�
 
 ## 家族与通用纪律
 见 `FAMILY_INDEX.md`（家族总览 + 代理/鉴权/mustache 脏值拦截/去重坍缩等通用提醒）。
+
+## 2026-08-23 生产盲测
+
+湖北详情的 `2.2招标范围` 在“标段划分/计划工期/2.3”前精确停止，水库监理项目不再在500字处半句结束。分类同时区分“水库除险加固”水利主体与“水库南侧—道路工程”地点语境。fixture：`evidence/production-blind10-classification-v1.json`。
