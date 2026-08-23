@@ -31,3 +31,7 @@ performance / fullScore（源页普遍无评分细则/业绩要求，全省一�
 - `--stage candidate`(jyxxzbhxrgs) / `result`(jyxxzbjggg) / `contract`(jyxxgcjshtgs) 列表均通。
 - 详情 JS 渲染：**候选/结果中标人名称不在 SSR**（诚实空）；但 `partyA`(招标人)/`rank` 及结果期 `winPrice`/`winScore` 可从 SSR 碎片拿到。
 - 用法：`-p beijing --stage result -k 管网 --detail -d 120 --csv`
+
+## 2026-08-23 生产详情复测
+
+北京工程公告使用平台特有的裸“规模：”和“投标人需具备：”结构，现由北京 adapter 精确覆盖，不扩大全国通用裸标签。顺义样本已恢复道路总长1448米、地下管线规模和五类市政设计资质。fixture：`evidence/production-detail-completeness-v1.json`。

@@ -51,3 +51,5 @@ node scripts/province-collect.cjs -p 广东 -c 珠海 -d 3 --stage zb --limit 10
 ## 2026-08-23 生产路由复测
 
 广州知识城市政道路与珠海横琴桥梁及配套市政完成地区与Sheet实时回放：广州输出黄埔区，珠海输出横琴粤澳深度合作区，两条均归“房建市政”。跨平台5条机器fixture：`evidence/production-routing-region-v1.json`。
+
+同批生产详情复测确认：广州第三方检测范围完整保留④、⑤条及完整资格段；珠海规模在“其他事项”前停止，不再混入政策尾句。详情fixture：`evidence/production-detail-completeness-v1.json`。

@@ -961,6 +961,49 @@ test("生产P01-P05地区与Sheet分类按冻结官方证据回放", () => {
   assert.equal(run.region_rejections.at(-1).reason_code, "REGION_DETAIL_FALLBACK_TO_SITECODE");
 });
 
+test("生产P01-P05详情完整性按冻结官方摘录回放", () => {
+  const fixture = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "production-detail-completeness-v1.json"), "utf8")).replay;
+  const ygp = (html, title) => M.parseYgpDetailPayload(
+    { title, tradingNoticeColumnModelList: [{ richtext: html, noticeFileBOList: [] }] },
+    { noticeTitle: title, projectCode: "P", noticeId: "N", edition: "v3", noticeSecondType: "A", tradingProcess: "3C14", projectType: "A02", regionCode: "440100" },
+    M.ADAPTERS.guangdong,
+    { title, url: "https://example.invalid/ygp" },
+  );
+  const p01 = ygp(fixture.P01.html, "P01");
+  for (const value of fixture.P01.scope_contains) assert.match(p01.scope, new RegExp(value));
+  for (const value of fixture.P01.qualification_contains) assert.match(p01.qualification, new RegExp(value));
+  const longScope = `完整检测事实${"及专项检测协调工作".repeat(80)}`;
+  const longYgp = ygp(`<table><tr><td>招标范围及规模</td><td>建设规模：道路长1000米。</td></tr><tr><td>招标内容</td><td>${longScope}</td></tr></table>`, "P01-long");
+  assert.equal(longYgp.scope, longScope);
+
+  const p02 = ygp(`<table><tr><td>招标范围及规模</td><td>${fixture.P02.combined}</td></tr><tr><td>招标内容</td><td>${fixture.P02.combined}</td></tr></table>`, "P02");
+  assert.match(p02.scale, new RegExp(fixture.P02.expected_scale_tail));
+  assert.doesNotMatch(p02.scale, /其他事项|中小企业政策/);
+
+  const p03 = M.wuhanDetail(M.ADAPTERS.wuhan, fixture.P03.html, { title: "P03", url: "https://example.invalid/p03" }).qualification;
+  for (const value of fixture.P03.qualification_contains) assert.match(p03, new RegExp(value));
+  assert.ok(p03.length > 200);
+
+  const p04 = M.ADAPTERS.zhejiang.detail("", { title: "P04", url: "https://example.invalid/p04" }, fixture.P04.pdf_text);
+  for (const value of fixture.P04.scale_contains) assert.match(p04.scale, new RegExp(value));
+  assert.ok(p04.scope.includes(fixture.P04.scope_tail));
+  for (const value of fixture.P04.qualification_contains) assert.match(p04.qualification, new RegExp(value));
+
+  const p05 = M.ADAPTERS.beijing.detail(fixture.P05.html, { title: "P05", url: "https://example.invalid/p05" }, "");
+  for (const value of fixture.P05.scale_contains) assert.match(p05.scale, new RegExp(value));
+  for (const value of fixture.P05.qualification_contains) assert.match(p05.qualification, new RegExp(value));
+
+  const run = { field_truncations: [] };
+  const longFact = `${"完整事实。".repeat(6200)}收尾。`;
+  const safe = M.prepareFactForOutput(longFact, "scope", { title: "超长事实", url: "https://example.invalid/long" }, run);
+  assert.ok(safe.length <= 30000);
+  assert.match(safe, /已截断，详见官方原文/);
+  assert.equal(run.field_truncations[0].status, "FIELD_DISPLAY_TRUNCATED");
+  const noBoundary = M.prepareFactForOutput("甲".repeat(31000), "scale", { title: "无边界事实", url: "https://example.invalid/noboundary" }, run);
+  assert.equal(noBoundary, "");
+  assert.equal(run.field_truncations.at(-1).status, "FIELD_PRESENT_UNPARSED_NO_SAFE_BOUNDARY");
+});
+
 test("未勾选的江苏 3.4.1 模板不误报为业绩要求", () => {
   const html = "<p>3.4资格审查可选条件： □3.4.1 □企业 □项目负责人 承担过类似工程；类似工程认定标准：企业或者项目负责人 年 月 日以来承担过类似工程（类似工程设置要求为：1、类似工程业绩的企业或者项目负责人仅可选1项；）</p>";
   const out = M.extractDetail(M.ADAPTERS.xuzhou, html, { title: "某校舍工程", url: "https://example.invalid/xz" }, "");

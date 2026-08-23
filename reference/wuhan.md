@@ -23,3 +23,7 @@ node scripts/province-collect.cjs -p 武汉 -k 管网 -d 30 --stage zb --limit 3
 ## 诚实限制
 
 官方栏目名含“招标/资格预审”，但本 adapter 按用户范围只输出资格后审招标公告。
+
+## 2026-08-23 生产详情复测
+
+东湖高新区市政供水管网初步设计公告的“其他要求”是平台已隔离的完整资格区块，现由武汉精确路径保留至最后一条社保要求，不再在300/400字处停止。fixture：`evidence/production-detail-completeness-v1.json`。

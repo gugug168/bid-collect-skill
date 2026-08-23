@@ -36,3 +36,7 @@ performance / fullScore（源页普遍无评分细则/业绩要求，全省一�
 ## 2026-08-23 全国验收收口
 
 冻结样本和前向样本确认服务周期可从官方附件稳定补充，`duration` 转为 `FIELD_VERIFIED_ATTACHMENT`。附件仍只补空字段，不覆盖详情事实。证据见 `evidence/nationwide-100-final-and-blind30-v2.json`。
+
+## 2026-08-23 生产详情复测
+
+浙江标准公告PDF的相邻编号段由 adapter 精确解析：`建设规模 → 招标范围 → 服务期限 → 资格要求`。东部湾样本完整保留18.57亩、两部分建筑面积、设计范围和完整资质组合，不再被项目代码或数字量纲切断。fixture：`evidence/production-detail-completeness-v1.json`。
