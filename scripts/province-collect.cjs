@@ -6987,7 +6987,7 @@ const PREFECTURE_DISTRICTS = {
     "深圳市", "罗湖区", "福田区", "南山区", "宝安区", "龙岗区", "盐田区", "龙华区", "坪山区", "光明区", "市辖区"
   ],
   "珠海": [
-    "珠海市", "香洲区", "斗门区", "金湾区", "市辖区"
+    "珠海市", "香洲区", "斗门区", "金湾区", "横琴粤澳深度合作区", "市辖区"
   ],
   "汕头": [
     "汕头市", "龙湖区", "金平区", "濠江区", "潮阳区", "潮南区", "澄海区", "南澳县", "市辖区"
@@ -7789,6 +7789,16 @@ function extractKnownArea(text) {
   return KNOWN_ADMIN_AREAS.find((name) => compact.includes(name)) || "";
 }
 
+function extractMostSpecificArea(text) {
+  const compact = String(text || "").replace(/\s+/g, "");
+  const score = (name) => /(?:合作区|新区|开发区|高新区)$/.test(name) ? 4
+    : /(?:区|县|自治县|旗)$/.test(name) ? 3
+      : /(?:市|自治州|地区|盟)$/.test(name) ? 2
+        : /(?:省|自治区|生产建设兵团)$/.test(name) ? 1 : 0;
+  return KNOWN_ADMIN_AREAS.filter((name) => compact.includes(name))
+    .sort((a, b) => score(b) - score(a) || b.length - a.length)[0] || "";
+}
+
 function jurisdictionFromAdapter(ad) {
   if (ad && ad.cityName) return String(ad.cityName).trim();
   const name = String(ad && ad.name || "").trim();
@@ -7823,15 +7833,26 @@ function resolveRecordRegion(ad, rec, run) {
     if (district && KNOWN_ADMIN_AREAS.includes(district)) return district;
     listed = "";
   }
+  const detailArea = extractMostSpecificArea(String(rec && rec.projectSite || ""));
+  if (detailArea) return detailArea;
+  const titleArea = extractKnownArea(String(rec && rec.title || ""));
   const listedArea = listed ? extractKnownArea(listed) : "";
-  if (listedArea) return listedArea;
+  const listedIsProvince = /(?:省|自治区|生产建设兵团)$/.test(listedArea || listed);
+  if (titleArea && (!listedArea || listedIsProvince)) return titleArea;
+  if (listedArea && !listedIsProvince) return listedArea;
   const listedShortArea = listed ? KNOWN_ADMIN_AREAS.find((name) => normalizeArea(name) === normalizeArea(listed)) : "";
+  if (listedShortArea && !/(?:省|自治区|生产建设兵团)$/.test(listed)) return listed;
+  const siteCode = String(rec && rec._regionSiteCode || "").trim();
+  const mappedYgpCity = siteCode ? GD_CITY_TARGETS.find((row) => row.code === siteCode)?.name || "" : "";
+  if (mappedYgpCity) {
+    recordRegionSignal(run, ad, rec, mappedYgpCity, "REGION_DETAIL_FALLBACK_TO_SITECODE");
+    return mappedYgpCity;
+  }
+  if (listedArea) return listedArea;
   if (listedShortArea) return listed;
   // 未命中行政区词表时不把“小区/园区/片区”当行政区；区级名称必须由词表确认。
   if (listed && /(?:省|市|县|自治州|自治县|盟|旗|自治区)$/.test(listed) && !/(?:污水处理厂|水厂|医院|学校|研究院|项目|管道|管网|桩号|小区|园区|片区)/.test(listed)) return listed;
   if (listed && !/^\d{6}$/.test(listed)) recordRegionSignal(run, ad, rec, listed, "REGION_NON_ADMIN_TEXT_REJECTED");
-  const fromText = extractKnownArea(`${rec && rec.projectSite || ""} ${rec && rec.title || ""}`);
-  if (fromText) return fromText;
   if (jurisdiction) return jurisdiction;
   recordRegionSignal(run, ad, rec, listed, "REGION_UNRESOLVED");
   return "";
@@ -7909,12 +7930,26 @@ function resolveYgpCityTargets(args) {
   return targets;
 }
 
-// 按项目性质分 sheet（对标标标通：房建市政/水利/公路/其他）
+// 按项目性质分 sheet（对标标标通：房建市政/水利/公路/其他）。
+// 强语义解决“市政道路→公路”“市政供水→水利”的先到先得误判；弱语义只作兼容兜底。
+function classifySheetEvidence(title) {
+  const text = String(title || "").replace(/\s+/g, "").trim();
+  const highwayStrong = /高速公路|国道(?:[GＧ]?\d+)?|省道(?:[SＳ]?\d+)?|农村公路|公路工程|路基路面|互通(?:立交)?|收费站/;
+  const highwayMunicipalAccessory = /(?:配套市政|市政配套)/;
+  const municipalStrong = /市政(?:道路|桥梁|供水|排水|污水|管网|设施)|城市(?:支路|次干路|主干路|道路)|配套市政工程/;
+  const waterStrong = /水利(?:工程|枢纽)|水库|灌区|灌渠|堤防|水闸|河道(?:治理|整治)|防洪(?:工程|治理)|农田水利/;
+  if (highwayStrong.test(text) && (!municipalStrong.test(text) || highwayMunicipalAccessory.test(text))) return { sheet: "公路", rule: "HIGHWAY_STRONG" };
+  if (municipalStrong.test(text)) return { sheet: "房建市政", rule: "MUNICIPAL_STRONG" };
+  if (waterStrong.test(text)) return { sheet: "水利", rule: "WATER_STRONG" };
+  if (highwayStrong.test(text)) return { sheet: "公路", rule: "HIGHWAY_STRONG" };
+  if (/公路|高速|国道|省道|桥梁|隧道|路基|路面|道路工程/.test(text)) return { sheet: "公路", rule: "HIGHWAY_WEAK_LEGACY" };
+  if (/水利|水库|灌区|灌渠|河道|水系|防洪|水环境|饮水|供水|排水|污水|管网|水厂|泵站|治水/.test(text)) return { sheet: "水利", rule: "WATER_WEAK_LEGACY" };
+  if (/房建|建筑|市政|装修|绿化|景观|厂房|安置房|保障房|学校|中学|小学|幼儿园|医院|康养|街区|社区|消防|充电|公园|道路/.test(text)) return { sheet: "房建市政", rule: "MUNICIPAL_OR_BUILDING" };
+  return { sheet: "其他项目", rule: "OTHER_DEFAULT" };
+}
+
 function classifySheet(title) {
-  if (/公路|高速|国道|省道|桥梁|隧道|路基|路面|市政道路|道路工程/.test(title)) return "公路";
-  if (/水利|水库|灌区|灌渠|河道|水系|防洪|水环境|饮水|供水|排水|污水|管网|水厂|泵站|治水/.test(title)) return "水利";
-  if (/房建|建筑|市政|装修|绿化|景观|厂房|安置房|保障房|学校|中学|小学|幼儿园|医院|康养|街区|社区|消防|充电|公园|道路/.test(title)) return "房建市政";
-  return "其他项目";
+  return classifySheetEvidence(title).sheet;
 }
 
 // 中文省名 → adapter 键。命令行里写 -p 浙江 比 -p zhejiang 自然，
@@ -8208,6 +8243,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
         agency: "", contact: "", phone: "",
         // B 阶段·中标/合同阶段字段（zb 阶段保持空，仅 win 阶段填充，诚实不伪造）
         winner: "", winPrice: "", winManager: "", winScore: "", rank: "", contractAmount: "", partyA: "", partyB: "",
+        _regionSiteCode: String(item && item._ygpRow && (item._ygpRow.regionCode || item._ygpRow.siteCode) || ""),
         sheet: classifySheet(cleanTitle),
       };
       // 列表层已携带的结构化厚字段（粤公平 ygp 等列表接口直接给出，无详情页）优先填入；
@@ -8388,6 +8424,11 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
       // 地区是业务表硬字段：优先保留列表/详情的精确区县，其次从已知行政区词表识别，
       // 最后只回退到该官方 adapter 的明确管辖区（省/市），不臆造更细粒度城市。
       rec.city = resolveRecordRegion(ad, rec, args._run);
+      const sheetDecision = classifySheetEvidence(rec.title);
+      rec.sheet = sheetDecision.sheet;
+      if (args._run && Array.isArray(args._run.sheet_classifications)) {
+        args._run.sheet_classifications.push({ title: rec.title, url: rec.url, sheet: sheetDecision.sheet, rule: sheetDecision.rule });
+      }
       if (!rec._fieldSources.region) markFieldSource(rec, "region", "list");
       result.push(rec);
     }
@@ -8593,7 +8634,7 @@ function resolveOutputPaths(args) {
  try {
   let ad, result; // 2026-08-16 V4A：提升到 try 外——FATAL 补写需要（原版 catch 访问不到已采结果）
   const args = parseArgs(process.argv.slice(2));
-  args._run = { errors: [], auth_walls: [], rate_limits: [], transport_errors: [], attachments: [], project_content: [], city_filters: [], price_rejections: [], stage_rejections: [], region_rejections: [] };
+  args._run = { errors: [], auth_walls: [], rate_limits: [], transport_errors: [], attachments: [], project_content: [], city_filters: [], price_rejections: [], stage_rejections: [], region_rejections: [], sheet_classifications: [] };
   global.__RUN_REPORT = args._run;
   global.__RESEARCH = !!args.dumpText;
   if (!args.province && !args.probeAll) { console.error("用法: node province-collect.cjs -p <省份> [-c 城市/区县[,城市]] -k <关键词> -d <天数> [--stage zb|candidate|result|contract] [--delay 800] [--csv] [--xlsx|--no-xlsx] [--xlsx-layout full29|biaobiaotong16|project18] [--no-detail] [--out 文件] [--limit N] [--probe] [--probe-all] [--verify]"); process.exit(1); }
@@ -8644,7 +8685,7 @@ function resolveOutputPaths(args) {
     }
     const reportPath = writeRunReport(xlsxPath || mdPath, buildRunReport(args.province, ad, result, args, {
       errors: args._run.errors,
-      signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, city_filters: args._run.city_filters, price_rejections: args._run.price_rejections, stage_rejections: args._run.stage_rejections, region_rejections: args._run.region_rejections },
+      signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, city_filters: args._run.city_filters, price_rejections: args._run.price_rejections, stage_rejections: args._run.stage_rejections, region_rejections: args._run.region_rejections, sheet_classifications: args._run.sheet_classifications },
       output: { markdown: mdPath, xlsx: xlsxPath, csv: csvPath },
     }));
     if (reportPath) console.error("运行报告:", reportPath);
@@ -8667,7 +8708,7 @@ function resolveOutputPaths(args) {
       fs.writeFileSync(mdPath, buildMarkdown(args.province, safeAd, safeResult, args));
       writeRunReport(mdPath, buildRunReport(args.province, safeAd, safeResult, args, {
         errors: args._run.errors,
-        signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, city_filters: args._run.city_filters, price_rejections: args._run.price_rejections, stage_rejections: args._run.stage_rejections, region_rejections: args._run.region_rejections },
+        signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, city_filters: args._run.city_filters, price_rejections: args._run.price_rejections, stage_rejections: args._run.stage_rejections, region_rejections: args._run.region_rejections, sheet_classifications: args._run.sheet_classifications },
         output: { markdown: mdPath, xlsx: null, csv: null },
       }));
       console.error("FATAL 补写: 已采 " + safeResult.length + " 条与 run-report 保全至", mdPath);
@@ -8682,6 +8723,7 @@ function resolveOutputPaths(args) {
 module.exports = { ADAPTERS, PROV_ALIAS, PROJECT18_AUDIT_FIELDS, XLSX_HEADER, BIAOBIAOTONG_HEADER, PROJECT18_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, resolveYgpCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, isStrictZbTitle, isStrictZbDetailText, extractDetail, extractProjectContent, extractControlPriceFact, extractRejectedPriceFacts, auditedFieldValue, isFilledFieldValue, ensureFieldSources, markFieldSource, buildFieldStats, xlsxColumnWidths, buildYgpDetailUrl, parseYgpListRows, unwrapYgpPayload, parseYgpJsonText, selectYgpTenderAttachment, parseYgpDetailPayload, extractYgpAttachmentFields, attachmentStatusFromNote, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, guizhouAttachmentUrl, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, ningboExactDuration, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseNanjingPayload, cleanNanjingQualification, nanjingDetail, parseHuizhouHtml, parseHuizhouSearchJsonp, normalizeHuizhouUrl, huizhouDetail, parseZhongshanPayload, zhongshanControlPrice, zhongshanDetail, parseJinanPayload, jinanDetail, parseWuhanHtml, wuhanDetail, parseQingdaoHtml, parseStrongTableFields, cleanA3ScopeAmountTail, cleanQingdaoPerformance, qingdaoDetail, parseShenzhenList, parseBgTableFields, shenzhenProjectContent, qualitativeFullScore, exactMoneyWan,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, fjDetail, mapFjDetailPayload, cqList, tjList, nmgList, lnList, normalizeGsCityName, gsList };
 module.exports.cleanQualificationOutput = cleanQualificationOutput;
+module.exports.classifySheetEvidence = classifySheetEvidence;
 module.exports.guizhouCompleteScope = guizhouCompleteScope;
 module.exports.parseQuanzhouPayload = parseQuanzhouPayload;
 module.exports.parseYibinDetailPayload = parseYibinDetailPayload;

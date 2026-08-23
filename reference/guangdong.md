@@ -8,6 +8,7 @@
 - 列表：`POST https://ygp.gdzwfw.gov.cn/ggzy-portal/search/v2/items`
 - 招标公告阶段：`tradingProcess=3C14`、`secondType=A`，同时要求 `noticeNature=正常公告`，并拒绝资格预审、补充/更正/答疑及其他阶段标题。
 - 省级 `siteCode=440000` 返回空，代码使用 21 地市唯一代码表；`-c` 为地市或可映射区县时先下推地市 `siteCode`，随后继续做客户端精确过滤。
+- 地区输出优先详情中的可验证区县/合作区，再回退现有 `siteCode` 对应地级市；列表“广东省”不得覆盖更精确地点。横琴粤澳深度合作区归属珠海城市过滤范围。
 - 详情：公开 `singleNode` + `detail` 接口，正文在 `tradingNoticeColumnModelList`，附件元数据在 `noticeFileBOList`。
 - 官方详情链接按粤公平前端自身路由字段生成；字段不足时留空，不能猜 URL。
 
@@ -46,3 +47,7 @@ node scripts/province-collect.cjs -p 广东 -c 珠海 -d 3 --stage zb --limit 10
 ## 家族与通用纪律
 
 家族、429、代理与状态边界见 [`FAMILY_INDEX.md`](FAMILY_INDEX.md)。
+
+## 2026-08-23 生产路由复测
+
+广州知识城市政道路与珠海横琴桥梁及配套市政完成地区与Sheet实时回放：广州输出黄埔区，珠海输出横琴粤澳深度合作区，两条均归“房建市政”。跨平台5条机器fixture：`evidence/production-routing-region-v1.json`。
