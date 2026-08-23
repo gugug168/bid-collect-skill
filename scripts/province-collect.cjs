@@ -454,6 +454,7 @@ const ADAPTERS = {
     attachmentBrowserRequired: true,
     cityName: "绵阳市",
     defaultType: "招标公告",
+    detail: mianyangDetail,
   },
   qinhuangdao: {
     name: "秦皇岛市公共资源交易网（城市级·静态 HTML）",
@@ -1481,6 +1482,7 @@ const ADAPTERS = {
     cats: ["001001001"], // 工程建设-招标公告（面包屑实证）
     rn: 20,
     sortField: "showdate", // 该实例无 webdate 字段，用 showdate 排序，webdate 排序会失效
+    detail: qinghaiDetail,
     makeBody(pn, wd, cat) {
       return {
         token: "", pn, rn: String(this.rn), sdt: "", edt: "",
@@ -4683,8 +4685,8 @@ function jinanDetail(html, item, pdfText) {
   out.qualification = qualification
     ? cleanVal(qualification.replace(/[\r\n]+/g, " ")).slice(0, 500)
     : cleanNanjingQualification(out.qualification);
-  const performance = detailText.match(/(?:^|\n)\s*\d+\s*[.、．]\s*业绩要求\s*[:：]\s*([\s\S]{4,1200}?)(?=\n\s*\d+\s*[.、．]\s*(?:信誉|联合体|其他)要求)/m)?.[1] || "";
-  if (performance) out.performance = cleanVal(performance.replace(/[\r\n]+/g, " ")).slice(0, 500);
+  const performance = detailText.match(/(?:^|\n)\s*\d+\s*[.、．]\s*业绩要求\s*[:：]\s*([\s\S]{4,3000}?)(?=\n\s*\d+\s*[.、．]\s*(?:信誉|联合体|其他)要求)/m)?.[1] || "";
+  if (performance) out.performance = cleanFullProjectFact(performance);
   out.bidOpen = out.bidOpen || grabDateTime(detailText, ["投标文件的提交截止时间", "投标截止时间", "开标时间"]);
   return out;
 }
@@ -4805,6 +4807,30 @@ function xuzhouDetail(html, item, pdfText) {
   const exactPerformance = text.match(/(?:^|\n)\s*3\.4\s*业绩要求\s*[:：]\s*([\s\S]{4,5000}?)(?=\s*3\.5\s*投标人及拟派)/m)?.[1] || "";
   if (exactScope) out.scope = cleanFullProjectFact(exactScope);
   if (exactPerformance) out.performance = cleanFullProjectFact(exactPerformance);
+  return out;
+}
+
+function qinghaiDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  const text = String(pdfText || htmlToText(html));
+  const overall = text.match(/(?:^|\n)\s*2\.1\s*项目概况[\s\S]{0,600}?招标范围\s*[:：]\s*([\s\S]{20,5000}?)(?=\s*2\.2\s*招标范围及标段划分)/m)?.[1] || "";
+  const section = text.match(/(?:^|\n)\s*2\.2\s*招标范围及标段划分[\s\S]{0,1000}?建设内容\s*[:：]\s*([\s\S]{20,8000}?)(?=\s*投标所需身份类型|\s*标段估算价|\s*3[、.．]\s*投标人资格要求)/m)?.[1] || "";
+  if (overall) out.scale = cleanFullProjectFact(overall);
+  if (section) out.scope = cleanFullProjectFact(section);
+  return out;
+}
+
+function mianyangDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  const text = String(pdfText || htmlToText(html));
+  const scope = text.match(/(?:^|\n)\s*2\.1\s*招标范围\s*[:：]\s*([\s\S]{20,10000}?)(?=\s*2\.2\s*标段划分)/m)?.[1] || "";
+  const scale = text.match(/(?:^|\n)\s*2\.4\s*建设内容及规模\s*[:：]\s*([\s\S]{20,5000}?)(?=\s*2\.5\s*计划工期)/m)?.[1] || "";
+  if (scope) out.scope = cleanFullProjectFact(scope);
+  if (scale) out.scale = cleanFullProjectFact(scale);
+  if (/[R☑√■⊠]\s*设计业绩要求[\s\S]{0,1200}?[R☑√■⊠]\s*无业绩要求/.test(text)) {
+    out.performance = "";
+    out._fieldConflict = { field: "performance", reason_code: "SOURCE_CONFLICT_CHECKBOX" };
+  }
   return out;
 }
 
@@ -5511,7 +5537,7 @@ function wenzhouDetail(html, item, pdfText) {
   if (scale) out.scale = cleanProjectContent(scale);
   if (scope) out.scope = cleanProjectContent(scope);
   if (duration) out.duration = cleanVal(duration);
-  if (/投标人须知前附表附录\s*2\s*规定的\s*业绩/.test(text)) out.performance = "详见投标人须知前附表附录2";
+  if (/投标人须知前附表附录\s*2\s*规定的\s*业绩/.test(text)) out.performance = "";
   out.qualification = String(out.qualification || "").replace(/[þ□☑☒✓√■⊠]+\s*$/, "").trim();
   return out;
 }
@@ -5633,6 +5659,11 @@ function ningboExactDuration(detailText) {
   return String(detailText || "").match(/(?:计划工期|工期要求|总工期)\s*[:：]?\s*(?:为\s*)?(\d+(?:\.\d+)?\s*(?:个日历天|日历天|天|个月|月|年))/)?.[1] || "";
 }
 
+function ningboExactScope(detailText) {
+  const value = String(detailText || "").match(/(?:^|\n)\s*2\.2\s*招标范围\s*[:：]\s*([\s\S]{20,30000}?)(?=\n\s*3[、.．]\s*投标人资格要求|$)/)?.[1] || "";
+  return cleanFullProjectFact(value);
+}
+
 async function ningboDetail(ad, item) {
   const qs = new URLSearchParams({ projectid: item.projectId, channel: item.channel || ad.channel, articeid: item.articleId });
   const r = await fetch(ad.base + "/websiteapi/getArticle/?" + qs.toString(), { headers: ningboHeaders(ad) });
@@ -5645,6 +5676,8 @@ async function ningboDetail(ad, item) {
   const out = extractDetail(ad, content, item, "");
   out.scope = cleanA3ScopeAmountTail(out.scope);
   const detailText = htmlToText(content);
+  const exactScope = ningboExactScope(detailText);
+  if (exactScope) out.scope = exactScope;
   out.duration = ningboExactDuration(detailText);
   // 宁波多标段公告会在同一项目页逐段披露建安造价；只取首个数字会把其余标段静默丢失。
   // 单标段继续保持原数值形态，多标段才写成带标段名的可审计文本。
@@ -8085,8 +8118,8 @@ function classifySheetEvidence(title) {
   const text = String(title || "").replace(/\s+/g, "").trim();
   const highwayStrong = /高速公路|国道(?:[GＧ]?\d+)?|省道(?:[SＳ]?\d+)?|农村公路|产业路|公路工程|路基路面|(?:高速互通|互通式?立交)|收费站/;
   const highwayMunicipalAccessory = /(?:配套市政|市政配套)/;
-  const municipalStrong = /市政(?:道路|桥梁|供水|排水|污水|管网|设施)|城市(?:支路|次干路|主干路|道路)|配套市政工程|市容环境整治|生活污水治理|上跨高速桥梁|供水管网(?:互联互通|提升改造)|二次供水设施|(?:片区|城区|城镇)[^，。；]{0,20}排水防涝|(?:路|街|大道)(?:（[^）]*）|\([^)]*\))?道路工程/;
-  const waterStrong = /水利(?:工程|枢纽)|水库(?:除险|加固|工程|建设|治理|扩容)|水塘|灌区|灌渠|堤防|水闸|河道(?:治理|整治)|防洪(?:工程|治理)|农田水利|水资源配置|输水管?工程/;
+  const municipalStrong = /市政(?:道路|桥梁|供水|排水|污水|管网|设施)|城市(?:支路|次干路|主干路|道路)|配套市政工程|市容环境整治|生活污水治理|污水处理厂|上跨高速桥梁|供水管网(?:互联互通|提升改造)|二次供水设施|(?:片区|城区|城镇)[^，。；]{0,20}排水防涝|(?:路|街|大道)(?:（[^）]*）|\([^)]*\))?道路工程/;
+  const waterStrong = /水利(?:工程|枢纽)|水库(?:除险|加固|工程|建设|治理|扩容)|水塘|河湖建设|灌区|灌渠|堤防|水闸|河道(?:治理|整治)|防洪(?:工程|治理)|农田水利|水资源配置|输水管?工程/;
   if (highwayStrong.test(text) && (!municipalStrong.test(text) || highwayMunicipalAccessory.test(text))) return { sheet: "公路", rule: "HIGHWAY_STRONG" };
   if (municipalStrong.test(text)) return { sheet: "房建市政", rule: "MUNICIPAL_STRONG" };
   if (waterStrong.test(text)) return { sheet: "水利", rule: "WATER_STRONG" };
@@ -8107,6 +8140,7 @@ function classifyRecordSheetEvidence(rec) {
   const facts = [rec && rec.title, rec && rec.scale, rec && rec.scope].filter(Boolean).join(" ").replace(/\s+/g, "");
   const qualification = String(rec && rec.qualification || "").replace(/\s+/g, "");
   if (/基础设施补短板/.test(facts) && /市政公用工程/.test(qualification)) return { sheet: "房建市政", rule: "DETAIL_CONFIRMED_MUNICIPAL_INFRASTRUCTURE" };
+  if (/规划[^，。；]{0,20}路工程/.test(facts) && /市政(?:行业|公用工程)/.test(qualification)) return { sheet: "房建市政", rule: "DETAIL_CONFIRMED_MUNICIPAL_PLANNED_ROAD" };
   return titleDecision;
 }
 
@@ -8394,7 +8428,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
         // adapter 已按栏目/categorynum 锁定公告类型时直接采用，避免靠标题猜（江苏多数标题不含"招标公告"字样）
         date: item.date, city, type: item.stageHint || ad.defaultType || inferType(item.title),
         tenderType: inferTenderType(item.title),
-        title: cleanTitle, url: item.url, owner: "", projectCode: "", method: "", scale: "", scope: "", approval: "", manager: "", _attachNote: "", _projectContentNote: "",
+        title: cleanTitle, url: item.url, owner: "", projectCode: "", method: "", scale: "", scope: "", approval: "", manager: "", _attachNote: "", _projectContentNote: "", _fieldConflict: null,
         projectSite: "", bidOpen: "", funding: "", duration: "",
         qualification: "", performance: "", controlPrice: "", budget: "", bond: "",
         evaluation: "", consortium: "", fullScore: "", docLink: "",
@@ -8566,6 +8600,9 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
           else await enrichFromAttachment(rec, args, ad);
           if (rec._projectContentNote && args._run && Array.isArray(args._run.project_content)) {
             args._run.project_content.push({ title: rec.title, project_code: rec.projectCode || "", status: rec._projectContentNote });
+          }
+          if (rec._fieldConflict && args._run && Array.isArray(args._run.field_conflicts)) {
+            args._run.field_conflicts.push({ title: rec.title, url: rec.url, ...rec._fieldConflict });
           }
         } catch (e) {
           if (args._run) args._run.errors.push({ code: "DETAIL_FETCH_OR_PARSE", url: item.url, message: String(e && e.message || e) });
@@ -8824,7 +8861,7 @@ function resolveOutputPaths(args) {
  try {
   let ad, result; // 2026-08-16 V4A：提升到 try 外——FATAL 补写需要（原版 catch 访问不到已采结果）
   const args = parseArgs(process.argv.slice(2));
-  args._run = { errors: [], auth_walls: [], rate_limits: [], transport_errors: [], attachments: [], project_content: [], city_filters: [], price_rejections: [], stage_rejections: [], region_rejections: [], sheet_classifications: [], field_truncations: [] };
+  args._run = { errors: [], auth_walls: [], rate_limits: [], transport_errors: [], attachments: [], project_content: [], field_conflicts: [], city_filters: [], price_rejections: [], stage_rejections: [], region_rejections: [], sheet_classifications: [], field_truncations: [] };
   global.__RUN_REPORT = args._run;
   global.__RESEARCH = !!args.dumpText;
   if (!args.province && !args.probeAll) { console.error("用法: node province-collect.cjs -p <省份> [-c 城市/区县[,城市]] -k <关键词> -d <天数> [--stage zb|candidate|result|contract] [--delay 800] [--csv] [--xlsx|--no-xlsx] [--xlsx-layout full29|biaobiaotong16|project18] [--no-detail] [--out 文件] [--limit N] [--probe] [--probe-all] [--verify]"); process.exit(1); }
@@ -8875,7 +8912,7 @@ function resolveOutputPaths(args) {
     }
     const reportPath = writeRunReport(xlsxPath || mdPath, buildRunReport(args.province, ad, result, args, {
       errors: args._run.errors,
-      signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, city_filters: args._run.city_filters, price_rejections: args._run.price_rejections, stage_rejections: args._run.stage_rejections, region_rejections: args._run.region_rejections, sheet_classifications: args._run.sheet_classifications, field_truncations: args._run.field_truncations },
+      signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, field_conflicts: args._run.field_conflicts, city_filters: args._run.city_filters, price_rejections: args._run.price_rejections, stage_rejections: args._run.stage_rejections, region_rejections: args._run.region_rejections, sheet_classifications: args._run.sheet_classifications, field_truncations: args._run.field_truncations },
       output: { markdown: mdPath, xlsx: xlsxPath, csv: csvPath },
     }));
     if (reportPath) console.error("运行报告:", reportPath);
@@ -8898,7 +8935,7 @@ function resolveOutputPaths(args) {
       fs.writeFileSync(mdPath, buildMarkdown(args.province, safeAd, safeResult, args));
       writeRunReport(mdPath, buildRunReport(args.province, safeAd, safeResult, args, {
         errors: args._run.errors,
-        signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, city_filters: args._run.city_filters, price_rejections: args._run.price_rejections, stage_rejections: args._run.stage_rejections, region_rejections: args._run.region_rejections, sheet_classifications: args._run.sheet_classifications, field_truncations: args._run.field_truncations },
+        signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, field_conflicts: args._run.field_conflicts, city_filters: args._run.city_filters, price_rejections: args._run.price_rejections, stage_rejections: args._run.stage_rejections, region_rejections: args._run.region_rejections, sheet_classifications: args._run.sheet_classifications, field_truncations: args._run.field_truncations },
         output: { markdown: mdPath, xlsx: null, csv: null },
       }));
       console.error("FATAL 补写: 已采 " + safeResult.length + " 条与 run-report 保全至", mdPath);
@@ -8924,6 +8961,7 @@ module.exports.attachmentStatusFromNote = attachmentStatusFromNote;
 module.exports.classifyRecordSheetEvidence = classifyRecordSheetEvidence;
 module.exports.isNonRetryableHttpStatus = isNonRetryableHttpStatus;
 module.exports.shouldStopOnDetailError = shouldStopOnDetailError;
+module.exports.ningboExactScope = ningboExactScope;
 module.exports.guizhouCompleteScope = guizhouCompleteScope;
 module.exports.parseQuanzhouPayload = parseQuanzhouPayload;
 module.exports.parseYibinDetailPayload = parseYibinDetailPayload;

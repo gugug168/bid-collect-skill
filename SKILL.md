@@ -25,7 +25,7 @@ description: 从中国大陆 31 个省级行政区及新疆生产建设兵团的
 - `UNVERIFIED`：尚未进行本省现场验证，由逐省 reference/验证记录维护。
 - `BROWSER_REQUIRED`：静态方式确实不可用，需要人工浏览器路径；不得因本机偶尔可达而省略此标记。
 
-sidecar 保存 `snapshot_at`、参数、来源、记录数量、状态、错误摘要、`code_commit` 与 `code_dirty`；v1 兼容追加 `field_stats`，对 project18 的17个业务字段记录 `samples/filled/empty`、小样本 provisional 标记及 `list/detail/attachment` 来源层。内部 `_fieldSources` 不进入 Excel、CSV 或 Markdown。`code_dirty=true` 表示运行时包含未提交修改，不能只凭 commit 复现，也不能据此把字段能力转正。
+sidecar 保存 `snapshot_at`、参数、来源、记录数量、状态、错误摘要、`code_commit` 与 `code_dirty`；v1 兼容追加 `field_stats`，对 project18 的17个业务字段记录 `samples/filled/empty`、小样本 provisional 标记及 `list/detail/attachment` 来源层。官方同页出现互相冲突的明确选项时，业务字段留空并写入 `signals.field_conflicts[]`。内部 `_fieldSources` 不进入 Excel、CSV 或 Markdown。`code_dirty=true` 表示运行时包含未提交修改，不能只凭 commit 复现，也不能据此把字段能力转正。
 
 ### 字段能力与运行状态分层
 

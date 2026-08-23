@@ -31,3 +31,7 @@ B 阶段 `stages` 未配置（栏目码待逐项真机枚举，本轮只验收 z
 
 ## 家族与通用纪律
 见 `FAMILY_INDEX.md`。同类独立市级平台总账见 [`CITY_PLATFORMS.md`](CITY_PLATFORMS.md)。
+
+## 2026-08-23 生产试运行02
+
+污水处理厂提标改造项目按市政设施归“房建市政”，不再因标题中的污水弱词误归水利；scale、阶段性代建scope和240日代建周期保持原平台精确解析。fixture：`evidence/production02-gap32-c-v1.json`。

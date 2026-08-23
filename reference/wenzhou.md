@@ -31,3 +31,5 @@ node scripts/province-collect.cjs -p 温州 -k 管网 -d 90 --limit 3 --csv --xl
 ## 2026-08-23 全国验收收口
 
 冻结公路监理样本只给业绩引用入口，未披露可直接回读的企业业绩事实；`performance` 按 `FIELD_RESTRICTED` 收口。证据见 `evidence/nationwide-100-final-and-blind30-v2.json`。
+
+生产试运行02回归确认“投标人须知前附表附录2规定的业绩”仍只是引用入口，业务表performance保持空，不把“详见前附表”写成事实。fixture：`evidence/production02-gap32-c-v1.json`。

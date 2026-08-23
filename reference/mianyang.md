@@ -23,3 +23,7 @@ node scripts/province-collect.cjs -p 绵阳 -k 公路 -d 30 --stage zb --limit 3
 ## 诚实限制
 
 关系缺失记解析失败，不静默写成空窗口。招标文件附件下载需要验证码，静态采集不绕过；正文厚字段不受影响，附件链接留空并写 sidecar 备注。
+
+## 2026-08-23 生产试运行02
+
+勘察设计施工总承包模板按 `2.1招标范围 → 2.2标段划分` 和 `2.4建设内容及规模 → 2.5计划工期` 完整提取。源文同时勾选“设计业绩要求/无业绩要求”时performance留空，并写 `signals.field_conflicts[]`，不替平台猜答案。fixture：`evidence/production02-gap32-c-v1.json`。

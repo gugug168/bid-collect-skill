@@ -23,3 +23,7 @@ node scripts/province-collect.cjs -p 济南 -k 管网 -d 30 --stage zb --limit 3
 ## 诚实限制
 
 `showNotice.do` 路径本身不能证明阶段；以 search.do 的 `xuanxiang` 和标题双重确认。
+
+## 2026-08-23 生产试运行02
+
+全过程咨询公告的业绩要求保留到下一条“信誉要求”前，不再在500字中断；标题为规划道路工程且详情确认市政资质时归房建市政。fixture：`evidence/production02-gap32-c-v1.json`。
