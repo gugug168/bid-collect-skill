@@ -1274,6 +1274,9 @@ test("A1 天津精确建设规模与实际招标范围优先且评定分离不�
 });
 
 test("A1 贵州附件 GUID 使用官方 preview 路由而非不存在的根路径", () => {
+  const scope = M.guizhouCompleteScope("6.招标范围：设计招标范围：方案、初步设计及施工图设计。施工招标范围：施工图范围内全部施工、竣工交付和保修。3、投标人资格要求");
+  assert.match(scope, /设计招标范围/);
+  assert.match(scope, /施工招标范围/);
   assert.equal(
     M.guizhouAttachmentUrl(M.ADAPTERS.guizhou, "4bd65f98-0997-4fa2-8d4a-7e7a2635ab02"),
     "http://ztb.guizhou.gov.cn/api/upload/preview/4bd65f98-0997-4fa2-8d4a-7e7a2635ab02",

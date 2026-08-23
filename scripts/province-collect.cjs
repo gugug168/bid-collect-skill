@@ -3515,6 +3515,11 @@ async function hbDetail(ad, item) {
 // ---- 贵州：详情走结构化 JSON 接口（列表 id → /api/trade/detail）----
 // 列表层 url = /trade/bulletin/?id=<id>（含 id）；真实详情 JSON 在 /api/trade/detail?id=<id>。
 // 返回扁平对象 { Title, Content(HTML 正文), UploadFile, PdfFile, ContractDoc, OtherNoticefile, RegionCode, PublishDate, ... }。
+function guizhouCompleteScope(text) {
+  const value = String(text || "").match(/6\s*[.．、]\s*招标范围\s*[:：]\s*([\s\S]{8,2200}?)(?=3\s*[、.．]\s*投标人资格要求)/)?.[1] || "";
+  return cleanProjectContent(value);
+}
+
 async function gzDetail(ad, item) {
   const id = (item.url && /[?&]id=(\d+)/.test(item.url)) ? RegExp.$1 : "";
   if (!id) return {};
@@ -3528,6 +3533,9 @@ async function gzDetail(ad, item) {
   if (!d || !d.Content) return {};
   const df = extractDetail(ad, d.Content, item, "");
   const out = { ...df };
+  const detailText = htmlToText(d.Content);
+  const completeScope = guizhouCompleteScope(detailText);
+  if (completeScope) out.scope = completeScope;
   const att = [d.UploadFile, d.PdfFile, d.ContractDoc, d.OtherNoticefile]
     .filter(Boolean).map(s => String(s).trim()).filter(Boolean);
   if (att.length) {
@@ -8670,5 +8678,6 @@ function resolveOutputPaths(args) {
 module.exports = { ADAPTERS, PROV_ALIAS, PROJECT18_AUDIT_FIELDS, XLSX_HEADER, BIAOBIAOTONG_HEADER, PROJECT18_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, resolveYgpCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, isStrictZbTitle, isStrictZbDetailText, extractDetail, extractProjectContent, extractControlPriceFact, extractRejectedPriceFacts, auditedFieldValue, isFilledFieldValue, ensureFieldSources, markFieldSource, buildFieldStats, xlsxColumnWidths, buildYgpDetailUrl, parseYgpListRows, unwrapYgpPayload, parseYgpJsonText, selectYgpTenderAttachment, parseYgpDetailPayload, extractYgpAttachmentFields, attachmentStatusFromNote, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, guizhouAttachmentUrl, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, ningboExactDuration, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseNanjingPayload, cleanNanjingQualification, nanjingDetail, parseHuizhouHtml, parseHuizhouSearchJsonp, normalizeHuizhouUrl, huizhouDetail, parseZhongshanPayload, zhongshanControlPrice, zhongshanDetail, parseJinanPayload, jinanDetail, parseWuhanHtml, wuhanDetail, parseQingdaoHtml, parseStrongTableFields, cleanA3ScopeAmountTail, cleanQingdaoPerformance, qingdaoDetail, parseShenzhenList, parseBgTableFields, shenzhenProjectContent, qualitativeFullScore, exactMoneyWan,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, fjDetail, mapFjDetailPayload, cqList, tjList, nmgList, lnList, normalizeGsCityName, gsList };
 module.exports.cleanQualificationOutput = cleanQualificationOutput;
+module.exports.guizhouCompleteScope = guizhouCompleteScope;
 module.exports.parseQuanzhouPayload = parseQuanzhouPayload;
 module.exports.parseYibinDetailPayload = parseYibinDetailPayload;
