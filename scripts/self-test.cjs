@@ -87,10 +87,36 @@ test("标签自带括号单位的金额可正确提取且中文兜底不误配",
   assert.equal(M.grabMoneyWan("投标保证金：人民币叁万元整", ["投标保证金"]), "3");
 });
 
-test("最高限价公式不借专业暂估价，分裂小数仍取合同估算价", () => {
+test("controlPrice 拒绝估算兜底并保留公式总限价", () => {
   const text = "最高投标限价为B。上述方法五最高投标限价和评标价均应扣除专业工程暂估价（含税金）后参与计算；应扣除的专业工程暂估价为87200.00元。工程合同估算价（万元）：606 . 2 2 万元。";
-  const got = M.grabMoneyWan(text, ["招标控制价", "控制价", "最高投标限价", "合同估算价"]);
-  assert.equal(got, "606.22");
+  assert.equal(M.extractControlPriceFact(text).value, "");
+  assert.equal(M.extractControlPriceFact("最高投标限价130245770.07×（1-10%）=117221193.06元").value, "11722.119306");
+  assert.equal(M.extractControlPriceFact("最高控制价：35134951元，其中不可竞争金额843793元").value, "3513.4951");
+  assert.equal(M.extractControlPriceFact("最高投标限价（万元）：3700.000012").value, "3700.000012");
+  assert.equal(M.extractControlPriceFact("工程合同估算价（万元）：606 . 2 2").value, "");
+});
+
+test("controlPrice 真实样本优先总价并记录被拒估算事实", () => {
+  assert.equal(M.extractControlPriceFact("最高投标限价为101562 00.00元，其中勘察费最高投标限价2060700.00元，设计费最高投标限价8095500.00元").value, "1015.62");
+  global.__RUN_REPORT = { price_rejections: [] };
+  const rec = M.extractDetail({}, "<p>合同估算价：1311.9万元</p>", { title: "测试项目招标公告", url: "https://example.invalid/price" }, "");
+  assert.equal(rec.controlPrice, "");
+  assert.deepEqual(global.__RUN_REPORT.price_rejections[0], {
+    title: "测试项目招标公告", url: "https://example.invalid/price", source_layer: "detail",
+    label: "合同估算价", value_wan: 1311.9, reason_code: "PRICE_FACT_NOT_CONTROL",
+  });
+  delete global.__RUN_REPORT;
+});
+
+test("全国100条 v2 gold 固定替补与价格 Oracle", () => {
+  const gold = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "nationwide-100-gold-v2.json"), "utf8"));
+  assert.equal(gold.samples.length, 100);
+  assert.equal(gold.samples.some((row) => row.sample_id === "S012"), false);
+  assert.equal(gold.samples.find((row) => row.sample_id === "R001").official_url, "https://ggzy.zwfwb.tj.gov.cn/p54/1764175.html");
+  assert.equal(gold.stage_negatives[0].sample_id, "S012");
+  assert.equal(gold.samples.find((row) => row.sample_id === "S003").expected.controlPrice.value, "9469.330265");
+  assert.equal(gold.samples.find((row) => row.sample_id === "S017").expected.controlPrice.value, "3513.4951");
+  assert.equal(gold.samples.find((row) => row.sample_id === "S029").expected.controlPrice.value, "1015.62");
 });
 test("开标时间早于发布日期1年以上判脏丢弃（泉州模板残留形态）", () => {
   const out = M.extractDetail(M.ADAPTERS.quanzhou,
@@ -145,7 +171,7 @@ test("青岛 SSR 招标公告列表与结构化详情字段锁定", () => {
     <tr><td class="bg"><strong>本项目总投资额：</strong></td><td>188510000元</td></tr>
     <tr><td class="bg"><strong>招标单位：</strong></td><td>青岛市城市管理局</td></tr>
     <tr><td class="bg"><strong>工程地点:</strong></td><td>西海岸新区</td></tr></table>`, got[0]);
-  assert.equal(detail.controlPrice, "6604.274173");
+  assert.equal(detail.controlPrice, "");
   assert.equal(detail.budget, "18851");
   assert.equal(detail.owner, "青岛市城市管理局");
   assert.equal(detail.projectSite, "西海岸新区");
@@ -366,7 +392,7 @@ test("南京 webdb 在 status.error 时仍解析 custom，并拒绝澄清与资�
   assert.equal(got.length, 1);
   assert.equal(got[0].cityHint, "六合区");
   assert.equal(got[0].projectCode, "NJ-001");
-  assert.equal(got[0].controlPrice, "7488");
+  assert.equal(got[0].controlPrice, "");
   assert.deepEqual(ad.categoryNums, ["068001001", "068001002"]);
   assert.equal(M.PROV_ALIAS.南京, "nanjing");
 });
@@ -385,7 +411,7 @@ test("惠州官方 JSONP 严格过滤状态、映射地区并规范代理 URL", 
   assert.equal(ad.normalizeTitle(got[0].title), "惠州市排水管网改造工程招标公告");
 });
 
-test("中山 node58 拒绝补充公告，地区固定并按公式末值取控制价", () => {
+test("中山 node58 拒绝补充公告，地区固定并优先总控制价", () => {
   const ad = M.ADAPTERS.zhongshan;
   const got = M.parseZhongshanPayload({ data: { rows: [
     { arab01: "1", arab02: "58", arab04: "坦洲镇物流北路道路建设工程", arab32: "2026-08-17 17:30:00", arab37: "0" },
@@ -412,7 +438,7 @@ test("济南 search.do 保留 isnew 并用 table_one 精确覆盖详情主体", 
   const detail = M.jinanDetail(`<div class="tle">济南管网工程招标公告</div><table><tr><td>项目编号：</td><td>JN-1</td></tr><tr><td>工程地点：</td><td>济南市</td></tr><tr><td>合同估算价：</td><td>1011万元</td></tr><tr><td>招标单位：</td><td>济南热力集团有限公司</td></tr><tr><td>招标代理单位：</td><td>瀚景项目管理有限公司</td></tr><tr><td>招标单位联系人：</td><td>孙经理</td></tr><tr><td>招标单位联系电话：</td><td>0531-86106573</td></tr></table><p>投标文件的提交截止时间：2026年9月10日09时00分</p>`, got[0], "");
   assert.equal(detail.owner, "济南热力集团有限公司");
   assert.equal(detail.agency, "瀚景项目管理有限公司");
-  assert.equal(detail.controlPrice, "1011");
+  assert.equal(detail.controlPrice, "");
   assert.equal(detail.bidOpen, "2026-09-10 09:00");
 });
 
@@ -543,7 +569,7 @@ test("D 宜宾官方详情映射并拒绝谈判采购阶段", () => {
   assert.match(yb.scale, /箱体5套/);
   assert.match(yb.scope, /安装、调试/);
   assert.equal(yb.duration, "60日历天");
-  assert.equal(yb.controlPrice, "441.9112");
+  assert.equal(yb.controlPrice, "");
   assert.equal(yb.bond, "4");
   assert.equal(yb.evaluation, "综合评估法");
   assert.equal(yb.consortium, "不接受");
@@ -649,7 +675,9 @@ test("宁波访客 token、招标公告栏目与官方 SPA 详情路由锁定", 
   assert.equal(got[0].cityHint, "奉化区");
   assert.match(got[0].url, /^https:\/\/jyxt\.zwb\.ningbo\.gov\.cn:4011\/website\/announcementDetails\?/);
   assert.equal(M.ningboSegmentControlPrice(
-    "Ⅰ标段范围：施工及保修，建安工程造价约10419025元；Ⅱ标段范围：施工及保修，建安工程造价约10944202元。"),
+    "Ⅰ标段范围：施工及保修，建安工程造价约10419025元；Ⅱ标段范围：施工及保修，建安工程造价约10944202元。"), "");
+  assert.equal(M.ningboSegmentControlPrice(
+    "Ⅰ标段最高投标限价10419025元；Ⅱ标段招标控制价10944202元。"),
   "Ⅰ标段1041.9025；Ⅱ标段1094.4202");
 });
 

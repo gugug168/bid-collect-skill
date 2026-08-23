@@ -6,7 +6,7 @@ const path = require("path");
 const crypto = require("crypto");
 
 function parseArgs(argv) {
-  const out = { fields: "", requirePass: false, evidenceDir: "", checkGold: false };
+  const out = { fields: "", requirePass: false, evidenceDir: "", checkGold: false, skipStage: false };
   for (let i = 2; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === "--gold") out.gold = argv[++i];
@@ -15,6 +15,7 @@ function parseArgs(argv) {
     else if (arg === "--evidence-dir") out.evidenceDir = argv[++i] || "";
     else if (arg === "--require-pass") out.requirePass = true;
     else if (arg === "--check-gold") out.checkGold = true;
+    else if (arg === "--skip-stage") out.skipStage = true;
     else if (arg === "--help") out.help = true;
     else throw new Error(`未知参数: ${arg}`);
   }
@@ -109,7 +110,7 @@ function main() {
   let args;
   try { args = parseArgs(process.argv); } catch (error) { console.error(JSON.stringify({ status: "INVALID_ARGS", error: error.message })); process.exit(2); }
   if (args.help) {
-    console.log("用法: node scripts/accuracy-audit.cjs --gold <gold.json> [--actual <actual.json>] [--fields a,b] [--evidence-dir <dir>] [--check-gold] [--require-pass]");
+    console.log("用法: node scripts/accuracy-audit.cjs --gold <gold.json> [--actual <actual.json>] [--fields a,b] [--evidence-dir <dir>] [--check-gold] [--skip-stage] [--require-pass]");
     return;
   }
   if (!args.gold || !fs.existsSync(args.gold)) { console.error(JSON.stringify({ status: "EVIDENCE_MISSING", error: "gold missing" })); process.exit(3); }
@@ -159,14 +160,14 @@ function main() {
     correct += stat.correct; wrong += stat.wrong; fp += stat.false_positive; fn += stat.false_negative; excluded += stat.excluded;
   }
   const stageResults = new Map((actualDoc.stage_results || []).map((row) => [row.sample_id, row]));
-  const stageNegativeFailures = gold.stage_negatives.filter((row) => stageResults.get(row.sample_id)?.emitted !== false);
+  const stageNegativeFailures = args.skipStage ? [] : gold.stage_negatives.filter((row) => stageResults.get(row.sample_id)?.emitted !== false);
   const metrics = {
     union_accuracy: ratio(correct, correct + wrong + fp + fn),
     precision: ratio(correct, correct + wrong + fp),
     recall: ratio(correct, correct + wrong + fn),
   };
   const hard = ["publishDate", "region", "title", "url"];
-  const hardPass = hard.every((field) => byField[field] && byField[field].wrong === 0 && byField[field].false_positive === 0 && byField[field].false_negative === 0);
+  const hardPass = hard.filter((field) => selectedFields.includes(field)).every((field) => byField[field].wrong === 0 && byField[field].false_positive === 0 && byField[field].false_negative === 0);
   const detailGate = selectedFields.filter((field) => !hard.includes(field)).every((field) => {
     const stat = byField[field];
     if (stat.union_denominator < 20) return stat.wrong + stat.false_positive + stat.false_negative === 0;
@@ -182,6 +183,7 @@ function main() {
     missing_samples: missingSamples,
     review_cells: reviewCells,
     evidence_errors: evidenceErrors,
+    stage_check_skipped: args.skipStage,
     stage_negative_failures: stageNegativeFailures,
     totals: { correct, wrong, false_positive: fp, false_negative: fn, excluded, ...metrics },
     by_field: byField,

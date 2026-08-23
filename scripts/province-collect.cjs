@@ -1751,6 +1751,113 @@ function grabMoneyWan(text, labels) {
   return "";
 }
 
+// controlPrice 是“本次投标价格上限”事实，不是任意价款。
+// 只接受有官方等价标签且数字/单位直接相邻的值；估算、预算、投资、工程造价等另作事实，不得兜底冒充。
+const CONTROL_PRICE_LABELS = [
+  "本次投标总价最高投标限价", "最高投标报价上限", "最高投标限价（投标报价上限值）",
+  "监理费总价报价上限", "总价报价上限", "最高投标限价", "招标控制价", "最高控制价", "最高限价", "投标报价上限值",
+];
+const CONTROL_PRICE_REJECT_LABELS = [
+  "工程合同估算价", "合同估算价", "合同估算金额", "标段估算价", "估算金额",
+  "本次发包工程估价", "发包工程估价", "招标标准预算价", "采购预算", "预算金额", "预算价",
+  "项目总投资", "总投资金额", "投资额", "建安工程造价", "建安工程费", "工程造价", "合同预算价",
+];
+const CONTROL_PRICE_POINTER = /(?:详见|另行|后续|最迟应|文件(?:下载|发布)|以.*?为准|为\s*[A-ZＢ])|(?:评标基准价|暂估价|投标报价|中标价|合同价)/i;
+const BARE_CONTROL_NEGATIVE = /(?:招标|最高|投标|概算|预算|标准预算|投资|估算|发包工程|建安工程|工程量清单|工程造价)$/;
+
+function normalizeMoneyLayout(value) {
+  let text = String(value || "").replace(/(\d)\s*[.．]\s*(\d(?:\s*\d){0,7})(?=\s*(?:万元|万|元|[；;，,。:：）)]|$))/g,
+    (_, left, right) => `${left}.${right.replace(/\s+/g, "")}`);
+  // 官方富文本偶尔把整数按 span 拆成“101562 00.00 元”。仅在金额单位前的数字串内去空格。
+  text = text.replace(/(\d[\d\s,，]{2,24}(?:[.．]\d+)?)(?=\s*(?:万元|万|元))/g,
+    (all) => all.replace(/\s+/g, ""));
+  return text;
+}
+
+function parseMoneyWanNear(text, label, options = {}) {
+  const source = normalizeMoneyLayout(text);
+  const re = new RegExp(labRe(label), "gi");
+  let lm;
+  while ((lm = re.exec(source))) {
+    const before = source.slice(Math.max(0, lm.index - 16), lm.index).replace(/\s+/g, "");
+    if (options.bare && BARE_CONTROL_NEGATIVE.test(before)) continue;
+    const tail = source.slice(lm.index + lm[0].length, lm.index + lm[0].length + 100);
+    const formula = tail.match(/^\s*[)）]?\s*(?:为|是|[:：])?\s*(?:总价\s*)?(?:人民币\s*[:：]?\s*)?([0-9][0-9,，]*(?:[.．][0-9]+)?)\s*[×*][\s\S]{0,45}?=\s*([0-9][0-9,，]*(?:[.．][0-9]+)?)[\s.．、]{0,3}(万元|万|元)/);
+    if (formula) {
+      const num = Number(formula[2].replace(/[,，]/g, "").replace("．", "."));
+      if (Number.isFinite(num) && num > 0) {
+        const wan = formula[3] === "元" ? num / 10000 : num;
+        if (wan > 0 && wan <= 1e8) return String(Math.round(wan * 1e6) / 1e6);
+      }
+    }
+    const bracketUnit = tail.match(/^\s*[（(]\s*(百万元|万元|元)\s*[)）]/)?.[1] || "";
+    const money = tail.match(/^\s*(?:（[^）]{0,24}）|\([^)]{0,24}\))?\s*[)）]?\s*(?:为|是|[:：])?\s*(?:总价\s*)?(?:人民币\s*[:：]?\s*)?([0-9][0-9,，]*(?:[.．][0-9]+)?)[\s.．、]{0,3}(万元|万|元)/i);
+    if (money) {
+      const between = tail.slice(0, money.index || 0);
+      if (CONTROL_PRICE_POINTER.test(between)) continue;
+      const num = Number(money[1].replace(/[,，．]/g, (ch) => ch === "．" ? "." : ""));
+      if (!Number.isFinite(num) || num <= 0) continue;
+      const wan = money[2] === "元" ? num / 10000 : num;
+      if (wan > 0 && wan <= 1e8) return String(Math.round(wan * 1e6) / 1e6);
+    }
+    if (bracketUnit) {
+      const bracketMoney = tail.match(/^\s*(?:（[^）]{0,24}）|\([^)]{0,24}\))\s*[)）]?\s*(?:为|是|[:：])?\s*(?:总价\s*)?(?:人民币\s*[:：]?\s*)?([0-9][0-9,，]*(?:[.．][0-9]+)?)/);
+      if (bracketMoney) {
+        const num = Number(bracketMoney[1].replace(/[,，]/g, "").replace("．", "."));
+        if (Number.isFinite(num) && num > 0) {
+          const wan = bracketUnit === "元" ? num / 10000 : bracketUnit === "百万元" ? num * 100 : num;
+          if (wan > 0 && wan <= 1e8) return String(Math.round(wan * 1e6) / 1e6);
+        }
+      }
+    }
+    // 无单位金额仅在 ≥10000 且标签后直接给数字时按“元”处理（海南官方形态）。
+    const unitless = tail.match(/^\s*(?:（[^）]{0,24}）|\([^)]{0,24}\))?\s*[)）]?\s*(?:为|是|[:：])?\s*(?:总价\s*)?(?:人民币\s*[:：]?\s*)?([0-9][0-9,，]{3,15}(?:[.．][0-9]+)?)(?!\s*(?:万元|万|元|分))/);
+    if (unitless && !CONTROL_PRICE_POINTER.test(tail.slice(0, unitless.index || 0))) {
+      const num = Number(unitless[1].replace(/[,，]/g, "").replace("．", "."));
+      if (Number.isFinite(num) && num >= 10000) return String(Math.round((num / 10000) * 1e6) / 1e6);
+    }
+  }
+  return "";
+}
+
+function extractControlPriceFact(text) {
+  for (const label of CONTROL_PRICE_LABELS) {
+    const value = parseMoneyWanNear(text, label);
+    if (value) return { value, label, rejected: extractRejectedPriceFacts(text) };
+  }
+  // 裸“控制价”只接受无负向复合词、且数字紧邻的独立标签。
+  const bare = parseMoneyWanNear(text, "控制价", { bare: true });
+  return { value: bare, label: bare ? "控制价" : "", rejected: extractRejectedPriceFacts(text) };
+}
+
+function extractRejectedPriceFacts(text) {
+  const out = [];
+  for (const label of CONTROL_PRICE_REJECT_LABELS) {
+    const value = parseMoneyWanNear(text, label);
+    if (value && !out.some((row) => row.label === label && row.value_wan === value)) {
+      out.push({ label, value_wan: Number(value), reason_code: "PRICE_FACT_NOT_CONTROL" });
+    }
+  }
+  return out;
+}
+
+function recordPriceRejections(rec, item, rows, sourceLayer = "detail") {
+  if (!Array.isArray(rows) || !rows.length) return;
+  const target = global.__RUN_REPORT && global.__RUN_REPORT.price_rejections;
+  if (!Array.isArray(target)) return;
+  for (const row of rows) {
+    const signal = {
+      title: String(rec && rec.title || item && item.title || ""),
+      url: String(item && item.url || rec && rec.url || ""),
+      source_layer: sourceLayer,
+      label: row.label,
+      value_wan: row.value_wan,
+      reason_code: row.reason_code || "PRICE_FACT_NOT_CONTROL",
+    };
+    if (!target.some((old) => old.title === signal.title && old.label === signal.label && old.value_wan === signal.value_wan)) target.push(signal);
+  }
+}
+
 function chineseNumberToNumber(raw) {
   const digits = { 零: 0, 〇: 0, 一: 1, 壹: 1, 二: 2, 两: 2, 贰: 2, 三: 3, 叁: 3, 四: 4, 肆: 4, 五: 5, 伍: 5, 六: 6, 陆: 6, 七: 7, 柒: 7, 八: 8, 捌: 8, 九: 9, 玖: 9 };
   const units = { 十: 10, 拾: 10, 百: 100, 佰: 100, 千: 1000, 仟: 1000, 万: 10000, 萬: 10000, 亿: 100000000, 億: 100000000 };
@@ -2639,22 +2746,10 @@ function extractDetail(ad, html, item, pdfText) {
   const text = pdfText ? (htmlToText(html) + "\n" + pdfText) : htmlToText(html);
   const flat = flatten(text);   // 兜底通道，见 flatten() 注释
   const projectContent = extractProjectContent(html, text, flat);
-  // 金额走严格模式：邻域必须有数字+单位，否则留空（不把"保证金不予退还"这类条款当金额）
-  // 合同估算价放最后兜底：安徽公告无"控制价/最高限价"栏目，价款披露就是「N、合同估算价：5000038.66元」
-  // （2026-08-15 对标标标通实测：安徽 23 条控制价填充率 43%→补此标签后可近满额；标标通控制价列即取此值）。
-  // 语义上它是估算口径，但为安徽公告唯一价款字段，按标标通口径入控制价列；严格口径用户可看 budget 列。
-  const explicitTenderConstructionZero = /本次招标建安工程造价\s*0(?:\.0+)?\s*万元/.test(text);
-  const controlWan = explicitTenderConstructionZero ? "" : grabMoneyWan(text, ["招标控制价", "控制价", "最高投标限价", "最高限价", "预算金额", "预算价", "合同估算价",
-    // 2026-08-16 V5 取证回访补词（重庆/青海/海南实测原文）：
-    //   重庆「本次招标项目合同估算金额： 2964.95 万元」「总投资金额： 4095.29 万元」
-    //   青海「标段估算价:1930.29万元」——复合词形态，原词族未覆盖
-    "合同估算金额", "估算金额", "总投资金额", "标段估算价",
-    // 2026-08-16 V5 attach 实测（浙江 PDF 已进管线 budget=680 却 CP 空）：浙江公告 PDF 写
-    // 「本次招标建安工程造价 595.9142 万元」——建安工程造价即标段报价上限口径（安徽合同估算价同例，按标标通口径入列）
-    "建安工程造价", "建安工程费"]);
+  const priceFact = extractControlPriceFact(text);
   const bondWan = grabBondWan(text);
   const docLink = grabDocLink(html, item.url);
-  return {
+  const out = {
     title: extractNoticeTitle(html, item && item.title),
     projectSite: grabBoth(text, flat, SITE_LABELS) || (text.match(/信息来源\s*[：:]\s*(\S{2,12}?)(?:\s|发布)/) || ["", ""])[1],
     // 2026-08-16 V5（烟台实测）：山东系城市站「信息来源： 招远市 发布时间：…」——专项短值提取防"发布时间"尾随污染
@@ -2668,7 +2763,7 @@ function extractDetail(ad, html, item, pdfText) {
     // v4 增补：浙江 PDF 用「①设计资质：… ②施工资质：…」「资格条件：」表述，无"资质要求"字样
     qualification: cleanQualificationOutput(grabQualification(text, flat), text),
     performance: grabPerformance(text, flat),
-    controlPrice: controlWan,
+    controlPrice: priceFact.value,
     // 概算/估算单独记录，绝不冒充控制价（见 grabBudgetWan 注释）
     budget: grabBudgetWan(flat),
     bond: bondWan,
@@ -2691,6 +2786,8 @@ function extractDetail(ad, html, item, pdfText) {
     phone: grabPhone(text),
     docLink,
   };
+  recordPriceRejections(out, item, priceFact.rejected, "detail");
+  return out;
 }
 
 function cleanFundingValue(value) {
@@ -3243,7 +3340,9 @@ async function hnDetail(ad, item) {
   if (ct.tenderMode) out.tenderMode = ct.tenderMode;
   if (cp.regionCode) { out.projectSite = cp.regionCode; out.city = cp.regionCode.replace(/^[^·]*·/, ""); }
   if (cp.fundSource) out.funding = cp.fundSource;
-  if (sec.tenderControlPrice != null && sec.tenderControlPrice !== "") out.controlPrice = String(sec.tenderControlPrice);
+  if (sec.tenderControlPrice != null && sec.tenderControlPrice !== "" && !out.controlPrice) {
+    recordPriceRejections(out, item, [{ label: "结构化 tenderControlPrice（语义未证实）", value_wan: Number(sec.tenderControlPrice), reason_code: "PRICE_FACT_NOT_CONTROL" }]);
+  }
   if (sec.bidSectionNo) out.bidSectionNo = sec.bidSectionNo;
   if (sec.pingbiaobfName) out.evaluation = sec.pingbiaobfName;
   if (notice.bidOpeningTimeStart) out.bidOpen = String(notice.bidOpeningTimeStart).slice(0, 16);
@@ -3805,18 +3904,15 @@ function mapFjDetailPayload(meta, content, item, ad) {
   if (base.TENDER_PROJECT_CODE) out.projectCode = String(base.TENDER_PROJECT_CODE);
   if (base.AREANAME) out.city = String(base.AREANAME);
   if (base.BID_OPEN_TIME) out.bidOpen = String(base.BID_OPEN_TIME).slice(0, 16);
-  // CONTRACT_RECKON_PRICE 是“合同估算价”，PRICE_UNIT=0 为元、1 为万元。
-  // 它不能在公告明确“控制价后续发布”时冒充控制价；只有正文已抽到价款事实时才作结构化校正。
-  // 正文存在精确“招标控制价+数字+单位”时保留正文的精确值，避免 1449.0961 被结构化四舍五入为 1449.1。
+  // CONTRACT_RECKON_PRICE 是合同估算价，不得精化或覆盖 controlPrice；仅留 sidecar 事实。
   const contractAmount = Number(base.CONTRACT_RECKON_PRICE);
   const contractWan = Number.isFinite(contractAmount) && contractAmount > 0
     ? String(Number(((String(base.PRICE_UNIT) === "0" ? contractAmount / 10000 : contractAmount)).toFixed(6)))
     : "";
   const detailText = htmlToText(html);
-  const hasExplicitControlPrice = /招标控制价[\s\S]{0,100}?\d+(?:\.\d+)?\s*(?:万元|万|元)/.test(detailText);
   const controlPriceDeferred = /招标控制价[\s\S]{0,120}?(?:最迟应|另行|后续)[\s\S]{0,60}?发布/.test(detailText);
   if (controlPriceDeferred) out.controlPrice = "";
-  else if (contractWan && out.controlPrice && !hasExplicitControlPrice) out.controlPrice = contractWan;
+  if (contractWan) recordPriceRejections(out, item, [{ label: "合同估算价", value_wan: Number(contractWan), reason_code: "PRICE_FACT_NOT_CONTROL" }]);
   if (base.TENDERER_NAME) out.owner = String(base.TENDERER_NAME);
   if (base.TENDER_AGENCY_NAME) out.agency = String(base.TENDER_AGENCY_NAME);
   if (Number(base.LIMITE_TIME) > 0) out.duration = `${Number(base.LIMITE_TIME)}日历天`;
@@ -4348,7 +4444,7 @@ function jinanDetail(html, item, pdfText) {
   out.projectSite = f["工程地点"] || out.projectSite || "";
   out.funding = f["资金来源"] || out.funding || "";
   out.budget = f["计划批文总投资额"] ? structuredMoneyWan(f["计划批文总投资额"]) : (out.budget || "");
-  out.controlPrice = f["合同估算价"] ? structuredMoneyWan(f["合同估算价"]) : (out.controlPrice || "");
+  if (f["合同估算价"]) recordPriceRejections(out, item, [{ label: "合同估算价", value_wan: Number(structuredMoneyWan(f["合同估算价"])), reason_code: "PRICE_FACT_NOT_CONTROL" }]);
   out.scale = f["工程规模"] || out.scale || "";
   out.approval = f["计划文号"] || out.approval || "";
   out.owner = stripSealNoise(f["招标单位"] || f["建设单位"] || "");
@@ -4418,14 +4514,16 @@ function parseNanjingPayload(payload, ad) {
     const title = htmlToText(String(it.GongGaoName || it.title || "")).trim();
     const date = String(it.GongGaoFBDate || it.GongGaoStartDate || "").match(/(?:19|20)\d{2}-\d{2}-\d{2}/)?.[0] || "";
     const rawPrice = String(it.HeTongGuSuanPrice || it.FaBaoPrice || "").replace(/,/g, "").trim();
-    return {
+    const row = {
       title,
       date,
       url: it.href ? toAbs(String(it.href), ad.base) : "",
       cityHint: nanjingArea(title),
       projectCode: String(it.BiaoDuanNO || "").trim(),
-      controlPrice: /^\d+(?:\.\d+)?$/.test(rawPrice) ? rawPrice : "",
+      controlPrice: "",
     };
+    if (/^\d+(?:\.\d+)?$/.test(rawPrice)) recordPriceRejections(row, row, [{ label: "合同估算价/发包价", value_wan: Number(rawPrice), reason_code: "PRICE_FACT_NOT_CONTROL" }]);
+    return row;
   }).filter(x => x.title && x.date && x.url && /招标公告/.test(x.title) && !SECOND_BATCH_NON_ZB.test(x.title));
 }
 
@@ -4541,15 +4639,8 @@ function parseZhongshanPayload(payload, ad) {
 
 function zhongshanControlPrice(text, fields) {
   const normalized = String(text || "").replace(/(\d)\s*\.\s*(\d)/g, "$1.$2");
-  const direct = normalized.match(/本次投标总价最高投标限价为\s*(\d+(?:\.\d+)?)\s*(万元|元)/);
-  if (direct) return direct[2] === "万元" ? String(Number(direct[1])) : String(Number((Number(direct[1]) / 10000).toFixed(6)));
-  const section = normalized.match(/最高投标限价[\s\S]*?(?=是否接受联合体投标|投标资格能力要求|$)/)?.[0] || "";
-  const fieldKey = Object.keys(fields || {}).find(key => /最高投标限价/.test(key));
-  const formula = (section || String(fieldKey ? fields[fieldKey] : "")).replace(/(\d)\s*\.\s*(\d)/g, "$1.$2");
-  const amounts = [...formula.matchAll(/(\d+(?:\.\d+)?)\s*(万元|元)/g)];
-  if (!amounts.length) return "";
-  const last = amounts[amounts.length - 1];
-  return last[2] === "万元" ? String(Number(last[1])) : String(Number((Number(last[1]) / 10000).toFixed(6)));
+  const fieldKey = Object.keys(fields || {}).find(key => /最高投标限价|招标控制价|投标报价上限值/.test(key));
+  return extractControlPriceFact(`${normalized}\n${fieldKey ? `${fieldKey}：${fields[fieldKey]}` : ""}`).value;
 }
 
 function zhongshanDetail(html, item, pdfText) {
@@ -4732,6 +4823,18 @@ function cleanQingdaoPerformance(value, text) {
   return raw;
 }
 
+function qingdaoExplicitControlPrice(text) {
+  const source = normalizeMoneyLayout(text);
+  const section = source.match(/最高投标限价\s*[（(]\s*(元|万元)\s*[)）]([\s\S]{0,900}?)(?=二、投标企业|投标企业应具有|$)/);
+  if (!section) return "";
+  const unit = section[1];
+  const amounts = [...section[2].matchAll(/\b(\d{4,}(?:\.\d+)?)\b/g)].map((m) => Number(m[1])).filter(Number.isFinite);
+  if (!amounts.length) return "";
+  const value = amounts[amounts.length - 1];
+  const wan = unit === "元" ? value / 10000 : value;
+  return String(Math.round(wan * 1e6) / 1e6);
+}
+
 function qingdaoDetail(ad, html, item) {
   const out = extractDetail(ad, html, item, "");
   const f = parseStrongTableFields(html);
@@ -4740,7 +4843,9 @@ function qingdaoDetail(ad, html, item) {
   if (pageTitle) out.title = htmlToText(pageTitle).replace(/招标公告\s*$/, "").trim();
   if (f["工程地点"]) out.projectSite = f["工程地点"];
   if (f["资金来源"]) out.funding = [f["资金来源"], f["出资比例"]].filter(Boolean).join("；");
-  if (f["工程造价"]) out.controlPrice = exactMoneyWan(f["工程造价"]);
+  const explicitLimit = qingdaoExplicitControlPrice(detailText);
+  if (explicitLimit) out.controlPrice = explicitLimit;
+  if (f["工程造价"] && !out.controlPrice) recordPriceRejections(out, item, [{ label: "工程造价", value_wan: Number(exactMoneyWan(f["工程造价"])), reason_code: "PRICE_FACT_NOT_CONTROL" }]);
   if (f["本项目总投资额"]) out.budget = exactMoneyWan(f["本项目总投资额"]);
   if (f["工程规模"]) out.scale = f["工程规模"];
   if (f["计划文号"]) out.approval = f["计划文号"];
@@ -4889,7 +4994,7 @@ async function shenzhenDetail(ad, item) {
   if (f["工程地址"]) out.projectSite = f["工程地址"];
   if (f["投标文件递交截止时间"]) out.bidOpen = f["投标文件递交截止时间"].slice(0, 16);
   if (f["计划工期"]) out.duration = f["计划工期"];
-  if (f["本次发包工程估价"]) out.controlPrice = exactMoneyWan(f["本次发包工程估价"]);
+  if (f["本次发包工程估价"] && !out.controlPrice) recordPriceRejections(out, item, [{ label: "本次发包工程估价", value_wan: Number(exactMoneyWan(f["本次发包工程估价"])), reason_code: "PRICE_FACT_NOT_CONTROL" }]);
   if (f["计划总投资"]) out.budget = exactMoneyWan(f["计划总投资"]);
   if (f["投标保证金"]) out.bond = exactMoneyWan(f["投标保证金"]);
   if (f["拟采用评标方法"]) out.evaluation = f["拟采用评标方法"];
@@ -5245,7 +5350,7 @@ function ningboFileUrl(ad, path) {
 
 function ningboSegmentControlPrice(detailText) {
   const segmentCosts = [];
-  for (const m of String(detailText || "").matchAll(/([ⅠⅡⅢⅣⅤⅥ一二三四五六]+标段)范围[:：][\s\S]{0,300}?建安工程造价约?\s*([\d,.]+)\s*元/g)) {
+  for (const m of String(detailText || "").matchAll(/([ⅠⅡⅢⅣⅤⅥ一二三四五六]+标段)[\s\S]{0,300}?(?:最高投标限价|招标控制价|最高控制价|最高限价|投标报价上限值)\s*[:：为]?\s*([\d,.]+)\s*元/g)) {
     const yuan = Number(String(m[2]).replace(/,/g, ""));
     if (Number.isFinite(yuan)) segmentCosts.push(`${m[1]}${Number((yuan / 10000).toFixed(6))}`);
   }
@@ -5358,7 +5463,7 @@ function parseYibinDetailPayload(payload, item) {
   if (/^(?!1900-)/.test(String(d.TouBiao_EndTime || ""))) out.bidOpen = String(d.TouBiao_EndTime).trim();
   const cp = yibinMoneyWan(seg.HeTong_GuSuanJia, seg.HeTong_GuSuanJia_DanWei);
   const bond = yibinMoneyWan(seg.BaoZhengJin, seg.BaoZhengJin_DanWei);
-  if (cp) out.controlPrice = cp;
+  if (cp && !out.controlPrice) recordPriceRejections(out, item, [{ label: "合同估算价", value_wan: Number(cp), reason_code: "PRICE_FACT_NOT_CONTROL" }]);
   if (bond || Number(seg.BaoZhengJin) === 0) out.bond = bond || 0;
   if (seg.PingBiao_BanFa) out.evaluation = String(seg.PingBiao_BanFa).trim();
   if (typeof seg.Is_JieShou_LianHeTi === "boolean") out.consortium = seg.Is_JieShou_LianHeTi ? "接受" : "不接受";
@@ -6060,7 +6165,11 @@ async function enrichFromAttachment(rec, args, ad) {
     }
     // 只记录「真实补到的字段」，不夸大（此前用 need=补抽前为空的字段列表，会写成未补到的字段）
     const filled = [];
-    if (!rec.controlPrice) { const v = grabMoneyWan(text, ["招标控制价", "控制价", "最高投标限价", "最高限价", "预算金额", "预算价", "合同估算价"]); if (v) { rec.controlPrice = v; markFieldSource(rec, "controlPrice", "attachment"); filled.push("controlPrice"); } }
+    if (!rec.controlPrice) {
+      const price = extractControlPriceFact(text);
+      recordPriceRejections(rec, rec, price.rejected, "attachment");
+      if (price.value) { rec.controlPrice = price.value; markFieldSource(rec, "controlPrice", "attachment"); filled.push("controlPrice"); }
+    }
     if (!rec.budget) { const v = grabBudgetWan(flatten(text)); if (v) { rec.budget = v; filled.push("budget"); } }
     if (!rec.bond) { const v = grabMoneyWan(text, ["投标保证金", "保证金"]); if (v) { rec.bond = v; markFieldSource(rec, "bond", "attachment"); filled.push("bond"); } }
     if (need.includes("scale") || need.includes("scope")) {
@@ -8298,7 +8407,7 @@ function resolveOutputPaths(args) {
  try {
   let ad, result; // 2026-08-16 V4A：提升到 try 外——FATAL 补写需要（原版 catch 访问不到已采结果）
   const args = parseArgs(process.argv.slice(2));
-  args._run = { errors: [], auth_walls: [], rate_limits: [], transport_errors: [], attachments: [], project_content: [], city_filters: [] };
+  args._run = { errors: [], auth_walls: [], rate_limits: [], transport_errors: [], attachments: [], project_content: [], city_filters: [], price_rejections: [] };
   global.__RUN_REPORT = args._run;
   global.__RESEARCH = !!args.dumpText;
   if (!args.province && !args.probeAll) { console.error("用法: node province-collect.cjs -p <省份> [-c 城市/区县[,城市]] -k <关键词> -d <天数> [--stage zb|candidate|result|contract] [--delay 800] [--csv] [--xlsx|--no-xlsx] [--xlsx-layout full29|biaobiaotong16|project18] [--no-detail] [--out 文件] [--limit N] [--probe] [--probe-all] [--verify]"); process.exit(1); }
@@ -8349,7 +8458,7 @@ function resolveOutputPaths(args) {
     }
     const reportPath = writeRunReport(xlsxPath || mdPath, buildRunReport(args.province, ad, result, args, {
       errors: args._run.errors,
-      signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, city_filters: args._run.city_filters },
+      signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, city_filters: args._run.city_filters, price_rejections: args._run.price_rejections },
       output: { markdown: mdPath, xlsx: xlsxPath, csv: csvPath },
     }));
     if (reportPath) console.error("运行报告:", reportPath);
@@ -8372,7 +8481,7 @@ function resolveOutputPaths(args) {
       fs.writeFileSync(mdPath, buildMarkdown(args.province, safeAd, safeResult, args));
       writeRunReport(mdPath, buildRunReport(args.province, safeAd, safeResult, args, {
         errors: args._run.errors,
-        signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, city_filters: args._run.city_filters },
+        signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, city_filters: args._run.city_filters, price_rejections: args._run.price_rejections },
         output: { markdown: mdPath, xlsx: null, csv: null },
       }));
       console.error("FATAL 补写: 已采 " + safeResult.length + " 条与 run-report 保全至", mdPath);
@@ -8384,7 +8493,7 @@ function resolveOutputPaths(args) {
 })();
 
 
-module.exports = { ADAPTERS, PROV_ALIAS, PROJECT18_AUDIT_FIELDS, XLSX_HEADER, BIAOBIAOTONG_HEADER, PROJECT18_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, resolveYgpCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, isStrictZbTitle, extractDetail, extractProjectContent, auditedFieldValue, isFilledFieldValue, ensureFieldSources, markFieldSource, buildFieldStats, xlsxColumnWidths, buildYgpDetailUrl, parseYgpListRows, unwrapYgpPayload, parseYgpJsonText, selectYgpTenderAttachment, parseYgpDetailPayload, extractYgpAttachmentFields, attachmentStatusFromNote, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, guizhouAttachmentUrl, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, ningboExactDuration, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseNanjingPayload, cleanNanjingQualification, nanjingDetail, parseHuizhouHtml, parseHuizhouSearchJsonp, normalizeHuizhouUrl, huizhouDetail, parseZhongshanPayload, zhongshanControlPrice, zhongshanDetail, parseJinanPayload, jinanDetail, parseWuhanHtml, wuhanDetail, parseQingdaoHtml, parseStrongTableFields, cleanA3ScopeAmountTail, cleanQingdaoPerformance, qingdaoDetail, parseShenzhenList, parseBgTableFields, shenzhenProjectContent, qualitativeFullScore, exactMoneyWan,
+module.exports = { ADAPTERS, PROV_ALIAS, PROJECT18_AUDIT_FIELDS, XLSX_HEADER, BIAOBIAOTONG_HEADER, PROJECT18_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, resolveYgpCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, isStrictZbTitle, extractDetail, extractProjectContent, extractControlPriceFact, extractRejectedPriceFacts, auditedFieldValue, isFilledFieldValue, ensureFieldSources, markFieldSource, buildFieldStats, xlsxColumnWidths, buildYgpDetailUrl, parseYgpListRows, unwrapYgpPayload, parseYgpJsonText, selectYgpTenderAttachment, parseYgpDetailPayload, extractYgpAttachmentFields, attachmentStatusFromNote, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, guizhouAttachmentUrl, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, ningboExactDuration, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseNanjingPayload, cleanNanjingQualification, nanjingDetail, parseHuizhouHtml, parseHuizhouSearchJsonp, normalizeHuizhouUrl, huizhouDetail, parseZhongshanPayload, zhongshanControlPrice, zhongshanDetail, parseJinanPayload, jinanDetail, parseWuhanHtml, wuhanDetail, parseQingdaoHtml, parseStrongTableFields, cleanA3ScopeAmountTail, cleanQingdaoPerformance, qingdaoDetail, parseShenzhenList, parseBgTableFields, shenzhenProjectContent, qualitativeFullScore, exactMoneyWan,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, fjDetail, mapFjDetailPayload, cqList, tjList, nmgList, lnList, normalizeGsCityName, gsList };
 module.exports.cleanQualificationOutput = cleanQualificationOutput;
 module.exports.parseQuanzhouPayload = parseQuanzhouPayload;

@@ -1,6 +1,6 @@
 {
   "schema_version": "nationwide-100-gold.v2",
-  "frozen_at": "2026-08-23T05:53:59.073Z",
+  "frozen_at": "2026-08-23T06:14:03.785Z",
   "source_commit": "c5c8dfa61e9f263fcfb6b1f75d2786e176c1af3e",
   "source_audit": "2026-08-23_全国100条准确率抽样验收",
   "fields": [
@@ -6140,9 +6140,9 @@
         },
         "controlPrice": {
           "state": "VALUE",
-          "value": "5766.25",
+          "value": "5766.2529",
           "comparison": "money_or_controlled_text",
-          "reason": "explicit official control/limit price supports extracted value",
+          "reason": "EXPLICIT_CONTROL_PRICE_EXPECTED",
           "evidence": [
             "fujian-34612-004.json"
           ]
@@ -6317,10 +6317,10 @@
           ]
         },
         "controlPrice": {
-          "state": "NOT_DISCLOSED",
-          "value": "",
+          "state": "VALUE",
+          "value": "564.090878",
           "comparison": "money_or_controlled_text",
-          "reason": "SOURCE_ONLY_DISCLOSES_ESTIMATE_BUDGET_INVESTMENT_OR_COMPONENT",
+          "reason": "EXPLICIT_CONTROL_PRICE_EXPECTED",
           "evidence": [
             "qingdao-25476-002.json",
             "qingdao-25476-003.json",
@@ -7515,10 +7515,10 @@
           ]
         },
         "controlPrice": {
-          "state": "NOT_DISCLOSED",
-          "value": "",
+          "state": "VALUE",
+          "value": "450.753671",
           "comparison": "money_or_controlled_text",
-          "reason": "SOURCE_ONLY_DISCLOSES_ESTIMATE_BUDGET_INVESTMENT_OR_COMPONENT",
+          "reason": "EXPLICIT_CONTROL_PRICE_EXPECTED",
           "evidence": [
             "qingdao-25476-004.json",
             "qingdao-25476-003.json",
@@ -10275,10 +10275,10 @@
           ]
         },
         "controlPrice": {
-          "state": "VALUE",
-          "value": "3000",
+          "state": "NOT_DISCLOSED",
+          "value": "",
           "comparison": "money_or_controlled_text",
-          "reason": "explicit official control/limit price supports extracted value",
+          "reason": "SOURCE_ONLY_DISCLOSES_ESTIMATE_BUDGET_INVESTMENT_OR_COMPONENT",
           "evidence": [
             "sichuan-9496-004.json"
           ]
@@ -15862,10 +15862,10 @@
           ]
         },
         "controlPrice": {
-          "state": "VALUE",
-          "value": "5000",
+          "state": "NOT_DISCLOSED",
+          "value": "",
           "comparison": "money_or_controlled_text",
-          "reason": "explicit official control/limit price supports extracted value",
+          "reason": "SOURCE_ONLY_DISCLOSES_ESTIMATE_BUDGET_INVESTMENT_OR_COMPONENT",
           "evidence": [
             "mianyang-36380-022.json"
           ]
@@ -16901,10 +16901,10 @@
           ]
         },
         "controlPrice": {
-          "state": "VALUE",
-          "value": "5000",
+          "state": "NOT_DISCLOSED",
+          "value": "",
           "comparison": "money_or_controlled_text",
-          "reason": "explicit official control/limit price supports extracted value",
+          "reason": "SOURCE_ONLY_DISCLOSES_ESTIMATE_BUDGET_INVESTMENT_OR_COMPONENT",
           "evidence": [
             "mianyang-36380-023.json"
           ]
@@ -19441,12 +19441,7 @@
           "comparison": "date",
           "reason": "PRE_REGISTERED_RESERVE",
           "evidence": [
-            "tianjin-28032-001.json",
-            "tianjin-28032-002.json",
-            "tianjin-28032-003.json",
             "tianjin-28032-004.json",
-            "tianjin-37316-002.json",
-            "tianjin-37316-003.json",
             "tianjin-37316-004.json"
           ]
         },
@@ -19456,12 +19451,7 @@
           "comparison": "normalized_text",
           "reason": "PRE_REGISTERED_RESERVE",
           "evidence": [
-            "tianjin-28032-001.json",
-            "tianjin-28032-002.json",
-            "tianjin-28032-003.json",
             "tianjin-28032-004.json",
-            "tianjin-37316-002.json",
-            "tianjin-37316-003.json",
             "tianjin-37316-004.json"
           ]
         },
@@ -19471,12 +19461,7 @@
           "comparison": "datetime_minute",
           "reason": "PRE_REGISTERED_RESERVE",
           "evidence": [
-            "tianjin-28032-001.json",
-            "tianjin-28032-002.json",
-            "tianjin-28032-003.json",
             "tianjin-28032-004.json",
-            "tianjin-37316-002.json",
-            "tianjin-37316-003.json",
             "tianjin-37316-004.json"
           ]
         },
@@ -19486,12 +19471,7 @@
           "comparison": "normalized_text",
           "reason": "PRE_REGISTERED_RESERVE",
           "evidence": [
-            "tianjin-28032-001.json",
-            "tianjin-28032-002.json",
-            "tianjin-28032-003.json",
             "tianjin-28032-004.json",
-            "tianjin-37316-002.json",
-            "tianjin-37316-003.json",
             "tianjin-37316-004.json"
           ]
         },
@@ -19501,12 +19481,7 @@
           "comparison": "normalized_text",
           "reason": "PRE_REGISTERED_RESERVE",
           "evidence": [
-            "tianjin-28032-001.json",
-            "tianjin-28032-002.json",
-            "tianjin-28032-003.json",
             "tianjin-28032-004.json",
-            "tianjin-37316-002.json",
-            "tianjin-37316-003.json",
             "tianjin-37316-004.json"
           ]
         },
@@ -19516,12 +19491,7 @@
           "comparison": "normalized_text",
           "reason": "PRE_REGISTERED_RESERVE",
           "evidence": [
-            "tianjin-28032-001.json",
-            "tianjin-28032-002.json",
-            "tianjin-28032-003.json",
             "tianjin-28032-004.json",
-            "tianjin-37316-002.json",
-            "tianjin-37316-003.json",
             "tianjin-37316-004.json"
           ]
         },
@@ -19531,12 +19501,7 @@
           "comparison": "normalized_text",
           "reason": "PRE_REGISTERED_RESERVE",
           "evidence": [
-            "tianjin-28032-001.json",
-            "tianjin-28032-002.json",
-            "tianjin-28032-003.json",
             "tianjin-28032-004.json",
-            "tianjin-37316-002.json",
-            "tianjin-37316-003.json",
             "tianjin-37316-004.json"
           ]
         },
@@ -19546,12 +19511,7 @@
           "comparison": "normalized_text",
           "reason": "PRE_REGISTERED_RESERVE",
           "evidence": [
-            "tianjin-28032-001.json",
-            "tianjin-28032-002.json",
-            "tianjin-28032-003.json",
             "tianjin-28032-004.json",
-            "tianjin-37316-002.json",
-            "tianjin-37316-003.json",
             "tianjin-37316-004.json"
           ]
         },
@@ -19561,12 +19521,7 @@
           "comparison": "normalized_text",
           "reason": "PRE_REGISTERED_RESERVE",
           "evidence": [
-            "tianjin-28032-001.json",
-            "tianjin-28032-002.json",
-            "tianjin-28032-003.json",
             "tianjin-28032-004.json",
-            "tianjin-37316-002.json",
-            "tianjin-37316-003.json",
             "tianjin-37316-004.json"
           ]
         },
@@ -19576,12 +19531,7 @@
           "comparison": "normalized_text",
           "reason": "PRE_REGISTERED_RESERVE",
           "evidence": [
-            "tianjin-28032-001.json",
-            "tianjin-28032-002.json",
-            "tianjin-28032-003.json",
             "tianjin-28032-004.json",
-            "tianjin-37316-002.json",
-            "tianjin-37316-003.json",
             "tianjin-37316-004.json"
           ]
         },
@@ -19591,12 +19541,7 @@
           "comparison": "money_or_controlled_text",
           "reason": "PRE_REGISTERED_RESERVE_NO_CONTROL_PRICE",
           "evidence": [
-            "tianjin-28032-001.json",
-            "tianjin-28032-002.json",
-            "tianjin-28032-003.json",
             "tianjin-28032-004.json",
-            "tianjin-37316-002.json",
-            "tianjin-37316-003.json",
             "tianjin-37316-004.json"
           ]
         },
@@ -19606,12 +19551,7 @@
           "comparison": "money_or_controlled_text",
           "reason": "PRE_REGISTERED_RESERVE",
           "evidence": [
-            "tianjin-28032-001.json",
-            "tianjin-28032-002.json",
-            "tianjin-28032-003.json",
             "tianjin-28032-004.json",
-            "tianjin-37316-002.json",
-            "tianjin-37316-003.json",
             "tianjin-37316-004.json"
           ]
         },
@@ -19621,12 +19561,7 @@
           "comparison": "normalized_text",
           "reason": "PRE_REGISTERED_RESERVE",
           "evidence": [
-            "tianjin-28032-001.json",
-            "tianjin-28032-002.json",
-            "tianjin-28032-003.json",
             "tianjin-28032-004.json",
-            "tianjin-37316-002.json",
-            "tianjin-37316-003.json",
             "tianjin-37316-004.json"
           ]
         },
@@ -19636,12 +19571,7 @@
           "comparison": "normalized_text",
           "reason": "PRE_REGISTERED_RESERVE",
           "evidence": [
-            "tianjin-28032-001.json",
-            "tianjin-28032-002.json",
-            "tianjin-28032-003.json",
             "tianjin-28032-004.json",
-            "tianjin-37316-002.json",
-            "tianjin-37316-003.json",
             "tianjin-37316-004.json"
           ]
         },
@@ -19651,12 +19581,7 @@
           "comparison": "money_or_controlled_text",
           "reason": "PRE_REGISTERED_RESERVE",
           "evidence": [
-            "tianjin-28032-001.json",
-            "tianjin-28032-002.json",
-            "tianjin-28032-003.json",
             "tianjin-28032-004.json",
-            "tianjin-37316-002.json",
-            "tianjin-37316-003.json",
             "tianjin-37316-004.json"
           ]
         },
@@ -19666,12 +19591,7 @@
           "comparison": "url",
           "reason": "PRE_REGISTERED_RESERVE",
           "evidence": [
-            "tianjin-28032-001.json",
-            "tianjin-28032-002.json",
-            "tianjin-28032-003.json",
             "tianjin-28032-004.json",
-            "tianjin-37316-002.json",
-            "tianjin-37316-003.json",
             "tianjin-37316-004.json"
           ]
         },
@@ -19681,12 +19601,7 @@
           "comparison": "url",
           "reason": "PRE_REGISTERED_RESERVE",
           "evidence": [
-            "tianjin-28032-001.json",
-            "tianjin-28032-002.json",
-            "tianjin-28032-003.json",
             "tianjin-28032-004.json",
-            "tianjin-37316-002.json",
-            "tianjin-37316-003.json",
             "tianjin-37316-004.json"
           ]
         }
