@@ -31,3 +31,7 @@ B 阶段 `stages` 未配置（栏目码待逐项真机枚举，本轮只验收 z
 
 ## 家族与通用纪律
 见 `FAMILY_INDEX.md`。同类独立市级平台总账见 [`CITY_PLATFORMS.md`](CITY_PLATFORMS.md)。
+
+## 2026-08-23 全国验收收口
+
+冻结样本及前向样本确认企业专业资质和评标办法可精确提取，`qualification`、`evaluation` 转为 `FIELD_VERIFIED_DETAIL`；业绩残句继续拒收。证据见 `evidence/nationwide-100-final-and-blind30-v2.json`。

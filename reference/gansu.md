@@ -19,3 +19,7 @@ node scripts/province-collect.cjs -p gansu -k 管网 -d 30 --stage zb --limit 3 
 ```
 
 该 adapter 不是甘肃所有地市完整性的证明；只对当前官方入口和样本作字段结论。
+
+## 2026-08-23 全国验收收口
+
+冻结样本确认 `bidOpen` 可从官方详情稳定回读，转为 `FIELD_VERIFIED_DETAIL`；下载按钮只返回官方 HTML 壳的 `docLink` 继续记 `FIELD_RESTRICTED`，不拼造直链。证据见 `evidence/nationwide-100-final-and-blind30-v2.json`。

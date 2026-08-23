@@ -1,0 +1,118 @@
+{
+  "schema_version": "project18-evidence.v1",
+  "batch": "nationwide-100-final-and-blind30-v2",
+  "stage": "zb",
+  "verified_at": "2026-08-23T16:35:08+08:00",
+  "code_dirty": false,
+  "oracle": {
+    "gold_path": "reference/evidence/nationwide-100-gold-v2.json",
+    "source_commit": "2b3af8bcc696e10d0d88f18cbba31e14ceb6274a",
+    "positive_samples": 100,
+    "stage_negative_samples": 2,
+    "hard_fields": {
+      "correct": 400,
+      "wrong": 0,
+      "false_positive": 0,
+      "false_negative": 0
+    },
+    "detail_totals": {
+      "correct": 809,
+      "wrong": 5,
+      "false_positive": 0,
+      "false_negative": 2,
+      "excluded": 484,
+      "union_accuracy": 0.991421568627451,
+      "precision": 0.9938574938574939,
+      "recall": 0.991421568627451
+    },
+    "all_field_totals": {
+      "correct": 1209,
+      "wrong": 5,
+      "false_positive": 0,
+      "false_negative": 2,
+      "excluded": 484,
+      "union_accuracy": 0.9942434210526315,
+      "precision": 0.9958813838550247,
+      "recall": 0.9942434210526315
+    },
+    "fields_at_or_above_gate": true,
+    "control_price_semantic_false_positives": 0,
+    "review_cells_remaining": 0,
+    "status": "PASS"
+  },
+  "blind_forward_test": {
+    "manifest_schema": "nationwide-100-blind30.v2",
+    "source_commit": "2b3af8bcc696e10d0d88f18cbba31e14ceb6274a",
+    "samples": 30,
+    "adapters": 30,
+    "platform_families": 12,
+    "hard_fields": {"correct": 120, "wrong": 0, "false_positive": 0, "false_negative": 0},
+    "detail_facts": {"correct": 258, "wrong": 0, "false_positive": 0, "false_negative": 0, "excluded_or_restricted": 132},
+    "rate_limited_sources": 0,
+    "adapter_order": [
+      "hunan", "hubei", "guizhou", "anhui", "fujian", "henan", "qingdao", "wuhan", "nanjing", "jiangsu",
+      "zhejiang", "hainan", "luoyang", "zhengzhou", "sichuan", "jiangxi", "yichang", "weifang", "hefei", "linyi",
+      "yantai", "beijing", "shanghai", "hebei", "huizhou", "nantong", "quanzhou", "zunyi", "yibin", "guangdong"
+    ],
+    "platform_family_names": [
+      "A1_结构化", "A2_结构化", "A3_城市结构化", "B1_EPoint", "B2_EPoint", "B3_EPointX",
+      "B4_EPoint变体", "C1_HTML_PDF", "C2_城市独立站", "C3_特殊HTML", "D_受限源", "广东基线"
+    ]
+  },
+  "known_residuals": [
+    {"sample_id":"S003","field":"scale","kind":"TEXT_BOUNDARY_LONGER_THAN_GOLD"},
+    {"sample_id":"S017","field":"scale","kind":"TRUNCATED_VALUE"},
+    {"sample_id":"S030","field":"bond","kind":"GARBLED_PDF_FALSE_NEGATIVE"},
+    {"sample_id":"S038","field":"scope","kind":"SECTION_TAIL_NOISE"},
+    {"sample_id":"S043","field":"scope","kind":"FALSE_NEGATIVE"},
+    {"sample_id":"S048","field":"scope","kind":"WRONG_SECTION"},
+    {"sample_id":"S072","field":"scope","kind":"TEXT_BOUNDARY_LONGER_THAN_GOLD"}
+  ],
+  "hashes": {
+    "source_commit_province_collect_sha256": "af4f3caa85d17eb47764d6d09390e1efd2335f7aeb47f0c8a988ac75c938161b",
+    "source_commit_self_test_sha256": "58a82f12b0d8f2b081eb503ad279d3c14cc453d1fb84e35c1b8f33e698187c25"
+  },
+  "official_sample_urls": {
+    "changzhou": "https://ggzy.changzhou.gov.cn/jyzx/001001/001001001/001001001003/20260821/dd67b0ae-4ab3-4dec-81de-8894e13256dc.html",
+    "chongqing": "https://www.cqggzy.com/trade/014001/800ae301-8365-494f-911f-6f751e5502cd?categoryNum=014001001007",
+    "gansu": "https://lzggzyjy.lanzhou.gov.cn/jygk/002001/002001001/20260821/1348bbd5-b23e-4afa-ac9f-afa40fd46859.html",
+    "hefei": "https://ggzy.hefei.gov.cn/jyxx/002001/002001001/20260821/3f7136e2-83da-c704-ba99-c16897322706.html",
+    "hunan": "https://www.hnsggzy.com/#/resources/transactionDetail/construction?bidSectionId=260e7f9b-8d9f-47e8-a3d4-084eeee83d10&regionCode=430900",
+    "jiangxi": "https://ggzy.jiangxi.gov.cn/jyxx/002006/002006001/20260823/cf90b4e5-6f2e-4ca1-9159-eeba5c6cf466.html",
+    "jilin": "https://www.jl.gov.cn/ggzy/gcjs/zbgg/202608/t20260821_9686087.html",
+    "qingdao": "https://ggzy.qingdao.gov.cn/TradeDetals-ZtbShow/182776-5021-0-0-0/335fcd57-f896-4b1b-a790-92cec424f32a",
+    "shanxi": "https://www.sxbid.com.cn/f/new/notice/1/c1e5673bcff7433eac5a853046e6b7f2",
+    "sichuan": "https://ggzyjy.sc.gov.cn/jyxx/002001/002001001/20260821/63ca8b05-c9ba-4214-ac53-14c3be693f6b.html",
+    "wenzhou": "https://ggzyjy-eweb.wenzhou.gov.cn/col/col1229696276/art/2026/art_ae964348c43947f58848d98d4593042a.html",
+    "yichang": "https://ggzy.sc.yichang.gov.cn/jyxx/003001/003001002/20260820/bf235f7b-9baf-4784-92df-42c27924bbd0.html",
+    "zhejiang": "https://ggzy.zj.gov.cn/jyxxgk/002001/002001001/20260821/0a012013-392d-46b2-bfc5-992b0589ee9e.html",
+    "zunyi": "https://ggzy.guizhou.gov.cn/tradeInfo/detailHtml?metaId=1250661502537568256",
+    "shandong": "https://ggzyjy.shandong.gov.cn/jsgczbgg/14549923.jhtml"
+  },
+  "evidence": {
+    "fixture:nationwide-100-final-and-blind30-v2": {
+      "kind": "accuracy_audit_and_forward_test",
+      "path": "reference/evidence/nationwide-100-final-and-blind30-v2.json",
+      "code_commit": "2b3af8bcc696e10d0d88f18cbba31e14ceb6274a",
+      "code_dirty": false,
+      "note": "Frozen 100-sample audit PASS; hard fields 400/400; all n>=20 detail fields >=95%; 30-adapter/12-family forward test hard 120/120 and 258/258 disclosed detail facts"
+    }
+  },
+  "capability_updates": {
+    "changzhou": {"evidence_id":"fixture:nationwide-100-final-and-blind30-v2","verified_at":"2026-08-23T16:35:08+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["qualification"]}},
+    "chongqing": {"evidence_id":"fixture:nationwide-100-final-and-blind30-v2","verified_at":"2026-08-23T16:35:08+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["qualification"]}},
+    "gansu": {"evidence_id":"fixture:nationwide-100-final-and-blind30-v2","verified_at":"2026-08-23T16:35:08+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["bidOpen"],"FIELD_RESTRICTED":["docLink"]}},
+    "hefei": {"evidence_id":"fixture:nationwide-100-final-and-blind30-v2","verified_at":"2026-08-23T16:35:08+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["qualification"]}},
+    "hunan": {"evidence_id":"fixture:nationwide-100-final-and-blind30-v2","verified_at":"2026-08-23T16:35:08+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["duration"]}},
+    "jiangxi": {"evidence_id":"fixture:nationwide-100-final-and-blind30-v2","verified_at":"2026-08-23T16:35:08+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["qualification"]}},
+    "jilin": {"evidence_id":"fixture:nationwide-100-final-and-blind30-v2","verified_at":"2026-08-23T16:35:08+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["performance"]}},
+    "qingdao": {"evidence_id":"fixture:nationwide-100-final-and-blind30-v2","verified_at":"2026-08-23T16:35:08+08:00","statuses":{"FIELD_RESTRICTED":["qualification","performance"]}},
+    "shanxi": {"evidence_id":"fixture:nationwide-100-final-and-blind30-v2","verified_at":"2026-08-23T16:35:08+08:00","statuses":{"FIELD_OCR_REQUIRED":["duration"]}},
+    "sichuan": {"evidence_id":"fixture:nationwide-100-final-and-blind30-v2","verified_at":"2026-08-23T16:35:08+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["performance"]}},
+    "wenzhou": {"evidence_id":"fixture:nationwide-100-final-and-blind30-v2","verified_at":"2026-08-23T16:35:08+08:00","statuses":{"FIELD_RESTRICTED":["performance"]}},
+    "yichang": {"evidence_id":"fixture:nationwide-100-final-and-blind30-v2","verified_at":"2026-08-23T16:35:08+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["qualification","evaluation"]}},
+    "zhejiang": {"evidence_id":"fixture:nationwide-100-final-and-blind30-v2","verified_at":"2026-08-23T16:35:08+08:00","statuses":{"FIELD_VERIFIED_ATTACHMENT":["duration"]}},
+    "zunyi": {"evidence_id":"fixture:nationwide-100-final-and-blind30-v2","verified_at":"2026-08-23T16:35:08+08:00","statuses":{"FIELD_VERIFIED_ATTACHMENT":["duration"],"FIELD_VERIFIED_DETAIL":["qualification"]}},
+    "shandong": {"evidence_id":"fixture:nationwide-100-final-and-blind30-v2","verified_at":"2026-08-23T16:35:08+08:00","statuses":{"FIELD_RESTRICTED":["bidOpen","scale","scope","funding","duration","qualification","performance","bond","evaluation","consortium","fullScore","docLink"]}}
+  }
+}

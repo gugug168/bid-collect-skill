@@ -19,3 +19,7 @@ node scripts/province-collect.cjs -p chongqing -k 管网 -d 30 --stage zb --limi
 ```
 
 只验收 `zb`；出现限流或网关错误时停止扩窗并查看 run-report。
+
+## 2026-08-23 全国验收收口
+
+冻结样本 S018 已确认企业资质精确提取，`qualification` 转为 `FIELD_VERIFIED_DETAIL`。证据见 `evidence/nationwide-100-final-and-blind30-v2.json`。

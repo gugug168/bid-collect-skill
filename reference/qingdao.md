@@ -20,3 +20,7 @@ node scripts/province-collect.cjs -p 青岛 -k 管网 -d 30 --stage zb --limit 3
 
 ## 诚实限制
 站点 `HEAD` 返回 403 但普通 `GET` 正常；健康检查必须用 GET。若翻页验证码真正阻断，应记 `BROWSER_REQUIRED`，不能写成无数据。
+
+## 2026-08-23 全国验收收口
+
+冻结样本和前向样本只出现资格/业绩跳转或模板指针，未形成可回读事实；`qualification`、`performance` 均按 `FIELD_RESTRICTED` 收口，不把“详见招标文件”写入业务表。证据见 `evidence/nationwide-100-final-and-blind30-v2.json`。

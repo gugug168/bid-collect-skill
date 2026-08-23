@@ -31,3 +31,7 @@ performance / fullScore（源页普遍无评分细则/业绩要求，全省一�
 - `--stage candidate`(list/12) / `result`(list/13) 列表均通；详情为 PDF 正文（pdfjs 加载，`extractWinDetail` 复用 zb 期 grab 池）。
 - 实测命中：中标人 / 招标人 / 项目经理 / 得分 部分命中（PDF 结构化差异大，字段覆盖弱于 list 层）。
 - 用法：`-p shanxi --stage candidate -k 管网 --detail -d 120 --csv`
+
+## 2026-08-23 全国验收收口
+
+冻结样本的工期位于无可靠文本层的 PDF，`duration` 按 `FIELD_OCR_REQUIRED` 收口；本轮不增加 OCR，也不把无法稳定读取写成未披露。证据见 `evidence/nationwide-100-final-and-blind30-v2.json`。

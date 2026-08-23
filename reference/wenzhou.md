@@ -27,3 +27,7 @@ node scripts/province-collect.cjs -p 温州 -k 管网 -d 90 --limit 3 --csv --xl
 
 ## 家族与通用纪律
 见 `FAMILY_INDEX.md`。同类独立市级平台总账见 [`CITY_PLATFORMS.md`](CITY_PLATFORMS.md)。
+
+## 2026-08-23 全国验收收口
+
+冻结公路监理样本只给业绩引用入口，未披露可直接回读的企业业绩事实；`performance` 按 `FIELD_RESTRICTED` 收口。证据见 `evidence/nationwide-100-final-and-blind30-v2.json`。

@@ -32,3 +32,7 @@ performance / fullScore（源页普遍无评分细则/业绩要求，全省一�
 
 ## 家族与通用纪律
 见 `FAMILY_INDEX.md`（家族总览 + 代理/鉴权/mustache 脏值拦截/去重坍缩等通用提醒）。
+
+## 2026-08-23 全国验收收口
+
+冻结样本与前向样本确认供货期、代建期等明确工期表述可按详情事实提取，`duration` 转为 `FIELD_VERIFIED_DETAIL`。证据见 `evidence/nationwide-100-final-and-blind30-v2.json`。
