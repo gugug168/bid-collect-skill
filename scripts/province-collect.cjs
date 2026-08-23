@@ -2423,8 +2423,8 @@ function numFrom(s) {
 // 调研证据（北京/山西/黑龙江/安徽/西藏 5 省真实详情页）：这些字段 90%+ 公告正文都有，但此前通用 extractDetail 不抽。
 const CODE_LABELS = ["项目编号", "招标项目编号", "标段编号", "交易项目编号", "项目代码", "招标编号", "标段号", "招标项目代码", "采购项目编号", "项目序号"];
 const METHOD_LABELS = ["招标方式", "招标组织形式", "采购方式", "发包方式"];
-const SCALE_LABELS = ["本标段工程的主要建设内容", "主要建设内容", "建设内容及规模", "本次招标规模", "建设规模", "工程规模", "项目规模", "工程概况描述", "工程概况"];
-const SCOPE_LABELS = ["单位工程及招标范围说明", "招标范围及标段划分", "本标段招标范围", "标段招标范围", "设计及相关服务范围", "监理及相关服务范围", "招标范围和内容", "招标范围", "招标内容及范围", "招标内容", "采购需求", "服务内容", "工作内容"];
+const SCALE_LABELS = ["本标段工程的主要建设内容", "主要建设内容", "项目建设内容及规模", "建设内容及规模", "本次招标规模", "建设规模", "工程规模", "项目规模", "工程概况描述", "工程概况"];
+const SCOPE_LABELS = ["单位工程及招标范围说明", "招标范围及标段划分", "本标段招标范围", "标段招标范围", "设计及相关服务范围", "监理及相关服务范围", "代建范围", "招标范围和内容", "招标范围", "招标内容及范围", "招标内容", "采购需求", "服务内容", "工作内容"];
 const AMBIGUOUS_PROJECT_LABELS = ["建设内容", "项目概况", "项目基本情况"];
 const COMBINED_PROJECT_LABEL = /^(?:招标范围及规模|招标范围和规模|建设规模及招标范围|项目概况及招标范围)$/;
 const APPROVAL_LABELS = ["批准文号", "审批文号", "核准文号", "备案号", "项目批准文号", "立项批复", "可研批复"];
@@ -2596,7 +2596,7 @@ function splitCombinedProjectContent(value) {
 function grabNumberedProjectSection(text, labels, prefer) {
   const names = labels.map(labRe).join("|");
   const re = new RegExp(
-    "(?:^|[\\n\\r]|\\s)\\d+(?:\\.\\d+)+\\.?\\s*(?:" + names + ")\\s*[:：]?\\s*" +
+    "(?:^|[\\n\\r]|\\s)\\d+(?:\\.\\d+)+\\.?\\s*(?:" + names + ")(?:[（(][^）)]{0,100}[）)])?\\s*[:：]?\\s*" +
     "([\\s\\S]{4,2200}?)(?=(?:[\\n\\r]|\\s)\\d+(?:\\.\\d+)*(?:[.．、])?\\s*[\\u4e00-\\u9fa5]|$)", "gm");
   const candidates = [];
   let match;
@@ -2715,6 +2715,8 @@ function extractProjectContent(html, text, flat) {
   if (/^(?:本)?工程造价(?:约|为|[:：])?\s*\d[\d,.]*\s*(?:万元|万|元)[。；;]?$/.test(scale)) scale = "";
   const scopeBeforeFinalClean = String(scope || "").replace(/\s+/g, " ").trim();
   scope = cleanProjectContent(scope);
+  const checkedScope = scope.match(/[☑☒✓√■⊠]\s*([^□☑☒✓√■⊠；;。]{2,120})/)?.[1] || "";
+  if (checkedScope) scope = cleanProjectContent(checkedScope);
   if (/^\d+(?:\.\d+)+\s*(?:项目|工程|建设)规模\s*[:：]/.test(scopeBeforeFinalClean)) scope = "";
   const scopeMetaTail = scope.search(/[；;。]?\s*(?:本次招标)?(?:最高投标限价|概算价控制价|招标标准预算价)\s*(?:约|为|[:：])?/);
   if (scopeMetaTail >= 4) scope = scope.slice(0, scopeMetaTail).replace(/[，,。；;\s]+$/, "").trim();

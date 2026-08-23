@@ -1,6 +1,6 @@
 {
   "schema_version": "nationwide-100-gold.v2",
-  "frozen_at": "2026-08-23T07:15:09.392Z",
+  "frozen_at": "2026-08-23T07:19:02.582Z",
   "source_commit": "c5c8dfa61e9f263fcfb6b1f75d2786e176c1af3e",
   "source_audit": "2026-08-23_全国100条准确率抽样验收",
   "fields": [
@@ -2339,18 +2339,18 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "（建设工程类型、主要技术指标、总投资额等）：总用地面积:62263.43㎡，约93.4亩，总建筑面积46947.12㎡，其中地上建筑面积为40770.76㎡",
+          "value": "总用地面积:62263.43㎡，约93.4亩，总建筑面积46947.12㎡，其中地上建筑面积为40770.76㎡。地下室面积6176.36㎡，人防面积2500.60㎡，包括3#栋教学楼、4#教学楼、5#栋科技楼、6#图书馆艺术综合楼、9#食堂扩建、10#学生宿舍、11#学生宿舍、14#垃圾站、15#门卫室、12#田径场看台、16#配电房及地下室。规划学位2400个，开设班级48个，配备教学及相关设备设施，同时完成400米田径场、室外篮球场及排球场、停车场、内部道路管网、绿化、大门、围墙、挡土墙等配套工程。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "hunan-37712-003.json"
           ]
         },
         "scope": {
           "state": "VALUE",
-          "value": "2.1招标人：中方县教育局",
+          "value": "阶段性代建",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "hunan-37712-003.json"
           ]

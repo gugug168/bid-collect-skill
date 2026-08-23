@@ -809,6 +809,16 @@ test("项目内容覆盖编号段、采购需求、单位工程范围和惠州�
   const hbOut = M.ADAPTERS.hebei.detail(hebei, { title: "服务区消防改造招标公告", url: "x" }, "");
   assert.match(hbOut.scale, /3对服务区/);
   assert.match(hbOut.scope, /缺陷责任期/);
+
+  const liaoning = `<p>2.1 项目概况 建设地点：沈阳市。建设规模：总用地258853.90平方米，总建筑面积69000平方米。</p><p>2.2 招标范围 标段划分：1个。标段招标范围：施工准备、施工、竣工、结算审计及保修阶段全过程监理服务。标段类别：监理</p><p>2.3 其他：/</p>`;
+  const lnOut = M.ADAPTERS.liaoning.detail(liaoning, { title: "商业项目监理招标公告", url: "x" }, "");
+  assert.match(lnOut.scale, /总建筑面积69000平方米/);
+  assert.match(lnOut.scope, /全过程监理服务/);
+
+  const agency = `<p>2.4项目建设内容及规模（主要指标）：总用地62263㎡，总建筑面积46947㎡，规划学位2400个。</p><p>2.5代建范围：□全过程代建；☑阶段性代建</p><p>2.6投资控制目标：21009万元</p>`;
+  const agencyOut = M.extractDetail({}, agency, { title: "学校代建服务招标公告", url: "x" }, "");
+  assert.match(agencyOut.scale, /规划学位2400个/);
+  assert.equal(agencyOut.scope, "阶段性代建");
 });
 
 test("广东 siteCode 定向覆盖地级市与区县，未知词诚实回退全省", () => {
