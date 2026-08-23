@@ -58,6 +58,8 @@ node scripts/province-collect.cjs -p anhui -d 30 --limit 20 --detail \
 
 指定 `--out` 时同时生成同目录 `<输出文件名>.run-report.json`，记录 `snapshot_at`、来源、参数、数量、状态和错误；空结果标为 `CONNECTED_NO_RECENT_DATA`，不与 `FAILED` 混淆。sidecar v1 兼容追加 `field_stats`，逐字段记录样本数、填充/空值和 `list/detail/attachment` 来源层；单次运行不会自动修改能力矩阵。
 
+`controlPrice` 严格只收官方明确的最高投标限价、招标控制价、最高限价或投标报价上限。合同估算价、项目投资、工程造价、采购预算、发包估价及总价存在时的分项价不会进入业务表；拒绝事实只在 sidecar 的 `signals.price_rejections[]` 中保留标签、金额、来源层和原因码。
+
 字段能力以 `PROJECT18_CAPABILITIES.json` 为准，`reference/COVERAGE_MATRIX.md` 只是人读投影。已验证状态必须引用干净代码证据；`code_dirty=true` 的 run-report 不能转正能力。当前全国推进允许 `FIELD_UNVERIFIED`，最终门禁才要求全部形成诚实终态。
 
 ## 阶段选择

@@ -1,0 +1,457 @@
+{
+  "schema_version": "project18-evidence.v1",
+  "batch": "nationwide-100-baseline-v2",
+  "stage": "zb",
+  "verified_at": "2026-08-23T12:00:00+08:00",
+  "code_dirty": false,
+  "evidence": {
+    "fixture:nationwide-100-baseline-v2": {
+      "kind": "accuracy_audit",
+      "path": "reference/evidence/nationwide-100-gold-v2.json",
+      "code_commit": "c5c8dfa61e9f263fcfb6b1f75d2786e176c1af3e",
+      "code_dirty": false,
+      "note": "Frozen nationwide 100 audit baseline; known false VERIFIED cells are downgraded before remediation"
+    }
+  },
+  "capability_updates": {
+    "hubei": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "yunnan": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "jilin": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "performance"
+        ]
+      }
+    },
+    "hunan": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "duration",
+          "scale"
+        ],
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "anhui": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "liaoning": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "scale"
+        ],
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "chongqing": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "qualification"
+        ],
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "henan": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "gansu": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "bidOpen",
+          "docLink"
+        ]
+      }
+    },
+    "qingdao": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "performance",
+          "qualification"
+        ],
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "jinan": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "nanjing": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "shenzhen": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "ningbo": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "jiangsu": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "scope"
+        ],
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "hainan": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "scale"
+        ]
+      }
+    },
+    "changzhou": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "qualification"
+        ]
+      }
+    },
+    "zhejiang": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "duration"
+        ]
+      }
+    },
+    "zhengzhou": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ],
+        "FIELD_PRESENT_UNPARSED": [
+          "scale"
+        ]
+      }
+    },
+    "xuzhou": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "sichuan": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "performance"
+        ],
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "jiangxi": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "qualification",
+          "scale"
+        ]
+      }
+    },
+    "qinghai": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "yichang": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "evaluation",
+          "qualification"
+        ],
+        "FIELD_FAILED": [
+          "region"
+        ]
+      }
+    },
+    "wuxi": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "weifang": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "hefei": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "qualification",
+          "scope"
+        ],
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "linyi": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "beijing": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "scope"
+        ],
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "shanxi": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "duration"
+        ]
+      }
+    },
+    "hebei": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "scope"
+        ]
+      }
+    },
+    "shanghai": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "scale"
+        ]
+      }
+    },
+    "mianyang": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "scale"
+        ]
+      }
+    },
+    "nantong": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "scope"
+        ],
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "jiaxing": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "wenzhou": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "performance"
+        ]
+      }
+    },
+    "huizhou": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "scope"
+        ]
+      }
+    },
+    "quanzhou": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "scale"
+        ],
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "zunyi": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_PRESENT_UNPARSED": [
+          "duration",
+          "qualification"
+        ]
+      }
+    },
+    "yibin": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "suzhou": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "guizhou": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "fujian": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    },
+    "zhongshan": {
+      "evidence_id": "fixture:nationwide-100-baseline-v2",
+      "verified_at": "2026-08-23T12:00:00+08:00",
+      "statuses": {
+        "FIELD_FAILED": [
+          "controlPrice"
+        ]
+      }
+    }
+  }
+}

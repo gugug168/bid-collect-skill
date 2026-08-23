@@ -8,7 +8,7 @@
 
 ## 验证结论
 
-阶段没有独立字段，严格按 `GongGaoName/title` 保留“招标公告”，排除澄清修改和资审公告。详情为静态 HTML；合同估算价单位为万元，项目编号取 `BiaoDuanNO`。
+阶段没有独立字段，严格按 `GongGaoName/title` 保留“招标公告”，排除澄清修改和资审公告。详情为静态 HTML；项目编号取 `BiaoDuanNO`。列表中的合同估算价不是控制价，只进入 sidecar 拒绝信号。
 
 ## 2026-08-21 A3 project18 结论
 
