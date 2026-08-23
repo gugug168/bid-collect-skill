@@ -1123,6 +1123,7 @@ const ADAPTERS = {
     listUrl: (page) => `https://www.cqggzy.com/trade/014001?categoryNum=014001001&date=all&pageNum=${page}`,
     clientFilterOnly: true, // 无服务端关键词检索，采集时按标题客户端过滤
     defaultType: "招标公告",
+    detail: chongqingDetail,
     // ---- B 阶段（Goal v2 · 2026-08-15 真机枚举 014001 栏目树）：001=招标公告 002=答疑补遗 003=中标候选人公示 004=中标结果公示 005=办事指南（无独立合同公示栏目→诚实不配 contract）----
     stages: {
       candidate: { type: "中标候选人", listUrl: (page) => `https://www.cqggzy.com/trade/014001?categoryNum=014001003&date=all&pageNum=${page}` },
@@ -2614,6 +2615,7 @@ function cleanProjectContent(value) {
   if (/^[A-Za-z]{2,}[A-Za-z0-9_.\-/]{4,}$/.test(v)) return "";
   if (/^同[^，,。；;]{0,80}(?:标段)?的建设规模$/.test(v)) return "";
   if (/^(?:\d+(?:\.\d+)*[.、．]?\s*)?(?:施工标段|监理标段|设计标段)\s*[:：]?$/.test(v)) return "";
+  if (/^(?:本项目|本次招标)(?:共)?划分为$/.test(v)) return "";
   if (/^(?:\d+(?:\.\d+)*[.、．]?\s*)?招标工程标段划分及计划工期[\s\S]*$/.test(v)) return "";
   if (/^该项目位于[\s\S]{0,100}?该工程概况$/.test(v)) return "";
   if (/^(?:工程规模)?较小、?技术含量较低[\s\S]{0,120}?招标人对技术、?性能/.test(v)) return "";
@@ -2935,6 +2937,14 @@ function tianjinDetail(html, item, pdfText) {
   const text = htmlToText(html);
   const scope = text.match(/本次招标标段为[\s\S]{0,400}?招标范围\s*[:：]\s*([\s\S]{20,1400}?)(?=本标段最高投标限价|\n\s*2\.4|计划工期要求)/);
   if (scope) out.scope = cleanProjectContent(scope[1]);
+  return out;
+}
+
+function chongqingDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  const text = String(pdfText || htmlToText(html));
+  const exactScale = text.match(/(?:^|\n)\s*2\.2\s*项目概况与建设规模\s*([\s\S]{20,12000}?)(?=\s*2\.3\s*本次招标项目货物采购估算金额)/m)?.[1] || "";
+  if (exactScale) out.scale = cleanFullProjectFact(exactScale);
   return out;
 }
 
@@ -3543,9 +3553,41 @@ async function ynDetail(ad, item) {
     const m = String(d.bidopentime).match(/^(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?/);
     if (m) out.bidOpen = `${m[1]}-${m[2]}-${m[3]}` + (m[4] ? ` ${m[4]}:${m[5] || "00"}` : "");
   }
+  const sections = extractYunnanProjectSections(htmlToText(d.bulletincontent));
+  if (sections.length) {
+    out.scale = sections.map((row) => row.content).join("；");
+    out.scope = sections.map((row) => `${row.name}：${row.content}`).join("；");
+    out._projectContentNote = "YUNNAN_MULTI_SECTION_COMBINED";
+  }
   if (d.qualType && !out.qualification) out.qualification = d.qualType;
   if (d.bulletinname) out.type = d.bulletinname;
   if (d.bulletinissuetime) out.date = String(d.bulletinissuetime).slice(0, 10);
+  return sanitizeYunnanDetail(out);
+}
+
+function extractYunnanProjectSections(text) {
+  const out = [];
+  const re = /标段名称\s*[:：]\s*([^\n]{4,200}?)(?=\s*(?:招标文件获取截止时间|递交投标文件截止时间|本次招标内容))[\s\S]{0,1200}?本次招标内容\s*[:：]\s*([\s\S]{4,2000}?)(?=\s*项目现场的具体位置和周边环境)/g;
+  let match;
+  while ((match = re.exec(String(text || "")))) {
+    const name = cleanFactText(match[1]);
+    const content = cleanFullProjectFact(match[2]);
+    if (name && content && !out.some((row) => row.name === name && row.content === content)) out.push({ name, content });
+  }
+  return out;
+}
+
+function sanitizeYunnanDetail(value) {
+  const out = { ...(value || {}) };
+  const dirtyId = /\s*[0-9a-f]{8,16}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\s*$/i;
+  const changed = [];
+  for (const key of ["title", "scale", "funding"]) {
+    const before = String(out[key] || "");
+    const after = before.replace(dirtyId, "").replace(/\s+/g, " ").trim();
+    if (after !== before.trim()) changed.push(key);
+    out[key] = after;
+  }
+  if (changed.length) out._projectContentNote = [out._projectContentNote, `SOURCE_DIRTY_ID_STRIPPED:${changed.join(",")}`].filter(Boolean).join("|");
   return out;
 }
 
@@ -6183,6 +6225,7 @@ function parseAttachmentBuffer(buf, depth = 0) {
   const magic = buf.slice(0, 4).toString("latin1");
   if (magic === "%PDF") {
     const r = pdfToTextForAttachment(buf);
+    if (isGarbledExtractedText(r.text)) return { text: "", note: "PDF文字层乱码，需OCR" };
     return { text: r.text, note: r.note };
   }
   if (magic === "PK\x03\x04" || magic === "PK\x05\x06" || magic === "PK\x07\x08") {
@@ -6192,6 +6235,14 @@ function parseAttachmentBuffer(buf, depth = 0) {
     try { return parseAttachmentBuffer(zlib.gunzipSync(buf, { maxOutputLength: 64 * 1024 * 1024 }), depth + 1); } catch { }
   }
   return { text: "", note: "不支持的附件类型（非 PDF/Word/Zip），按诚实政策留空" };
+}
+
+function isGarbledExtractedText(value) {
+  const chars = Array.from(String(value || ""));
+  if (chars.length < 80) return false;
+  const controls = chars.filter((ch) => /\p{C}/u.test(ch) && !/[\r\n\t]/.test(ch)).length;
+  const readable = chars.filter((ch) => /[\p{L}\p{N}\p{P}\p{Zs}\r\n\t]/u.test(ch)).length;
+  return controls / chars.length > 0.02 || readable / chars.length < 0.55;
 }
 
 function attachmentTextScore(text) {
@@ -6276,6 +6327,7 @@ function attachmentSignal(args, rec, status, extra = {}) {
 function attachmentStatusFromNote(note) {
   const text = String(note || "");
   if (/验证码/.test(text)) return "ATTACHMENT_CAPTCHA_REQUIRED";
+  if (/需OCR|文字层乱码|可能扫描件/.test(text)) return "ATTACHMENT_OCR_REQUIRED";
   if (/ZBJ加密7z容器/.test(text)) return "ATTACHMENT_ZBJ_ENCRYPTED";
   if (/不支持的附件类型/.test(text)) return "ATTACHMENT_UNSUPPORTED";
   if (/下载失败|HTTP\s*[45]\d\d|POST失败/.test(text)) return "ATTACHMENT_DOWNLOAD_FAILED";
@@ -8016,7 +8068,7 @@ function classifySheetEvidence(title) {
   const text = String(title || "").replace(/\s+/g, "").trim();
   const highwayStrong = /高速公路|国道(?:[GＧ]?\d+)?|省道(?:[SＳ]?\d+)?|农村公路|公路工程|路基路面|(?:高速互通|互通式?立交)|收费站/;
   const highwayMunicipalAccessory = /(?:配套市政|市政配套)/;
-  const municipalStrong = /市政(?:道路|桥梁|供水|排水|污水|管网|设施)|城市(?:支路|次干路|主干路|道路)|配套市政工程|供水管网(?:互联互通|提升改造)|二次供水设施|(?:片区|城区|城镇)[^，。；]{0,20}排水防涝|(?:路|街|大道)(?:（[^）]*）|\([^)]*\))?道路工程/;
+  const municipalStrong = /市政(?:道路|桥梁|供水|排水|污水|管网|设施)|城市(?:支路|次干路|主干路|道路)|配套市政工程|市容环境整治|供水管网(?:互联互通|提升改造)|二次供水设施|(?:片区|城区|城镇)[^，。；]{0,20}排水防涝|(?:路|街|大道)(?:（[^）]*）|\([^)]*\))?道路工程/;
   const waterStrong = /水利(?:工程|枢纽)|水库(?:除险|加固|工程|建设|治理|扩容)|灌区|灌渠|堤防|水闸|河道(?:治理|整治)|防洪(?:工程|治理)|农田水利|水资源配置|输水管?工程/;
   if (highwayStrong.test(text) && (!municipalStrong.test(text) || highwayMunicipalAccessory.test(text))) return { sheet: "公路", rule: "HIGHWAY_STRONG" };
   if (municipalStrong.test(text)) return { sheet: "房建市政", rule: "MUNICIPAL_STRONG" };
@@ -8834,6 +8886,10 @@ module.exports.classifySheetEvidence = classifySheetEvidence;
 module.exports.prepareFactForOutput = prepareFactForOutput;
 module.exports.wuhanDetail = wuhanDetail;
 module.exports.hubeiCompleteScope = hubeiCompleteScope;
+module.exports.sanitizeYunnanDetail = sanitizeYunnanDetail;
+module.exports.extractYunnanProjectSections = extractYunnanProjectSections;
+module.exports.isGarbledExtractedText = isGarbledExtractedText;
+module.exports.attachmentStatusFromNote = attachmentStatusFromNote;
 module.exports.guizhouCompleteScope = guizhouCompleteScope;
 module.exports.parseQuanzhouPayload = parseQuanzhouPayload;
 module.exports.parseYibinDetailPayload = parseYibinDetailPayload;

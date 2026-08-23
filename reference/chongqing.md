@@ -23,3 +23,7 @@ node scripts/province-collect.cjs -p chongqing -k 管网 -d 30 --stage zb --limi
 ## 2026-08-23 全国验收收口
 
 冻结样本 S018 已确认企业资质精确提取，`qualification` 转为 `FIELD_VERIFIED_DETAIL`。证据见 `evidence/nationwide-100-final-and-blind30-v2.json`。
+
+## 2026-08-23 生产试运行02
+
+货物采购模板的 `2.2项目概况与建设规模 → 2.3采购估算金额` 由重庆adapter完整提取，四个水厂的供水规模、管径、长度和设施内容不再只剩末尾“一是水源引水工程”。证据见 `evidence/production02-gap32-a-v1.json`。

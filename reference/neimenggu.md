@@ -32,3 +32,7 @@ performance / fullScore（源页普遍无评分细则/业绩要求，全省一�
 
 ## 家族与通用纪律
 见 `FAMILY_INDEX.md`（家族总览 + 代理/鉴权/mustache 脏值拦截/去重坍缩等通用提醒）。
+
+## 2026-08-23 生产试运行02
+
+加装电梯公告附件具有PDF文字层但内容为控制字符/乱码；附件质量守卫现输出 `ATTACHMENT_OCR_REQUIRED`，不把乱码当“已解析但无字段”，也不降低公告 `VERIFIED_RECORD`。证据见 `evidence/production02-gap32-a-v1.json`。

@@ -997,6 +997,25 @@ test("生产试运行02历史残差按平台精确边界闭环", () => {
   assert.equal(fixture.adjudications.filter((row) => row.status.startsWith("MATERIAL_CHANGE")).length, 2);
 });
 
+test("生产试运行02缺口32-A批次拒绝源脏值并标记OCR", () => {
+  const fixture = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "production02-gap32-a-v1.json"), "utf8"));
+  const replay = fixture.replay;
+  const cq = M.ADAPTERS.chongqing.detail(replay.chongqing_html, { title: "重庆样本", url: "https://example.invalid/cq" }, "");
+  assert.equal(cq.scale, replay.chongqing_scale);
+  const yn = M.sanitizeYunnanDetail(replay.yunnan_dirty);
+  assert.equal(yn.title, "项目招标公告");
+  assert.equal(yn.scale, "");
+  assert.equal(yn.funding, "国资 100.0% 自筹 % 贷款 % 外资 %");
+  assert.match(yn._projectContentNote, /^SOURCE_DIRTY_ID_STRIPPED:/);
+  assert.deepEqual(M.extractYunnanProjectSections(replay.yunnan_text), replay.yunnan_sections);
+  assert.equal(M.extractProjectContent("", "建设规模：本项目划分为。", "建设规模：本项目划分为。").scale, "");
+  assert.equal(M.isGarbledExtractedText(replay.garbled_pdf_text), true);
+  assert.equal(M.isGarbledExtractedText("这是正常的中文招标文件正文。".repeat(20)), false);
+  assert.equal(M.attachmentStatusFromNote("PDF文字层乱码，需OCR"), "ATTACHMENT_OCR_REQUIRED");
+  for (const sample of replay.classification_titles) assert.equal(M.classifySheet(sample.title), sample.expected, sample.url);
+  assert.equal(fixture.material_changes.length, 2);
+});
+
 test("生产P01-P05详情完整性按冻结官方摘录回放", () => {
   const fixture = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "production-detail-completeness-v1.json"), "utf8")).replay;
   const ygp = (html, title) => M.parseYgpDetailPayload(
