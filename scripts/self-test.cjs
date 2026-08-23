@@ -827,6 +827,8 @@ test("项目内容覆盖编号段、采购需求、单位工程范围和惠州�
   assert.doesNotMatch(nestedScaleOut.scale, /标段划分|计划工期/);
   const topScale = M.extractDetail({}, "2.建设规模及内容：提升绿化1368㎡、增设照明105盏，总建设面积2.7万㎡。3.项目总投资：1亿元。", { title: "社区项目招标公告", url: "x" }, "");
   assert.match(topScale.scale, /2\.7万㎡/);
+  const pdfScale = M.extractDetail({}, "", { title: "输水工程招标公告", url: "x" }, "2.工程规模：新建DN1800原水管，总长约2500米；新建DN600分质水管，总长约600米。\n3.本公告共划分为1个标段");
+  assert.match(pdfScale.scale, /DN600分质水管/);
 });
 
 test("最终详情覆盖交货期、表格工期、特定资格、明确无业绩和评标办法", () => {

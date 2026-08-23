@@ -2358,6 +2358,7 @@ function countQual(s) {
 function grabQualification(text, flat) {
   if (/本项目的特定资格要求\s*[:：]\s*无(?=[。；;\s]|$)/.test(text)) return "不要求";
   const exactSections = [
+    text.match(/3\s*\.\s*2\s*投标人具备下列要求之一\s*[:：]?\s*([\s\S]{8,1800}?)(?=3\s*\.\s*3\s*投标人拟派)/)?.[1],
     text.match(/3\s*\.\s*1\s*工程设计资质须满足下列条件之一\s*[:：]\s*([\s\S]{8,1200}?)(?=3\s*\.\s*2\s*投标人拟派)/)?.[1],
     text.match(/3\s*\.\s*1\s*本次招标允许投标人以投标货物的下列身份参加投标\s*[:：]?\s*([\s\S]{8,1600}?)(?=3\s*\.\s*2\s*投标人还应)/)?.[1],
     text.match(/本项目的特定资格要求\s*[:：]\s*([\s\S]{8,1600}?)(?=三[、.．]\s*获取招标文件)/)?.[1],
@@ -2702,11 +2703,13 @@ function extractProjectContent(html, text, flat) {
   // 天津实测同时出现“建设规模为97.966公里”和“项目概况：改造3.69公里”，必须保留前者为 scale。
   if (!scale) {
     const numberedOverview = String(text || "").match(/(?:^|\n)\s*2\s*\.\s*1\s*项目概况\s*([\s\S]{4,2200}?)(?=\n?\s*2\s*\.\s*2\s*(?:标段划分|招标范围))/m)?.[1] || "";
+    const topLevelScale = String(text || "").match(/(?:^|\n)\s*2\s*[.．、]\s*工程规模\s*[:：]\s*([\s\S]{4,2200}?)(?=\n\s*3\s*[.．、])/m)?.[1] || "";
     const embeddedScale = String(text || "").match(/建设规模\s*[:：]\s*([\s\S]{4,1800}?)(?=\s*2\s*\.\s*2\s*招标范围)/)?.[1] || "";
     const numberedScale = grabNumberedProjectSection(text, SCALE_LABELS, "scale");
     const numberedAmbiguous = grabNumberedProjectSection(text, ["建设内容", "项目基本情况"], "scale");
     const cleanOverview = cleanProjectContent(numberedOverview);
-    if (numberedScale) { scale = numberedScale; scaleExact = true; }
+    if (topLevelScale) { scale = cleanProjectContent(topLevelScale); scaleExact = !!scale; }
+    else if (numberedScale) { scale = numberedScale; scaleExact = true; }
     else if (embeddedScale) { scale = cleanProjectContent(embeddedScale); scaleExact = !!scale; }
     else if (cleanOverview) { scale = cleanOverview; scaleExact = true; }
     else if (numberedAmbiguous && PROJECT_SCALE_SIGNAL.test(numberedAmbiguous)) { scale = numberedAmbiguous; scaleExact = false; }
