@@ -23,3 +23,7 @@ node scripts/province-collect.cjs -p 中山 -k 管网 -d 365 --stage zb --limit 
 ## 诚实限制
 
 “管网”30/90 天为空，按分层规则扩大到 365 天；不把空窗口当失败。
+
+## 2026-08-23 生产试运行02
+
+结构化表格的“招标范围及规模”在项目估算总投资前停止，建设事实完整保留；“招标内容”和“投标资格能力要求”不再受500字上限影响。本次真实样本scale 263字、scope 568字、qualification 999字。fixture：`evidence/production02-gap32-d-v1.json`。

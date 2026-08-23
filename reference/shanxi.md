@@ -35,3 +35,7 @@ performance / fullScore（源页普遍无评分细则/业绩要求，全省一�
 ## 2026-08-23 全国验收收口
 
 冻结样本的工期位于无可靠文本层的 PDF，`duration` 按 `FIELD_OCR_REQUIRED` 收口；本轮不增加 OCR，也不把无法稳定读取写成未披露。证据见 `evidence/nationwide-100-final-and-blind30-v2.json`。
+
+## 2026-08-23 生产试运行02
+
+线路工程PDF按 `2.2项目建设规模及内容 → 2.3招标内容与范围 → 2.4建设地点` 精确提取；scope取2.3内嵌“招标范围”，不再误写招标人名称。fixture：`evidence/production02-gap32-d-v1.json`。
