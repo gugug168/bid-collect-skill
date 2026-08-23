@@ -23,3 +23,7 @@ node scripts/province-collect.cjs -p gansu -k 管网 -d 30 --stage zb --limit 3 
 ## 2026-08-23 全国验收收口
 
 冻结样本确认 `bidOpen` 可从官方详情稳定回读，转为 `FIELD_VERIFIED_DETAIL`；下载按钮只返回官方 HTML 壳的 `docLink` 继续记 `FIELD_RESTRICTED`，不拼造直链。证据见 `evidence/nationwide-100-final-and-blind30-v2.json`。
+
+## 2026-08-23 生产试运行02
+
+“七里河区至城关区”跨区供热干线项目按标题首次行政区记录为七里河区，不再被列表/项目地点中的城关区覆盖；供热干线监理归房建市政。fixture：`evidence/production02-final-hard-v1.json`。

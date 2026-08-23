@@ -1,0 +1,15 @@
+{
+  "schema_version": "production02-final-hard.v1",
+  "source_commit": "b356a60",
+  "region": {"title":"七里河区至城关区热电联产替代燃气锅炉供热干线工程监理","expected":"七里河区","url":"https://lzggzyjy.lanzhou.gov.cn/jygk/002001/002001001/20260821/1348bbd5-b23e-4afa-ac9f-afa40fd46859.html"},
+  "classification": [
+    {"title":"七里河区至城关区热电联产替代燃气锅炉供热干线工程监理","expected":"房建市政"},
+    {"title":"和谐小区8#-2单元加装电梯招标公告","expected":"房建市政"},
+    {"title":"青岛国际邮轮港区航运中心项目酒店智能化工程（暂估价）招标公告","expected":"房建市政"}
+  ],
+  "material_changes": [
+    {"sample_id":"S041","field":"region","gold":"常州市","actual":"新北区"},
+    {"sample_id":"S057","field":"region","gold":"青海省","actual":"城中区"},
+    {"sample_id":"S081","field":"region","gold":"秦皇岛市","actual":"北戴河区"}
+  ]
+}
