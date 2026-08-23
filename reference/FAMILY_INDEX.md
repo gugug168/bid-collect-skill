@@ -18,7 +18,7 @@
 | neimenggu | 内蒙古 | nmg | ✅ WORKS | — | TRS 公开 JSON 详情 nmgDetail（15/15，过滤 1970 脏开标） |
 | liaoning | 辽宁 | ln | ✅ WORKS | 18/20 | TRS，perpage≤20 |
 | jilin | 吉林 | jl | ✅ WORKS | 18/20 | TRS JSONP，channelid=237687 |
-| heilongjiang | 黑龙江 | epoint | ✅ WORKS | 18/20 | **修复**：cnum 003→002(工程建设) + keywordClient(wd 检索坏)；用 `-d 400` |
+| heilongjiang | 黑龙江 | epoint | ⚠️ DETAIL_404 | — | 列表可达；30/90天空窗，365天真实记录详情404，测试/招标计划已剔除，确定性404不重试 |
 | jiangsu | 江苏 | epoint | ✅ WORKS | 18/20 | cnum=003 |
 | zhejiang | 浙江 | epoint | ✅ WORKS | 18/20 | cnum=002，须 webdate 排序 |
 | anhui | 安徽 | ah | ✅ WORKS | 18/20 | bespoke newDetailSub AJAX；去 `time=1` 限今天 |

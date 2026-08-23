@@ -304,6 +304,7 @@ const ADAPTERS = {
     keywordClient: true, // ★ 黑龙江服务端 wd 检索失效（管网/工程/招标均返回 0），改拉全量类目后在 crawlRound 按标题客户端过滤
     sortField: "webdate", // 无 infodatepx 字段，按 webdate 排序才能近 N 天正确截断
     defaultType: "", // 混合类型，交由 inferType 按标题判定
+    itemAllowed: (item) => !/(?:测试|test|演示|样例|招标计划|暗标清标|综合打分法|(?:^|[\s(（])AI(?:[\s)）]|$))/i.test(String(item && item.title || "")),
     // ---- B 阶段（Goal v1）：黑龙江工程建设 中标候选人 = categorynum 003002001002（003001招标/002候选/006评标/007合同(test)）。
     // 该实例未单列"中标结果"栏目（中标候选人公示已含中标人/中标价），故仅配 candidate。
     stages: {
@@ -355,6 +356,7 @@ const ADAPTERS = {
     cats: ["003001001"],
     rn: 12,
     defaultType: "招标公告",
+    detail: xuzhouDetail,
     makeBody(pn, wd, cat) {
       return {
         token: "", pn, rn: String(this.rn || 12), sdt: "", edt: "",
@@ -4796,6 +4798,16 @@ function sichuanDetail(html, item, pdfText) {
   return out;
 }
 
+function xuzhouDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  const text = String(pdfText || htmlToText(html));
+  const exactScope = text.match(/(?:^|\n)\s*2\.2\s*招标范围\s*[:：]\s*([\s\S]{4,2400}?)(?=\s*2\.3\s*是否属于政府采购工程)/m)?.[1] || "";
+  const exactPerformance = text.match(/(?:^|\n)\s*3\.4\s*业绩要求\s*[:：]\s*([\s\S]{4,5000}?)(?=\s*3\.5\s*投标人及拟派)/m)?.[1] || "";
+  if (exactScope) out.scope = cleanFullProjectFact(exactScope);
+  if (exactPerformance) out.performance = cleanFullProjectFact(exactPerformance);
+  return out;
+}
+
 function liaoningDetail(html, item, pdfText) {
   const out = extractDetail({}, html, item, pdfText);
   const text = htmlToText(html);
@@ -6058,19 +6070,24 @@ async function requestWithRetry(url, delay = 500) {
           throw new Error("RATE_LIMIT_STOP HTTP 429");
         }
         if (r.status === 0) throw new Error(`TRANSPORT_STOP ${r.klass || "unknown"}`);
-        if (!r.ok) throw new Error("HTTP " + r.status);
+        if (!r.ok) throw new Error((isNonRetryableHttpStatus(r.status) ? "HTTP_CLIENT_STOP " : "HTTP ") + r.status);
         relaxThrottle();
         return await r.text();
       } finally { clearTimeout(t); }
     } catch (e) {
       console.error("[req] attempt", attempt, "ERR", e && e.name, e && e.message);
-      if (/^(?:RATE_LIMIT_STOP|TRANSPORT_STOP)/.test(String(e && e.message || ""))) throw e;
+      if (/^(?:RATE_LIMIT_STOP|TRANSPORT_STOP|HTTP_CLIENT_STOP)/.test(String(e && e.message || ""))) throw e;
       if (e.name === "AbortError") { bumpThrottle(Math.max(wait * 2, 5000)); await sleep(wait); wait = Math.min(THROTTLE_CEIL, wait * 2); continue; }
       if (attempt === 5) throw e;
       await sleep(wait); wait = Math.min(THROTTLE_CEIL, wait * 2);
     }
   }
   throw new Error("retry exhausted");
+}
+
+function isNonRetryableHttpStatus(status) {
+  const value = Number(status);
+  return value >= 400 && value < 500;
 }
 
 function decryptGuangxiSecret(ciphertext) {
@@ -8066,22 +8083,31 @@ function resolveYgpCityTargets(args) {
 // 强语义解决“市政道路→公路”“市政供水→水利”的先到先得误判；弱语义只作兼容兜底。
 function classifySheetEvidence(title) {
   const text = String(title || "").replace(/\s+/g, "").trim();
-  const highwayStrong = /高速公路|国道(?:[GＧ]?\d+)?|省道(?:[SＳ]?\d+)?|农村公路|公路工程|路基路面|(?:高速互通|互通式?立交)|收费站/;
+  const highwayStrong = /高速公路|国道(?:[GＧ]?\d+)?|省道(?:[SＳ]?\d+)?|农村公路|产业路|公路工程|路基路面|(?:高速互通|互通式?立交)|收费站/;
   const highwayMunicipalAccessory = /(?:配套市政|市政配套)/;
-  const municipalStrong = /市政(?:道路|桥梁|供水|排水|污水|管网|设施)|城市(?:支路|次干路|主干路|道路)|配套市政工程|市容环境整治|供水管网(?:互联互通|提升改造)|二次供水设施|(?:片区|城区|城镇)[^，。；]{0,20}排水防涝|(?:路|街|大道)(?:（[^）]*）|\([^)]*\))?道路工程/;
-  const waterStrong = /水利(?:工程|枢纽)|水库(?:除险|加固|工程|建设|治理|扩容)|灌区|灌渠|堤防|水闸|河道(?:治理|整治)|防洪(?:工程|治理)|农田水利|水资源配置|输水管?工程/;
+  const municipalStrong = /市政(?:道路|桥梁|供水|排水|污水|管网|设施)|城市(?:支路|次干路|主干路|道路)|配套市政工程|市容环境整治|生活污水治理|上跨高速桥梁|供水管网(?:互联互通|提升改造)|二次供水设施|(?:片区|城区|城镇)[^，。；]{0,20}排水防涝|(?:路|街|大道)(?:（[^）]*）|\([^)]*\))?道路工程/;
+  const waterStrong = /水利(?:工程|枢纽)|水库(?:除险|加固|工程|建设|治理|扩容)|水塘|灌区|灌渠|堤防|水闸|河道(?:治理|整治)|防洪(?:工程|治理)|农田水利|水资源配置|输水管?工程/;
   if (highwayStrong.test(text) && (!municipalStrong.test(text) || highwayMunicipalAccessory.test(text))) return { sheet: "公路", rule: "HIGHWAY_STRONG" };
   if (municipalStrong.test(text)) return { sheet: "房建市政", rule: "MUNICIPAL_STRONG" };
   if (waterStrong.test(text)) return { sheet: "水利", rule: "WATER_STRONG" };
   if (highwayStrong.test(text)) return { sheet: "公路", rule: "HIGHWAY_STRONG" };
   if (/公路|高速|国道|省道|桥梁|隧道|路基|路面|道路工程/.test(text)) return { sheet: "公路", rule: "HIGHWAY_WEAK_LEGACY" };
   if (/水利|水库|灌区|灌渠|河道|水系|防洪|水环境|饮水|供水|排水|污水|管网|水厂|泵站|治水/.test(text)) return { sheet: "水利", rule: "WATER_WEAK_LEGACY" };
-  if (/房建|建筑|市政|装修|绿化|景观|厂房|安置房|保障房|学校|中学|小学|幼儿园|医院|康养|街区|社区|消防|充电|公园|道路/.test(text)) return { sheet: "房建市政", rule: "MUNICIPAL_OR_BUILDING" };
+  if (/房建|建筑|市政|装修|绿化|景观|厂房|科创中心|安置房|保障房|学校|中学|小学|幼儿园|医院|康养|街区|社区|消防|充电|公园|道路/.test(text)) return { sheet: "房建市政", rule: "MUNICIPAL_OR_BUILDING" };
   return { sheet: "其他项目", rule: "OTHER_DEFAULT" };
 }
 
 function classifySheet(title) {
   return classifySheetEvidence(title).sheet;
+}
+
+function classifyRecordSheetEvidence(rec) {
+  const titleDecision = classifySheetEvidence(rec && rec.title);
+  if (titleDecision.rule !== "OTHER_DEFAULT") return titleDecision;
+  const facts = [rec && rec.title, rec && rec.scale, rec && rec.scope].filter(Boolean).join(" ").replace(/\s+/g, "");
+  const qualification = String(rec && rec.qualification || "").replace(/\s+/g, "");
+  if (/基础设施补短板/.test(facts) && /市政公用工程/.test(qualification)) return { sheet: "房建市政", rule: "DETAIL_CONFIRMED_MUNICIPAL_INFRASTRUCTURE" };
+  return titleDecision;
 }
 
 // 中文省名 → adapter 键。命令行里写 -p 浙江 比 -p zhejiang 自然，
@@ -8544,6 +8570,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
         } catch (e) {
           if (args._run) args._run.errors.push({ code: "DETAIL_FETCH_OR_PARSE", url: item.url, message: String(e && e.message || e) });
           console.error("[detail] FAIL", item.url.slice(0, 60), e.message);
+          if (shouldStopOnDetailError(e && e.message)) { stop = true; break; }
         }
       }
       markChangedDetailSources(rec, beforeDetail);
@@ -8559,7 +8586,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
       // 地区是业务表硬字段：优先保留列表/详情的精确区县，其次从已知行政区词表识别，
       // 最后只回退到该官方 adapter 的明确管辖区（省/市），不臆造更细粒度城市。
       rec.city = resolveRecordRegion(ad, rec, args._run);
-      const sheetDecision = classifySheetEvidence(rec.title);
+      const sheetDecision = classifyRecordSheetEvidence(rec);
       rec.sheet = sheetDecision.sheet;
       if (args._run && Array.isArray(args._run.sheet_classifications)) {
         args._run.sheet_classifications.push({ title: rec.title, url: rec.url, sheet: sheetDecision.sheet, rule: sheetDecision.rule });
@@ -8572,6 +8599,10 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
     if (newCount === 0 && items.length > 0) break;
     page++;
   }
+}
+
+function shouldStopOnDetailError(message) {
+  return /HTTP_CLIENT_STOP\s+(?:404|410)\b/.test(String(message || ""));
 }
 
 function buildMarkdown(prov, ad, result, args) {
@@ -8890,6 +8921,9 @@ module.exports.sanitizeYunnanDetail = sanitizeYunnanDetail;
 module.exports.extractYunnanProjectSections = extractYunnanProjectSections;
 module.exports.isGarbledExtractedText = isGarbledExtractedText;
 module.exports.attachmentStatusFromNote = attachmentStatusFromNote;
+module.exports.classifyRecordSheetEvidence = classifyRecordSheetEvidence;
+module.exports.isNonRetryableHttpStatus = isNonRetryableHttpStatus;
+module.exports.shouldStopOnDetailError = shouldStopOnDetailError;
 module.exports.guizhouCompleteScope = guizhouCompleteScope;
 module.exports.parseQuanzhouPayload = parseQuanzhouPayload;
 module.exports.parseYibinDetailPayload = parseYibinDetailPayload;

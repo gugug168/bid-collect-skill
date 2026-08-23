@@ -199,6 +199,12 @@
       "code_commit": "0f71b750eaca71a7560886014ca5b163619e3397",
       "code_dirty": false
     },
+    "fixture:production02-gap32-b": {
+      "kind": "fixture",
+      "path": "reference/evidence/production02-gap32-b-v1.json",
+      "code_commit": "56b48366183e3e224b24349aa6851f3631214c0e",
+      "code_dirty": false
+    },
     "fixture:b1-anyang-project18": {
       "kind": "fixture",
       "path": "reference/evidence/b1-epoint-project18-20260822.json",
@@ -538,23 +544,23 @@
     },
     "heilongjiang": {
       "fields": {
-        "publishDate": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "region": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "bidOpen": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "title": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "scale": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "scope": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "funding": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "duration": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "qualification": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "performance": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "controlPrice": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "bond": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "evaluation": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "consortium": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "fullScore": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "url": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "docLink": {"status":"FIELD_NO_SAMPLE","evidence_id":"fixture:b1-heilongjiang-project18","verified_at":"2026-08-22T00:01:00+08:00"}
+        "publishDate": {"status":"FIELD_FAILED","evidence_id":"fixture:production02-gap32-b","verified_at":"2026-08-23T23:08:00+08:00"},
+        "region": {"status":"FIELD_FAILED","evidence_id":"fixture:production02-gap32-b","verified_at":"2026-08-23T23:08:00+08:00"},
+        "bidOpen": {"status":"FIELD_FAILED","evidence_id":"fixture:production02-gap32-b","verified_at":"2026-08-23T23:08:00+08:00"},
+        "title": {"status":"FIELD_FAILED","evidence_id":"fixture:production02-gap32-b","verified_at":"2026-08-23T23:08:00+08:00"},
+        "scale": {"status":"FIELD_FAILED","evidence_id":"fixture:production02-gap32-b","verified_at":"2026-08-23T23:08:00+08:00"},
+        "scope": {"status":"FIELD_FAILED","evidence_id":"fixture:production02-gap32-b","verified_at":"2026-08-23T23:08:00+08:00"},
+        "funding": {"status":"FIELD_FAILED","evidence_id":"fixture:production02-gap32-b","verified_at":"2026-08-23T23:08:00+08:00"},
+        "duration": {"status":"FIELD_FAILED","evidence_id":"fixture:production02-gap32-b","verified_at":"2026-08-23T23:08:00+08:00"},
+        "qualification": {"status":"FIELD_FAILED","evidence_id":"fixture:production02-gap32-b","verified_at":"2026-08-23T23:08:00+08:00"},
+        "performance": {"status":"FIELD_FAILED","evidence_id":"fixture:production02-gap32-b","verified_at":"2026-08-23T23:08:00+08:00"},
+        "controlPrice": {"status":"FIELD_FAILED","evidence_id":"fixture:production02-gap32-b","verified_at":"2026-08-23T23:08:00+08:00"},
+        "bond": {"status":"FIELD_FAILED","evidence_id":"fixture:production02-gap32-b","verified_at":"2026-08-23T23:08:00+08:00"},
+        "evaluation": {"status":"FIELD_FAILED","evidence_id":"fixture:production02-gap32-b","verified_at":"2026-08-23T23:08:00+08:00"},
+        "consortium": {"status":"FIELD_FAILED","evidence_id":"fixture:production02-gap32-b","verified_at":"2026-08-23T23:08:00+08:00"},
+        "fullScore": {"status":"FIELD_FAILED","evidence_id":"fixture:production02-gap32-b","verified_at":"2026-08-23T23:08:00+08:00"},
+        "url": {"status":"FIELD_FAILED","evidence_id":"fixture:production02-gap32-b","verified_at":"2026-08-23T23:08:00+08:00"},
+        "docLink": {"status":"FIELD_FAILED","evidence_id":"fixture:production02-gap32-b","verified_at":"2026-08-23T23:08:00+08:00"}
       }
     },
     "suzhou": {

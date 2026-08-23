@@ -34,3 +34,7 @@ performance / fullScore（源页普遍无评分细则/业绩要求，全省一�
 - `--stage candidate`(cats 003002001002) 列表通；该实例未单列"中标结果"栏目（候选公示已含中标人/中标价），故仅配 candidate。
 - 实测命中（最完整）：中标人 / 中标价 / 项目经理 / 中标得分 / 排名 / 招标人 / 承包人 全命中。
 - 用法：`-p heilongjiang --stage candidate -k 管网 --detail -d 400 --csv`（建设索引偏旧，用 `-d 400`）
+
+## 2026-08-23 生产试运行02
+
+无关键词30/90天空窗；365天列表先出现测试、招标计划及AI模板记录，剔除后首条真实公告详情仍为404。当前 `zb` 运行诚实标为 `FAILED`：404仅请求一次并停止，不把失效URL算 `VERIFIED_RECORD`，也不抹除历史技术可达证据。fixture：`evidence/production02-gap32-b-v1.json`。

@@ -34,3 +34,7 @@ node scripts/province-collect.cjs -p 徐州 -k 管网 -d 90 --limit 3 --out outp
 ## 家族与通用纪律
 
 同类城市入口见 [`CITY_PLATFORMS.md`](CITY_PLATFORMS.md)，字段纪律见 [`FAMILY_INDEX.md`](FAMILY_INDEX.md)。
+
+## 2026-08-23 生产试运行02
+
+工程总承包模板按 `2.2招标范围 → 2.3政府采购工程` 与 `3.4业绩要求 → 3.5其他要求` 精确截取；scope不再误抓“是否专门面向中小企业预留”，performance保留完整业绩标准与证明要求。fixture：`evidence/production02-gap32-b-v1.json`。

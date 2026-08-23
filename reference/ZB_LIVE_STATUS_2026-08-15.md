@@ -13,7 +13,7 @@
 | neimenggu | `VERIFIED_RECORD` | 3 | — | `neimenggu.run-report.json` | 官方 JSON 详情 |
 | liaoning | `VERIFIED_RECORD` | 1 | — | `reference/evidence/a2-structured-project18-20260821.json` | 管网1+非管网1条干净复测；发布机构不再冒充地区 |
 | jilin | `VERIFIED_RECORD` | 1 | — | `jilin.run-report.json` | 30 天仅 1 条，按规则停止 |
-| heilongjiang | `CONNECTED_NO_RECENT_DATA` | 0 | 30/90/365天0；无关键词30天0 | `reference/evidence/b1-epoint-project18-20260822.json` | B1 四次请求成功、零错误限流；17字段以NO_SAMPLE收口 |
+| heilongjiang | `FAILED` | 0 | 30/90天0；365天剔除测试/招标计划后真实记录详情404 | `reference/evidence/production02-gap32-b-v1.json` | 确定性404只请求一次即停止；不再把列表测试记录或失效URL算VERIFIED_RECORD |
 | shanghai | `VERIFIED_RECORD` | 2 | 30 天命中2 | `reference/evidence/c1-htmlpdf-project18-20260822.json` | C1 管网2+非管网1；公告厚字段可核对 |
 | jiangsu | `VERIFIED_RECORD` | 3 | — | `reference/evidence/b1-epoint-project18-20260822.json` | B1 管网3+非管网1；服务范围与业绩门槛修复 |
 | zhejiang | `VERIFIED_RECORD` | 3 | — | `reference/evidence/b1-epoint-project18-20260822.json` | B1 PDF回源；零控制价、规模地点和scope尾噪声修复 |
