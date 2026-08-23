@@ -1,6 +1,6 @@
 {
   "schema_version": "nationwide-100-gold.v2",
-  "frozen_at": "2026-08-23T07:46:02.047Z",
+  "frozen_at": "2026-08-23T08:11:14.378Z",
   "source_commit": "c5c8dfa61e9f263fcfb6b1f75d2786e176c1af3e",
   "source_audit": "2026-08-23_全国100条准确率抽样验收",
   "fields": [
@@ -15352,19 +15352,19 @@
           ]
         },
         "qualification": {
-          "state": "VALUE",
-          "value": "资质条件：详见附件1资格审查条件(资质最低要求)。",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "POINTER_IS_NOT_A_FACT",
           "evidence": [
             "hebei-37268-003.json"
           ]
         },
         "performance": {
-          "state": "VALUE",
-          "value": "详见附件1资格审查条件(业绩最低要求)",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "POINTER_IS_NOT_A_FACT",
           "evidence": [
             "hebei-37268-003.json"
           ]
@@ -16208,10 +16208,10 @@
           ]
         },
         "performance": {
-          "state": "VALUE",
-          "value": "详见附录 3 资格审查条件（业绩最低要求）",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "POINTER_IS_NOT_A_FACT",
           "evidence": [
             "huizhou-20004-009.json"
           ]
@@ -16895,19 +16895,19 @@
           ]
         },
         "qualification": {
-          "state": "VALUE",
-          "value": "详见附录1资格审查条件(资质最低要求)",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "POINTER_IS_NOT_A_FACT",
           "evidence": [
             "qinhuangdao-4776-003.json"
           ]
         },
         "performance": {
-          "state": "VALUE",
-          "value": "详见附录1资格审查条件(业绩最低要求)",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "POINTER_IS_NOT_A_FACT",
           "evidence": [
             "qinhuangdao-4776-003.json"
           ]

@@ -2006,6 +2006,7 @@ function grabPerformance(text, flat) {
   const v = grab(text, ["入围业绩要求", "业绩要求", "业绩条件", "企业业绩", "类似工程业绩", "以下业绩", "类似业绩"]);
   if (/^(?:要求\s*[:：]\s*)?0\s*个$/.test(String(v || "").trim())) return "不要求";
   if (/^的\s*[，,]|应提供其他资料|有效扫描件予以证明/.test(String(v || ""))) return "";
+  if (/^(?:详见|见)(?:附件|附录|投标人须知前附表|前附表)/.test(String(v || "").trim())) return "";
   if (v && PERF_TRUNC.test(v) && flat) {
     const c = grabPerfClause(flat);
     if (c && c.length > v.length) return c;   // 整段更完整才替换，避免无谓改动
@@ -2422,6 +2423,7 @@ function cleanQualificationOutput(value, source = "") {
   v = v.replace(/具备\s*具备/g, "具备");
   const compact = v.replace(/\s+/g, "");
   if (/履行合同的能力[，,]?(?:包括)?资质|具备如下资质[、，,]*并/.test(compact)) return "";
+  if (/^(?:资质条件\s*[:：]\s*)?(?:详见|见)(?:附件|附录|投标人须知前附表|前附表)/.test(v)) return "";
   if (/^1\s*[.、]\s*资质等级及范围[：:]/.test(v)) {
     const recovered = String(source || "").match(/企业要求\s*[:：]\s*([\s\S]{10,800}?)(?=(?:(?:三、|3\s*[.、．])\s*(?:报名|报名及获取|获取招标文件)|(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取))|$)/)?.[1] || "";
     if (recovered) v = cleanVal(recovered.replace(/[\r\n]+/g, " "));

@@ -851,6 +851,9 @@ test("最终详情覆盖交货期、表格工期、特定资格、明确无业�
   assert.equal(M.extractDetail({}, "投标总分满分标准：100分。", { title: "项目招标公告", url: "x" }, "").fullScore, "100分");
   assert.equal(M.extractDetail({}, "企业业绩要求：0个。", { title: "项目招标公告", url: "x" }, "").performance, "不要求");
   assert.equal(M.extractDetail({}, "业绩要求：的，应提供其他资料的有效扫描件予以证明。", { title: "项目招标公告", url: "x" }, "").performance, "");
+  const pointerOnly = M.extractDetail({}, "资质条件：详见附件1资格审查条件（资质最低要求）。业绩要求：详见附录3资格审查条件。", { title: "项目招标公告", url: "x" }, "");
+  assert.equal(pointerOnly.qualification, "");
+  assert.equal(pointerOnly.performance, "");
   assert.equal(M.extractDetail({}, "合同履行期限：合同签订后。", { title: "项目招标公告", url: "x" }, "").duration, "");
   assert.equal(M.extractDetail({}, "投标保证担保对联合体成员有约束力。项目示例金额1234567819元。", { title: "项目招标公告", url: "x" }, "").bond, "");
 });
