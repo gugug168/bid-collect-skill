@@ -1,0 +1,18 @@
+{
+  "schema_version": "production-blind10-classification.v1",
+  "frozen_at": "2026-08-23T18:31:00+08:00",
+  "source_commit": "81928ad152d8ac9f2724ad08834d6948d3c96f23",
+  "samples": [
+    {"id":"B10-01","adapter":"beijing","title":"民航华北空中交通管理局局办公楼空调系统更新改造工程施工招标公告","expected_sheet":"其他项目","url":"https://ggzyfw.beijing.gov.cn/jyxxggjtbyqs/20260821/5679650.html"},
+    {"id":"B10-02","adapter":"beijing","title":"顺义区俸伯站西路（顺平辅线-彩祥西路）及彩祥西路（俸伯站西路-左堤辅线）道路工程（监理）招标公告","expected_sheet":"房建市政","url":"https://ggzyfw.beijing.gov.cn/jyxxggjtbyqs/20260821/5678956.html"},
+    {"id":"B10-03","adapter":"zhejiang","title":"衢州市供水管网互联互通工程招标公告[A3300000090005170001001]","expected_sheet":"房建市政","url":"https://ggzy.zj.gov.cn/jyxxgk/002001/002001001/20260821/b2df859b-20ee-4054-8c5c-c97a903e762b.html"},
+    {"id":"B10-04","adapter":"guangdong","title":"佛山市三水区北部片区排水防涝工程-佛山市三水区北部片区排水防涝工程(一期)施工招标公告","expected_sheet":"房建市政","url":"https://ygp.gdzwfw.gov.cn/ggzy-portal/#/new/jygg/v3/A?noticeId=27a1fa75-cdd2-47ff-b4b1-214d268882c7-3C14&projectCode=A4406010001001263001&bizCode=3C14&siteCode=440600"},
+    {"id":"B10-05","adapter":"guangdong","title":"佛山市高明区老旧小区二次供水设施及老旧供水管网提升改造项目（标段一）招标公告","expected_sheet":"房建市政","url":"https://ygp.gdzwfw.gov.cn/ggzy-portal/#/new/jygg/v3/A?noticeId=68142b71-b37e-4fcc-9469-11e69d44dff1-3C14&projectCode=A4406010001001102003&bizCode=3C14&siteCode=440600"},
+    {"id":"B10-06","adapter":"guangdong","title":"2025年度三水区乐平镇竹山村耕地恢复项目施工招标公告","expected_sheet":"其他项目","url":"https://ygp.gdzwfw.gov.cn/ggzy-portal/#/new/jygg/v3/A?noticeId=eca02a03-484e-4afe-9cb5-c08a2abf4870-3C14&projectCode=A4406010001001261001&bizCode=3C14&siteCode=440600"},
+    {"id":"B10-07","adapter":"wuhan","title":"武汉宋岗三变电站土建工程","expected_sheet":"其他项目","url":"https://ggzyfw.wuhan.gov.cn/whggzy/jygkgy/1029854.jhtml"},
+    {"id":"B10-08","adapter":"hubei","title":"2026年新洲区农村公路示范路建设项目汪集街罗泊村陈孔线至罗泊村公路-施工（第一标段）","expected_sheet":"公路","url":"https://www.hbggzyfwpt.cn/jyxx/jsgcZbggDetail?guid=eb4816e0-d316-4ac7-a72f-0d2dcd40ac0d"},
+    {"id":"B10-09","adapter":"hubei","title":"延福路（杨荷水库南侧-团松林路）道路工程(HBDT-202608SZ-006001001)招标公告","expected_sheet":"房建市政","url":"https://www.hbggzyfwpt.cn/jyxx/jsgcZbggDetail?guid=df9a02ea-c54d-4a2a-8f0f-5c6d38988ac4"},
+    {"id":"B10-10","adapter":"hubei","title":"湖北省枣阳市邢川水库除险加固工程二标（工程监理和项目管理）招标公告","expected_sheet":"水利","url":"https://www.hbggzyfwpt.cn/jyxx/jsgcZbggDetail?guid=9ca52ec9-5dd2-46b0-b5f7-0eadda88615e"}
+  ],
+  "location_conflict_guard": {"title":"延福路（杨荷水库南侧-团松林路）道路工程招标公告","expected_sheet":"房建市政"}
+}
