@@ -69,6 +69,8 @@ node scripts/province-collect.cjs -p 浙江 -k 管网 -d 365 --verify
 
 `-p` 接受 adapter 键或中文省名。代码内 `PROV_ALIAS` 覆盖全部 32 个 adapter；新疆兵团可写 `兵团` 或 `新疆兵团`。不传 `--stage` 等价于 `--stage zb`。
 
+`zb` 采用两层纯度守卫：列表标题拒绝询比、磋商、谈判、询价、资格预审、更正、结果等非招标阶段；详情回读再拒绝“标题像项目名、正文明确资格预审”等伪正例。拒绝记录写入 sidecar 的 `signals.stage_rejections[]`，不下载其附件。城市 adapter 的地区优先使用官方结构化行政区，其次正文行政区，再回退显式 `cityName`；平台、中心、门户、网站、小区等非行政文本写入 `signals.region_rejections[]`。
+
 ## 参数
 
 | 参数 | 含义 | 默认 |

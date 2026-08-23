@@ -271,7 +271,11 @@ test("B2 拒绝标段划分、未勾选业绩模板与引用式规模", () => {
 
 test("B3 拒绝非招标采购、标段章节和项目名字段污染", () => {
   assert.equal(M.isStrictZbTitle("雨污管网在线监测项目竞争性磋商采购公告"), false);
+  assert.equal(M.isStrictZbTitle("内蒙古某建设项目询比采购公告"), false);
   assert.equal(M.isStrictZbTitle("供水管网建设项目公开招标公告"), true);
+  assert.equal(M.isStrictZbTitle("高速公路第三合同段招标公告"), true);
+  assert.equal(M.isStrictZbDetailText("公告内容：资格预审公告 报建编号：2602HK0116 资格预审申请条件 获取资格预审文件"), false);
+  assert.equal(M.isStrictZbDetailText("本项目未进行资格预审，采用资格后审，现发布招标公告"), true);
   assert.equal(M.grabConsortium("本项目是否接受联合体谈判：否"), "不接受");
   assert.equal(M.grabConsortium("本项目是否接受联合体投标：是"), "接受");
   assert.equal(M.extractProjectContent("", "建设规模：1.项目名称：污水处理厂劳务分包", "").scale, "");
@@ -924,6 +928,24 @@ test("地区硬字段优先精确行政区并诚实回退到 adapter 管辖区",
   assert.equal(M.resolveRecordRegion(M.ADAPTERS.beijing, { city: "", projectSite: "", title: "首开集团供热管网改造项目" }), "北京市");
   assert.equal(M.resolveRecordRegion(M.ADAPTERS.shanghai, { city: "奉贤区", projectSite: "", title: "项目" }), "奉贤区");
   assert.equal(M.resolveRecordRegion(M.ADAPTERS.guangxi, { city: "", projectSite: "", title: "广西新柳邕市场给水管网改造" }), "广西壮族自治区");
+  const run = { region_rejections: [] };
+  assert.equal(M.resolveRecordRegion(M.ADAPTERS.qingdao, { city: "青岛市公共资源交易电子服务系统", projectSite: "", title: "某道路工程招标公告", url: "https://example.invalid/qingdao" }, run), "青岛市");
+  assert.equal(run.region_rejections[0].reason_code, "REGION_UI_TEXT_REJECTED");
+  assert.equal(M.resolveRecordRegion(M.ADAPTERS.neimenggu, { city: "和谐小区", projectSite: "", title: "和谐小区加装电梯招标公告" }, run), "内蒙古自治区");
+  assert.equal(run.region_rejections.at(-1).reason_code, "REGION_NON_ADMIN_TEXT_REJECTED");
+  assert.equal(M.resolveRecordRegion(M.ADAPTERS.qingdao, { city: "即墨", projectSite: "", title: "华瑞路西段大修工程施工" }), "即墨");
+  assert.equal(M.resolveRecordRegion(M.ADAPTERS.anyang, { city: "", projectSite: "", title: "2026年林州市乡村旅游产业路提升改造项目" }), "林州市");
+  assert.equal(M.resolveRecordRegion(M.ADAPTERS.ningbo, { city: "高新区", projectSite: "", title: "宁波鄞州区某地块装修工程" }), "鄞州区");
+});
+
+test("19个城市 adapter 使用显式 cityName，不从平台展示名称猜地区", () => {
+  const expected = {
+    suzhou: "苏州市", xuzhou: "徐州市", anyang: "安阳市", changzhou: "常州市", yichang: "宜昌市",
+    weifang: "潍坊市", qingdao: "青岛市", shenzhen: "深圳市", linyi: "临沂市", yantai: "烟台市",
+    wenzhou: "温州市", ningbo: "宁波市", jiaxing: "嘉兴市", wuxi: "无锡市", quanzhou: "泉州市",
+    yueyang: "岳阳市", zunyi: "遵义市", yibin: "宜宾市", dingxi: "定西市",
+  };
+  for (const [adapter, cityName] of Object.entries(expected)) assert.equal(M.ADAPTERS[adapter].cityName, cityName, adapter);
 });
 
 test("安阳 zb 只采工程招标与政府采购公告栏目", () => {

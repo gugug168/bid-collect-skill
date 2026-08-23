@@ -72,6 +72,8 @@ node scripts/province-collect.cjs -p hainan --stage contract -d 120 --limit 20 -
 
 不传 `--stage` 时默认 `zb`。B 阶段栏目不能跨省盲推；只运行对应 adapter 已在 `stages` 中明确配置的阶段。
 
+默认 `zb` 同时执行标题层与详情层纯度检查：询比、磋商、谈判、询价、资格预审、更正和结果公告不得进入业务表；正文明确为资格预审时，即使列表标题只是项目名也会拒绝。阶段与地区拒绝证据分别写入 `signals.stage_rejections[]`、`signals.region_rejections[]`。30个城市 adapter 均使用显式 `cityName` 兜底，不从“公共资源交易平台/中心/门户/网站”等展示文本猜地区。
+
 ## 城市/区县筛选
 
 ```bash

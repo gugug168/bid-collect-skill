@@ -428,6 +428,13 @@
       "code_commit": "12d8bb43c74d705480761ab3f44736ec3dec1775",
       "code_dirty": false,
       "note": "Frozen v2 controlPrice oracle: 27/27 correct, zero estimate/budget false positives; 59-adapter clean live run"
+    },
+    "fixture:nationwide-100-stage-region-remediation-v2": {
+      "kind": "accuracy_audit",
+      "path": "reference/evidence/nationwide-100-stage-region-remediation-v2.json",
+      "code_commit": "98767633b61f3535c004495a3870e65f129b7562",
+      "code_dirty": false,
+      "note": "Frozen v2 hard fields 400/400; S012 title-stage and S073 detail-stage negatives rejected; 21-adapter clean live run"
     }
   },
   "adapters": {
@@ -539,7 +546,7 @@
     "suzhou": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
-        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
         "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
         "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-suzhou-project18","verified_at":"2026-08-22T16:22:00+08:00"},
@@ -560,7 +567,7 @@
     "xuzhou": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b2-xuzhou-project18","verified_at":"2026-08-22T00:17:40+08:00"},
-        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b2-xuzhou-project18","verified_at":"2026-08-22T00:17:40+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b2-xuzhou-project18","verified_at":"2026-08-22T00:17:40+08:00"},
         "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b2-xuzhou-project18","verified_at":"2026-08-22T00:17:40+08:00"},
         "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b2-xuzhou-project18","verified_at":"2026-08-22T00:17:40+08:00"},
@@ -581,7 +588,7 @@
     "anyang": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b1-anyang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "region": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b1-anyang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b1-anyang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
         "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b1-anyang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
         "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b1-anyang-project18","verified_at":"2026-08-22T00:01:00+08:00"},
@@ -602,7 +609,7 @@
     "changzhou": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b1-changzhou-project18","verified_at":"2026-08-22T00:01:00+08:00"},
-        "region": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b1-changzhou-project18","verified_at":"2026-08-22T00:01:00+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b1-changzhou-project18","verified_at":"2026-08-22T00:01:00+08:00"},
         "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b1-changzhou-project18","verified_at":"2026-08-22T00:01:00+08:00"},
         "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b1-changzhou-project18","verified_at":"2026-08-22T00:01:00+08:00"},
@@ -833,7 +840,7 @@
     "yichang": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b3-yichang-project18","verified_at":"2026-08-22T10:22:00+08:00"},
-        "region": {"status":"FIELD_FAILED","evidence_id":"fixture:nationwide-100-baseline-v2","verified_at":"2026-08-23T12:00:00+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b3-yichang-project18","verified_at":"2026-08-22T10:22:00+08:00"},
         "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b3-yichang-project18","verified_at":"2026-08-22T10:22:00+08:00"},
         "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b3-yichang-project18","verified_at":"2026-08-22T10:22:00+08:00"},
@@ -854,7 +861,7 @@
     "weifang": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b3-weifang-project18","verified_at":"2026-08-22T10:22:00+08:00"},
-        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b3-weifang-project18","verified_at":"2026-08-22T10:22:00+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b3-weifang-project18","verified_at":"2026-08-22T10:22:00+08:00"},
         "title": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b3-weifang-project18","verified_at":"2026-08-22T10:22:00+08:00"},
         "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b3-weifang-project18","verified_at":"2026-08-22T10:22:00+08:00"},
@@ -875,7 +882,7 @@
     "qingdao": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:a3-qingdao-project18","verified_at":"2026-08-21T23:28:11+08:00"},
-        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:a3-qingdao-project18","verified_at":"2026-08-21T23:28:11+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:a3-qingdao-project18","verified_at":"2026-08-21T23:28:11+08:00"},
         "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:a3-qingdao-project18","verified_at":"2026-08-21T23:28:11+08:00"},
         "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:a3-qingdao-project18","verified_at":"2026-08-21T23:28:11+08:00"},
@@ -896,7 +903,7 @@
     "shenzhen": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:a3-shenzhen-project18","verified_at":"2026-08-21T23:28:11+08:00"},
-        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:a3-shenzhen-project18","verified_at":"2026-08-21T23:28:11+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:a3-shenzhen-project18","verified_at":"2026-08-21T23:28:11+08:00"},
         "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:a3-shenzhen-project18","verified_at":"2026-08-21T23:28:11+08:00"},
         "scale": {"status":"FIELD_NOT_DISCLOSED","evidence_id":"fixture:a3-shenzhen-project18","verified_at":"2026-08-21T23:28:11+08:00"},
@@ -917,7 +924,7 @@
     "linyi": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b4-linyi-project18","verified_at":"2026-08-22T10:42:00+08:00"},
-        "region": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b4-linyi-project18","verified_at":"2026-08-22T10:42:00+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b4-linyi-project18","verified_at":"2026-08-22T10:42:00+08:00"},
         "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b4-linyi-project18","verified_at":"2026-08-22T10:42:00+08:00"},
         "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b4-linyi-project18","verified_at":"2026-08-22T10:42:00+08:00"},
@@ -938,7 +945,7 @@
     "yantai": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b4-yantai-project18","verified_at":"2026-08-22T10:42:00+08:00"},
-        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b4-yantai-project18","verified_at":"2026-08-22T10:42:00+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b4-yantai-project18","verified_at":"2026-08-22T10:42:00+08:00"},
         "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b4-yantai-project18","verified_at":"2026-08-22T10:42:00+08:00"},
         "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b4-yantai-project18","verified_at":"2026-08-22T10:42:00+08:00"},
@@ -980,7 +987,7 @@
     "wenzhou": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:c2-wenzhou-project18","verified_at":"2026-08-22T15:05:00+08:00"},
-        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:c2-wenzhou-project18","verified_at":"2026-08-22T15:05:00+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:c2-wenzhou-project18","verified_at":"2026-08-22T15:05:00+08:00"},
         "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:c2-wenzhou-project18","verified_at":"2026-08-22T15:05:00+08:00"},
         "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:c2-wenzhou-project18","verified_at":"2026-08-22T15:05:00+08:00"},
@@ -1001,7 +1008,7 @@
     "ningbo": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:a3-ningbo-project18","verified_at":"2026-08-21T23:28:11+08:00"},
-        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:a3-ningbo-project18","verified_at":"2026-08-21T23:28:11+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:a3-ningbo-project18","verified_at":"2026-08-21T23:28:11+08:00"},
         "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:a3-ningbo-project18","verified_at":"2026-08-21T23:28:11+08:00"},
         "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:a3-ningbo-project18","verified_at":"2026-08-21T23:28:11+08:00"},
@@ -1022,7 +1029,7 @@
     "jiaxing": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:c2-jiaxing-project18","verified_at":"2026-08-22T15:05:00+08:00"},
-        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:c2-jiaxing-project18","verified_at":"2026-08-22T15:05:00+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:c2-jiaxing-project18","verified_at":"2026-08-22T15:05:00+08:00"},
         "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:c2-jiaxing-project18","verified_at":"2026-08-22T15:05:00+08:00"},
         "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:c2-jiaxing-project18","verified_at":"2026-08-22T15:05:00+08:00"},
@@ -1043,7 +1050,7 @@
     "wuxi": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b3-wuxi-project18","verified_at":"2026-08-22T10:22:00+08:00"},
-        "region": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b3-wuxi-project18","verified_at":"2026-08-22T10:22:00+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b3-wuxi-project18","verified_at":"2026-08-22T10:22:00+08:00"},
         "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:b3-wuxi-project18","verified_at":"2026-08-22T10:22:00+08:00"},
         "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:b3-wuxi-project18","verified_at":"2026-08-22T10:22:00+08:00"},
@@ -1064,7 +1071,7 @@
     "quanzhou": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:c3-quanzhou-project18","verified_at":"2026-08-22T15:42:00+08:00"},
-        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:c3-quanzhou-project18","verified_at":"2026-08-22T15:42:00+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:c3-quanzhou-project18","verified_at":"2026-08-22T15:42:00+08:00"},
         "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:c3-quanzhou-project18","verified_at":"2026-08-22T15:42:00+08:00"},
         "scale": {"status":"FIELD_PRESENT_UNPARSED","evidence_id":"fixture:nationwide-100-baseline-v2","verified_at":"2026-08-23T12:00:00+08:00"},
@@ -1085,7 +1092,7 @@
     "yueyang": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:c3-yueyang-project18","verified_at":"2026-08-22T15:42:00+08:00"},
-        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:c3-yueyang-project18","verified_at":"2026-08-22T15:42:00+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:c3-yueyang-project18","verified_at":"2026-08-22T15:42:00+08:00"},
         "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:c3-yueyang-project18","verified_at":"2026-08-22T15:42:00+08:00"},
         "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:c3-yueyang-project18","verified_at":"2026-08-22T15:42:00+08:00"},
@@ -1106,7 +1113,7 @@
     "zunyi": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:c3-zunyi-project18","verified_at":"2026-08-22T15:42:00+08:00"},
-        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:c3-zunyi-project18","verified_at":"2026-08-22T15:42:00+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:c3-zunyi-project18","verified_at":"2026-08-22T15:42:00+08:00"},
         "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:c3-zunyi-project18","verified_at":"2026-08-22T15:42:00+08:00"},
         "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:c3-zunyi-project18","verified_at":"2026-08-22T15:42:00+08:00"},
@@ -1127,7 +1134,7 @@
     "yibin": {
       "fields": {
         "publishDate": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
-        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
+        "region": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00"},
         "bidOpen": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
         "title": {"status":"FIELD_VERIFIED_LIST","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},
         "scale": {"status":"FIELD_VERIFIED_DETAIL","evidence_id":"fixture:d-yibin-project18","verified_at":"2026-08-22T16:22:00+08:00"},

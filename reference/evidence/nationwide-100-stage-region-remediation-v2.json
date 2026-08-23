@@ -1,0 +1,64 @@
+{
+  "schema_version": "project18-evidence.v1",
+  "batch": "nationwide-100-stage-region-remediation-v2",
+  "stage": "zb",
+  "verified_at": "2026-08-23T14:53:01+08:00",
+  "code_dirty": false,
+  "oracle": {
+    "gold_path": "reference/evidence/nationwide-100-gold-v2.json",
+    "positive_samples": 100,
+    "stage_negative_samples": ["S012", "S073"],
+    "stage_negative_rejected": 2,
+    "stage_precision": 1,
+    "hard_fields": ["publishDate", "region", "title", "url"],
+    "hard_correct": 400,
+    "hard_wrong": 0,
+    "hard_false_positive": 0,
+    "hard_false_negative": 0
+  },
+  "live_run": {
+    "adapter_count": 21,
+    "verified_record_adapters": 20,
+    "connected_no_recent_data_adapters": 1,
+    "records": 40,
+    "rate_limited_adapters": 0,
+    "qingdao_deep_records": 4,
+    "stage_rejections": {
+      "S012": "STAGE_TITLE_REJECTED",
+      "S073": "STAGE_DETAIL_REJECTED"
+    }
+  },
+  "hashes": {
+    "source_commit_province_collect_sha256": "294c42c6e39358fba30666c8b6d75aca92b5c0ca1762977dca16d2aff112d57a",
+    "source_commit_self_test_sha256": "2b9e9538a5c77a7f98dccf507d2d18d24519ba288da284da6ad0e29df8574069"
+  },
+  "evidence": {
+    "fixture:nationwide-100-stage-region-remediation-v2": {
+      "kind": "accuracy_audit",
+      "path": "reference/evidence/nationwide-100-stage-region-remediation-v2.json",
+      "code_commit": "98767633b61f3535c004495a3870e65f129b7562",
+      "code_dirty": false,
+      "note": "Frozen v2 hard fields 400/400; S012 title-stage and S073 detail-stage negatives rejected; 21-adapter clean live run"
+    }
+  },
+  "capability_updates": {
+    "suzhou": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}},
+    "xuzhou": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}},
+    "anyang": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}},
+    "changzhou": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}},
+    "yichang": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}},
+    "weifang": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}},
+    "qingdao": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}},
+    "shenzhen": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}},
+    "linyi": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}},
+    "yantai": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}},
+    "wenzhou": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}},
+    "ningbo": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}},
+    "jiaxing": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}},
+    "wuxi": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}},
+    "quanzhou": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}},
+    "yueyang": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}},
+    "zunyi": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}},
+    "yibin": {"evidence_id":"fixture:nationwide-100-stage-region-remediation-v2","verified_at":"2026-08-23T14:53:01+08:00","statuses":{"FIELD_VERIFIED_LIST":["region"]}}
+  }
+}

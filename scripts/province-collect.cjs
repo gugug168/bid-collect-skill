@@ -316,6 +316,7 @@ const ADAPTERS = {
   // 分页 ?pageIndex=N（1-based）。详情为静态页 /jyxx/003001/003001001/<日期>/<uuid>.html。
   suzhou: {
     name: "苏州市公共资源交易平台（城市级·静态 SSR）",
+    cityName: "苏州市",
     verified: true, // 2026-08-16 实测：子栏目 4 条正式公告，标题/日期/静态链接齐
     base: "https://ggzy.suzhou.gov.cn",
     clientFilterOnly: true, // 无服务端关键词
@@ -344,6 +345,7 @@ const ADAPTERS = {
   // POST /inteligentsearchnew/... 加载。必须走该 API，否则会漏掉首页与旧静态页之间约一年的公告。
   xuzhou: {
     name: "徐州市公共资源交易网（城市级·EPoint new API）",
+    cityName: "徐州市",
     verified: true, // 2026-08-18 官方 API 实测：wd=管网 totalcount=370，返回真实详情链接
     kind: "epointX",
     base: "https://ggzy.zwb.xz.gov.cn",
@@ -370,6 +372,7 @@ const ADAPTERS = {
   //   证明地级市独立站只要走标准 EPoint，即可零定制套用 epointList/epointPost 复用现有管线。
   anyang: {
     name: "安阳市公共资源交易中心（城市级·标准 EPoint 范本）",
+    cityName: "安阳市",
     verified: true, // 2026-08-16 实测：POST getFullTextDataNew 返回 96504 条真实标讯
     kind: "epoint",
     base: "https://ggzy.anyang.gov.cn",
@@ -393,6 +396,7 @@ const ADAPTERS = {
   // 真机证据：test-logs/v5-fulltest-2026-08-16/（栏目语义逐码验证 + 30 天窗口 VERIFIED_RECORD）。
   changzhou: {
     name: "常州市公共资源交易中心（城市级·标准 EPoint）",
+    cityName: "常州市",
     verified: true, // 2026-08-16 实测：total=54479；-k 管网 -d 30 真实公告 VERIFIED_RECORD
     kind: "epoint",
     base: "https://ggzy.changzhou.gov.cn",
@@ -552,6 +556,7 @@ const ADAPTERS = {
   // ===== Goal v5 批次2：8 个城市级 adapter（2026-08-16 侦察真机验证接入；端点证据见各 reference 页）=====
   yichang: {
     name: "宜昌公共资源交易电子服务系统（城市级·EpointWebBuilder 变体）",
+    cityName: "宜昌市",
     verified: true, // 2026-08-16 侦察验证：getSecInfoListYzm total=4348，-k 管网 3 条真实公告
     kind: "yichang",
     base: "https://ggzy.sc.yichang.gov.cn",
@@ -566,6 +571,7 @@ const ADAPTERS = {
   // 与宜昌同族但参数名大小写及页码语义不同：潍坊必须 pageIndex/pageSize，且首页为 0。
   weifang: {
     name: "潍坊市公共资源交易中心（城市级·EpointWebBuilder 变体）",
+    cityName: "潍坊市",
     verified: true, // 2026-08-18 静态官方 API 实测：90 天“管网”13 条
     kind: "weifang",
     base: "http://ggzy.weifang.gov.cn:8082",
@@ -582,6 +588,7 @@ const ADAPTERS = {
   // 轻量 PartialZTBNew 不支持真实分页，只作探针，不用于正式采集。
   qingdao: {
     name: "青岛市公共资源交易电子服务系统（城市级·ASP.NET MVC SSR）",
+    cityName: "青岛市",
     verified: true, // 2026-08-18 官方列表、详情与当前真实公告复核
     kind: "qingdao",
     base: "https://ggzy.qingdao.gov.cn",
@@ -595,6 +602,7 @@ const ADAPTERS = {
   // 客户端严格锁 noticeTypeName=招标公告，再做关键词/地区过滤。详情同样走公开 CMS API。
   shenzhen: {
     name: "深圳公共资源交易中心（城市级·CMS trade API）",
+    cityName: "深圳市",
     verified: true, // 2026-08-18 无登录、无 token 的官方列表/详情 API 实测
     kind: "shenzhen",
     base: "https://new.szggzy.com",
@@ -606,6 +614,7 @@ const ADAPTERS = {
   },
   linyi: {
     name: "临沂市公共资源交易中心（城市级·EPoint 双层包装）",
+    cityName: "临沂市",
     verified: true, // 2026-08-16 侦察验证：wd=管网 total=153339
     kind: "sdwrap",
     base: "https://ggzyjy.linyi.gov.cn",
@@ -619,6 +628,7 @@ const ADAPTERS = {
   },
   yantai: {
     name: "烟台市公共资源交易中心（城市级·EPoint 双层包装）",
+    cityName: "烟台市",
     verified: true, // 2026-08-16 侦察验证：wd=管网 total=217958
     kind: "sdwrap",
     base: "https://ggzyjy.yantai.gov.cn",
@@ -646,6 +656,7 @@ const ADAPTERS = {
   // 注意：col1229666813 是瑞安分网旧栏目，不代表温州市主站，不能据此声称全市覆盖。
   wenzhou: {
     name: "温州市公共资源交易网（城市级·JPaas CMS）",
+    cityName: "温州市",
     verified: true, // 2026-08-18 官方主站栏目 + CMS 接口 + PDF 详情实时验证
     kind: "wenzhou",
     base: "https://ggzyjy-eweb.wenzhou.gov.cn",
@@ -664,6 +675,7 @@ const ADAPTERS = {
   // 携该 token 可匿名访问 /websiteapi；getCmsType 实测 020105=工程建设-招标公告。
   ningbo: {
     name: "宁波市公共资源交易电子服务系统（城市级·websiteapi）",
+    cityName: "宁波市",
     verified: true, // 2026-08-18 官方前端 token 逻辑 + 020105 栏目 + articleList/getArticle 实时验证
     kind: "ningbo",
     base: "https://jyxt.zwb.ningbo.gov.cn:4011",
@@ -679,6 +691,7 @@ const ADAPTERS = {
   // 与温州同属 JPaas，但列表项 class 是 wb-data-list（温州为 cf），须单独解析，不能假设模板同构。
   jiaxing: {
     name: "嘉兴市公共资源交易网（城市级·JPaas CMS）",
+    cityName: "嘉兴市",
     verified: true, // 2026-08-18 官方栏目、unitbuild 接口与当前真实公告验证
     kind: "jiaxing",
     base: "https://jxszwsjb.jiaxing.gov.cn",
@@ -693,6 +706,7 @@ const ADAPTERS = {
   },
   wuxi: {
     name: "无锡市公共资源交易中心（城市级·webBuilder AJAX）",
+    cityName: "无锡市",
     verified: true, // 2026-08-16 侦察验证：chanId=53051 total=7180
     kind: "wuxi",
     base: "https://ggzyjy.wuxi.gov.cn",
@@ -704,6 +718,7 @@ const ADAPTERS = {
   },
   quanzhou: {
     name: "泉州市公共资源交易中心（城市级·Java .do）",
+    cityName: "泉州市",
     verified: true, // 2026-08-16 侦察验证：total=8982；全站搜索"管网"命中 2684
     kind: "quanzhou",
     base: "http://ggzyjy.quanzhou.gov.cn", // 全站 http（内部链接均 http）
@@ -714,6 +729,7 @@ const ADAPTERS = {
   },
   yueyang: {
     name: "岳阳市公共资源交易中心（城市级·静态 CMS·GBK）",
+    cityName: "岳阳市",
     verified: true, // 2026-08-16 侦察验证：招标公告栏目约 5700 条（285 页×20）
     kind: "yueyang",
     base: "https://ggzy.yueyang.gov.cn",
@@ -724,6 +740,7 @@ const ADAPTERS = {
   },
   zunyi: {
     name: "遵义市公共资源交易（城市级·贵州省平台视角过滤）",
+    cityName: "遵义市",
     verified: true, // 2026-08-16 侦察验证：docSourceName=遵义市+管网 total=1982
     kind: "zunyi",
     base: "https://ggzy.guizhou.gov.cn", // 数据源=省平台（市站本体为 TRS SSR 通知栏）
@@ -731,6 +748,7 @@ const ADAPTERS = {
   },
   yibin: {
     name: "宜宾市公共资源交易中心（城市级·筑龙 SPA 网关）",
+    cityName: "宜宾市",
     verified: true, // 2026-08-16 侦察验证：xinXi_LeiXing=102 total=7952，管网命中 266
     kind: "yibin",
     base: "https://ggzy.yibin.gov.cn",
@@ -751,6 +769,7 @@ const ADAPTERS = {
   //   仅证明"可达城市级 EPoint + infodate 排序变体"可接入，覆盖第 4 种 sortField。
   dingxi: {
     name: "定西市公共资源交易中心（城市级·标准 EPoint·infodate 排序变体）",
+    cityName: "定西市",
     verified: true, // 2026-08-16 实测：POST getFullTextDataNew total=4621；cats=004 隔离交易类 3875 条；最新数据 2023-04-23
     kind: "epoint",
     base: "https://ggzy.dingxi.gov.cn",
@@ -2738,7 +2757,27 @@ function extractNoticeTitle(html, fallback = "") {
 function isStrictZbTitle(title) {
   const text = String(title || "").replace(/\s+/g, " ").trim();
   if (!text) return false;
-  return !/(?:竞争性磋商|竞争性谈判|磋商采购公告|谈判采购公告|询价(?:采购)?公告|单一来源(?:采购)?公告|资格预审(?:文件|公告)?|资审文件公告|预审结果|答疑|澄清|更正|变更|补充公告|终止公告|暂停公告|流标|废标|最高投标限价(?:公告|公示)?|招标控制价(?:公告|公示)?$|中标(?:候选人|结果|公告|公示)|成交(?:公告|结果|公示)|评标结果|合同(?:公告|公示))/.test(text);
+  return !/(?:竞争性磋商|竞争性谈判|磋商采购公告|谈判采购公告|询比(?:采购)?(?:公告)?|询价(?:采购)?公告|单一来源(?:采购)?公告|资格预审(?:文件|公告)?|资审文件公告|预审结果|答疑|澄清|更正|变更|补充公告|终止公告|暂停公告|流标|废标|最高投标限价(?:公告|公示)?|招标控制价(?:公告|公示)?$|中标(?:候选人|结果|公告|公示)|成交(?:公告|结果|公示)|评标结果|合同(?:公告|公示))/.test(text);
+}
+
+// 列表标题可能只是项目名，真实阶段只在正文中声明（上海 S073：标题像招标，正文为资格预审）。
+// 仅拒绝明确的公告类型/成组资格预审结构，避免普通招标公告中“本项目未进行资格预审”等引用句误伤。
+function isStrictZbDetailText(detailText) {
+  const text = String(detailText || "").replace(/\s+/g, " ").trim();
+  if (!text) return true;
+  if (/(?:公告内容|公告类型|公告类别|公告性质)\s*[:：]?\s*(?:资格预审公告|询比(?:采购)?公告|竞争性磋商公告|竞争性谈判公告|询价采购公告)/.test(text)) return false;
+  if (/资格预审申请条件/.test(text) && /(?:获取|领取|下载)资格预审文件/.test(text)) return false;
+  return true;
+}
+
+function recordStageRejection(run, item, reasonCode, evidence = "") {
+  if (!run || !Array.isArray(run.stage_rejections)) return;
+  run.stage_rejections.push({
+    title: String(item && item.title || ""),
+    url: String(item && item.url || ""),
+    reason_code: reasonCode,
+    evidence: String(evidence || "").slice(0, 120),
+  });
 }
 
 function extractDetail(ad, html, item, pdfText) {
@@ -3672,9 +3711,7 @@ async function nmgList(ad, page, args) {
     const title = String(it.noticeName || "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
     const date = String(it.noticeSendTime || "").slice(0, 10);
     return { url: url2, title, date, sourceDataKey: String(it.sourceDataKey || "").trim(), noticeTypeName: String(it.noticeTypeName || "").trim() };
-  }).filter(x => x.title && (ad.stageKey
-    ? (!ad.noticeTypeName || x.noticeTypeName === ad.noticeTypeName)
-    : ((!ad.noticeTypeName || x.noticeTypeName === ad.noticeTypeName) && isStrictZbTitle(x.title))));
+  }).filter(x => x.title && (!ad.noticeTypeName || x.noticeTypeName === ad.noticeTypeName));
 }
 
 // ---- 辽宁：TRS WAS 全文检索 GET（与吉林同款引擎 /was5/web/search）----
@@ -7650,23 +7687,45 @@ function jurisdictionFromAdapter(ad) {
   return m ? m[1] : "";
 }
 
-function resolveRecordRegion(ad, rec) {
-  const listed = rec && String(rec.city || "").trim();
-  // “公共资源交易部/中心”等是发布机构，不是项目地区。此时保守回退到 adapter 明确管辖区，
-  // 避免跨多城市项目从标题中随意挑一个城市。
-  if (listed && /全国公共资源交易平台|公共资源交易(?:部|中心|平台|服务中心)|交易服务(?:部|中心)|招标投标管理/.test(listed)) return jurisdictionFromAdapter(ad);
+const REGION_UI_TEXT = /(?:全国)?公共资源交易(?:部|中心|平台|服务中心|网)|交易服务(?:部|中心|系统)|电子服务系统|招标投标管理|(?:平台|中心|门户|网站)$/;
+
+function recordRegionSignal(run, ad, rec, value, reasonCode) {
+  if (!run || !Array.isArray(run.region_rejections)) return;
+  run.region_rejections.push({
+    adapter: Object.keys(ADAPTERS).find((key) => ADAPTERS[key] === ad) || "",
+    title: String(rec && rec.title || ""),
+    url: String(rec && rec.url || ""),
+    value: String(value || ""),
+    reason_code: reasonCode,
+  });
+}
+
+function resolveRecordRegion(ad, rec, run) {
+  let listed = rec && String(rec.city || "").trim();
+  const jurisdiction = jurisdictionFromAdapter(ad);
+  // 平台、中心、门户等 UI/发布机构文本不是行政区。先拒绝，再从正文行政区或显式 cityName 回退。
+  if (listed && REGION_UI_TEXT.test(listed)) {
+    recordRegionSignal(run, ad, rec, listed, "REGION_UI_TEXT_REJECTED");
+    listed = "";
+  }
   if (/^(?:城区|市区|县城)$/.test(listed)) {
     const stem = String(rec && rec.title || "").match(/^([\u4e00-\u9fa5]{2,6}?)城区/)?.[1] || "";
     const district = stem ? `${stem}区` : "";
     if (district && KNOWN_ADMIN_AREAS.includes(district)) return district;
-    return jurisdictionFromAdapter(ad);
+    listed = "";
   }
   const listedArea = listed ? extractKnownArea(listed) : "";
   if (listedArea) return listedArea;
-  if (listed && /(?:污水处理厂|水厂|医院|学校|研究院|项目|管道|管网|桩号)/.test(`${listed} ${rec && rec.title || ""}`)) return jurisdictionFromAdapter(ad);
-  if (listed && !/^\d{6}$/.test(listed)) return listed;
+  const listedShortArea = listed ? KNOWN_ADMIN_AREAS.find((name) => normalizeArea(name) === normalizeArea(listed)) : "";
+  if (listedShortArea) return listed;
+  // 未命中行政区词表时不把“小区/园区/片区”当行政区；区级名称必须由词表确认。
+  if (listed && /(?:省|市|县|自治州|自治县|盟|旗|自治区)$/.test(listed) && !/(?:污水处理厂|水厂|医院|学校|研究院|项目|管道|管网|桩号|小区|园区|片区)/.test(listed)) return listed;
+  if (listed && !/^\d{6}$/.test(listed)) recordRegionSignal(run, ad, rec, listed, "REGION_NON_ADMIN_TEXT_REJECTED");
   const fromText = extractKnownArea(`${rec && rec.projectSite || ""} ${rec && rec.title || ""}`);
-  return fromText || jurisdictionFromAdapter(ad);
+  if (fromText) return fromText;
+  if (jurisdiction) return jurisdiction;
+  recordRegionSignal(run, ad, rec, listed, "REGION_UNRESOLVED");
+  return "";
 }
 
 // 城市筛选是客户端 OR 过滤：不同平台的行政区字段不一致，故同时使用列表地区、标题和提取值。
@@ -8020,7 +8079,7 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
       // epoint 一般依赖服务端 wd，但 keywordClient 实例 wd 失效 → 同样客户端过滤
       if (args.keyword && ((ad.kind !== "epoint" && ad.kind !== "epointX") || ad.keywordClient) && !item.title.includes(args.keyword)) continue;
       // 省级名(cityWeak)排在标题提取之后：标题里的"昌江县/屯昌县"比"海南省"有用得多
-      const city = item.cityHint || extractCity(item.title) || item.cityWeak || "";
+      const city = item.cityHint || extractKnownArea(item.title) || extractCity(item.title) || "";
       if (!matchesCityFilter(args.city, [city, item.cityHint, item.cityWeak, item.title])) continue;
       // 归一化标题：去掉【】标注与发布渠道前缀（海南全省公告标题都带"（机器管招投标）"，
       // 那是发布通道标记不是项目名，留着会污染项目名列与去重比对）。原文仍可经 url 溯源。
@@ -8049,6 +8108,10 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
         if (v !== undefined && v !== null && String(v).trim() !== "") rec[k] = v;
       }
       initializeListFieldSources(rec);
+      if (!ad.stageKey && !isStrictZbTitle(rec.title)) {
+        recordStageRejection(args._run, item, "STAGE_TITLE_REJECTED", rec.title);
+        continue;
+      }
       const beforeDetail = captureAuditedFields(rec);
       if (args.detail && item.url) {
         try {
@@ -8139,7 +8202,15 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
             const dhtml = ad.gbkDetail
               ? new TextDecoder("gbk").decode(Buffer.from(await (await fetch(item.url)).arrayBuffer()))
               : await requestWithRetry(item.url, args.delay);
-            if (!ad.stageKey && ad.detailReject && ad.detailReject.test(htmlToText(dhtml))) continue;
+            const detailText = htmlToText(dhtml);
+            if (!ad.stageKey && ad.detailReject && ad.detailReject.test(detailText)) {
+              recordStageRejection(args._run, item, "STAGE_ADAPTER_DETAIL_REJECTED", detailText.match(ad.detailReject)?.[0] || "");
+              continue;
+            }
+            if (!ad.stageKey && !isStrictZbDetailText(detailText)) {
+              recordStageRejection(args._run, item, "STAGE_DETAIL_REJECTED", detailText.match(/(?:公告内容|公告类型|公告类别|公告性质)\s*[:：]?\s*[^。；]{0,30}|资格预审申请条件/)?.[0] || "");
+              continue;
+            }
             // 正文可能在 PDF 附件里（浙江等）；HTML 够厚时此步直接跳过，不产生额外请求
             let pdfText = "";
             if (ad.pdfBody !== false) {
@@ -8181,7 +8252,10 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
           // 以资质字段纠偏——监理综合资质/监理资质出现即必为监理标
           if (rec.tenderType !== "监理" && /监理(?:综合)?资质/.test(rec.qualification || "")) rec.tenderType = "监理";
           // 阶段守卫必须早于附件：被详情标题识别为资审/变更/结果的记录，不下载附件也不写 signals。
-          if (!ad.stageKey && !isStrictZbTitle(rec.title)) continue;
+          if (!ad.stageKey && !isStrictZbTitle(rec.title)) {
+            recordStageRejection(args._run, rec, "STAGE_DETAIL_TITLE_REJECTED", rec.title);
+            continue;
+          }
           // 缺口一（统一出口）：HTML 未载控制价/概算/保证金时，从招标文件附件补抽。
           // 原先仅通用 HTML 分支调用；bespoke 详情分支（ah/xz/hn/yn/hb/gz/nmg/gs）的片段同样可能带附件，
           // 统一放在 try 尾部后全路径同享（--attach 门禁不变，docLink 为空/已解析过则安全 no-op）
@@ -8197,11 +8271,14 @@ async function crawlRound(ad, args, cats, cutoff, result, seen) {
       }
       markChangedDetailSources(rec, beforeDetail);
       // 列表栏目锁定仍可能被详情阶段标题覆盖成资审/变更/终止/结果；入结果集前再做最终纯度守卫。
-      if (!ad.stageKey && !isStrictZbTitle(rec.title)) continue;
+      if (!ad.stageKey && !isStrictZbTitle(rec.title)) {
+        recordStageRejection(args._run, rec, "STAGE_FINAL_TITLE_REJECTED", rec.title);
+        continue;
+      }
       rec.funding = cleanFundingValue(rec.funding);
       // 地区是业务表硬字段：优先保留列表/详情的精确区县，其次从已知行政区词表识别，
       // 最后只回退到该官方 adapter 的明确管辖区（省/市），不臆造更细粒度城市。
-      rec.city = resolveRecordRegion(ad, rec);
+      rec.city = resolveRecordRegion(ad, rec, args._run);
       if (!rec._fieldSources.region) markFieldSource(rec, "region", "list");
       result.push(rec);
     }
@@ -8407,7 +8484,7 @@ function resolveOutputPaths(args) {
  try {
   let ad, result; // 2026-08-16 V4A：提升到 try 外——FATAL 补写需要（原版 catch 访问不到已采结果）
   const args = parseArgs(process.argv.slice(2));
-  args._run = { errors: [], auth_walls: [], rate_limits: [], transport_errors: [], attachments: [], project_content: [], city_filters: [], price_rejections: [] };
+  args._run = { errors: [], auth_walls: [], rate_limits: [], transport_errors: [], attachments: [], project_content: [], city_filters: [], price_rejections: [], stage_rejections: [], region_rejections: [] };
   global.__RUN_REPORT = args._run;
   global.__RESEARCH = !!args.dumpText;
   if (!args.province && !args.probeAll) { console.error("用法: node province-collect.cjs -p <省份> [-c 城市/区县[,城市]] -k <关键词> -d <天数> [--stage zb|candidate|result|contract] [--delay 800] [--csv] [--xlsx|--no-xlsx] [--xlsx-layout full29|biaobiaotong16|project18] [--no-detail] [--out 文件] [--limit N] [--probe] [--probe-all] [--verify]"); process.exit(1); }
@@ -8458,7 +8535,7 @@ function resolveOutputPaths(args) {
     }
     const reportPath = writeRunReport(xlsxPath || mdPath, buildRunReport(args.province, ad, result, args, {
       errors: args._run.errors,
-      signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, city_filters: args._run.city_filters, price_rejections: args._run.price_rejections },
+      signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, city_filters: args._run.city_filters, price_rejections: args._run.price_rejections, stage_rejections: args._run.stage_rejections, region_rejections: args._run.region_rejections },
       output: { markdown: mdPath, xlsx: xlsxPath, csv: csvPath },
     }));
     if (reportPath) console.error("运行报告:", reportPath);
@@ -8481,7 +8558,7 @@ function resolveOutputPaths(args) {
       fs.writeFileSync(mdPath, buildMarkdown(args.province, safeAd, safeResult, args));
       writeRunReport(mdPath, buildRunReport(args.province, safeAd, safeResult, args, {
         errors: args._run.errors,
-        signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, city_filters: args._run.city_filters, price_rejections: args._run.price_rejections },
+        signals: { auth_walls: args._run.auth_walls, rate_limits: args._run.rate_limits, transport_errors: args._run.transport_errors, attachments: args._run.attachments, project_content: args._run.project_content, city_filters: args._run.city_filters, price_rejections: args._run.price_rejections, stage_rejections: args._run.stage_rejections, region_rejections: args._run.region_rejections },
         output: { markdown: mdPath, xlsx: null, csv: null },
       }));
       console.error("FATAL 补写: 已采 " + safeResult.length + " 条与 run-report 保全至", mdPath);
@@ -8493,7 +8570,7 @@ function resolveOutputPaths(args) {
 })();
 
 
-module.exports = { ADAPTERS, PROV_ALIAS, PROJECT18_AUDIT_FIELDS, XLSX_HEADER, BIAOBIAOTONG_HEADER, PROJECT18_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, resolveYgpCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, isStrictZbTitle, extractDetail, extractProjectContent, extractControlPriceFact, extractRejectedPriceFacts, auditedFieldValue, isFilledFieldValue, ensureFieldSources, markFieldSource, buildFieldStats, xlsxColumnWidths, buildYgpDetailUrl, parseYgpListRows, unwrapYgpPayload, parseYgpJsonText, selectYgpTenderAttachment, parseYgpDetailPayload, extractYgpAttachmentFields, attachmentStatusFromNote, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, guizhouAttachmentUrl, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, ningboExactDuration, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseNanjingPayload, cleanNanjingQualification, nanjingDetail, parseHuizhouHtml, parseHuizhouSearchJsonp, normalizeHuizhouUrl, huizhouDetail, parseZhongshanPayload, zhongshanControlPrice, zhongshanDetail, parseJinanPayload, jinanDetail, parseWuhanHtml, wuhanDetail, parseQingdaoHtml, parseStrongTableFields, cleanA3ScopeAmountTail, cleanQingdaoPerformance, qingdaoDetail, parseShenzhenList, parseBgTableFields, shenzhenProjectContent, qualitativeFullScore, exactMoneyWan,
+module.exports = { ADAPTERS, PROV_ALIAS, PROJECT18_AUDIT_FIELDS, XLSX_HEADER, BIAOBIAOTONG_HEADER, PROJECT18_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, resolveYgpCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, isStrictZbTitle, isStrictZbDetailText, extractDetail, extractProjectContent, extractControlPriceFact, extractRejectedPriceFacts, auditedFieldValue, isFilledFieldValue, ensureFieldSources, markFieldSource, buildFieldStats, xlsxColumnWidths, buildYgpDetailUrl, parseYgpListRows, unwrapYgpPayload, parseYgpJsonText, selectYgpTenderAttachment, parseYgpDetailPayload, extractYgpAttachmentFields, attachmentStatusFromNote, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, guizhouAttachmentUrl, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, ningboExactDuration, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseNanjingPayload, cleanNanjingQualification, nanjingDetail, parseHuizhouHtml, parseHuizhouSearchJsonp, normalizeHuizhouUrl, huizhouDetail, parseZhongshanPayload, zhongshanControlPrice, zhongshanDetail, parseJinanPayload, jinanDetail, parseWuhanHtml, wuhanDetail, parseQingdaoHtml, parseStrongTableFields, cleanA3ScopeAmountTail, cleanQingdaoPerformance, qingdaoDetail, parseShenzhenList, parseBgTableFields, shenzhenProjectContent, qualitativeFullScore, exactMoneyWan,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, fjDetail, mapFjDetailPayload, cqList, tjList, nmgList, lnList, normalizeGsCityName, gsList };
 module.exports.cleanQualificationOutput = cleanQualificationOutput;
 module.exports.parseQuanzhouPayload = parseQuanzhouPayload;
