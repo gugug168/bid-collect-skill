@@ -1911,7 +1911,9 @@ function grabBondWan(text) {
   if (/(?:本项目|本标段)?\s*(?:不收取|无需|不要求|免收|不缴纳|无需缴纳)\s*(?:投标)?保证金|(?:投标)?保证金\s*(?:为|金额为)?\s*0(?:\.0+)?\s*(?:元|万元|万)?/.test(raw)) return 0;
   const explicit = raw.match(/(?:投标)?保证金(?:金额|数额)?[\s\S]{0,40}?(?:\d+(?:\.\d+)?|[零〇一二两三四五六七八九十百千万亿壹贰叁肆伍陆柒捌玖拾佰仟萬億元整]+)\s*(?:万元|万|元)/);
   if (!explicit) return "";
-  return grabMoneyWan(explicit[0], ["投标保证金", "保证金"]);
+  const value = grabMoneyWan(explicit[0], ["投标保证金", "保证金"]);
+  if (/123456/.test(explicit[0]) || Number(value) > 10000) return "";
+  return value;
 }
 
 function grabBudgetWan(text) {
@@ -2444,7 +2446,7 @@ function numFrom(s) {
 // 调研证据（北京/山西/黑龙江/安徽/西藏 5 省真实详情页）：这些字段 90%+ 公告正文都有，但此前通用 extractDetail 不抽。
 const CODE_LABELS = ["项目编号", "招标项目编号", "标段编号", "交易项目编号", "项目代码", "招标编号", "标段号", "招标项目代码", "采购项目编号", "项目序号"];
 const METHOD_LABELS = ["招标方式", "招标组织形式", "采购方式", "发包方式"];
-const SCALE_LABELS = ["本标段工程的主要建设内容", "主要建设内容", "项目建设内容及规模", "建设内容及规模", "本次招标规模", "建设规模", "工程规模", "项目规模", "工程概况描述", "工程概况"];
+const SCALE_LABELS = ["本标段工程的主要建设内容", "主要建设内容", "项目建设内容及规模", "建设规模及内容", "建设内容及规模", "本次招标规模", "建设规模", "工程规模", "项目规模", "工程概况描述", "工程概况"];
 const SCOPE_LABELS = ["单位工程及招标范围说明", "招标范围及标段划分", "本标段招标范围", "标段招标范围", "设计及相关服务范围", "监理及相关服务范围", "代建范围", "招标范围和内容", "招标范围", "招标内容及范围", "招标内容", "采购需求", "服务内容", "工作内容"];
 const AMBIGUOUS_PROJECT_LABELS = ["建设内容", "项目概况", "项目基本情况"];
 const COMBINED_PROJECT_LABEL = /^(?:招标范围及规模|招标范围和规模|建设规模及招标范围|项目概况及招标范围)$/;
@@ -2620,7 +2622,7 @@ function splitCombinedProjectContent(value) {
 function grabNumberedProjectSection(text, labels, prefer) {
   const names = labels.map(labRe).join("|");
   const re = new RegExp(
-    "(?:^|[\\n\\r]|\\s)\\d+(?:\\.\\d+)+\\.?\\s*(?:" + names + ")(?:[（(][^）)]{0,100}[）)])?\\s*[:：]?\\s*" +
+    "(?:^|[\\n\\r]|\\s)\\d+(?:\\.\\d+)*[.．、]?\\s*(?:" + names + ")(?:[（(][^）)]{0,100}[）)])?\\s*[:：]?\\s*" +
     "([\\s\\S]{4,2200}?)(?=(?:[\\n\\r]|\\s)\\d+(?:\\.\\d+)*(?:[.．、])?\\s*[\\u4e00-\\u9fa5]|$)", "gm");
   const candidates = [];
   let match;
@@ -2783,7 +2785,11 @@ function grabManager(text, flat) {
 // 满分标准：原只认"满分标准"标签，漏掉"总分为XX分/满分XX分/评分满分"。2026-08-14 补强。
 function grabFullScore(text, flat) {
   const direct = grab(text, ["满分标准", "评分满分", "满分分值"]);
-  if (direct) return trimAtClause(direct).slice(0, 30);
+  if (direct) {
+    const value = trimAtClause(direct).slice(0, 30);
+    const number = Number(String(value).match(/\d+(?:\.\d+)?/)?.[0]);
+    if (Number.isFinite(number) && number >= 50) return value;
+  }
   // "总分为 100 分" / "满分 100 分" / "最高 100 分"
   const m = text.match(/(?:总分|满分)\s*(?:为|：|:)?\s*(\d+(?:\.\d+)?)\s*分/);
   if (m) return m[1] + "分";
@@ -5857,7 +5863,7 @@ function parseYgpDetailPayload(data, row, ad, item) {
     docLink: attachment.chosen ? attachment.chosen.downloadUrl : (generic.docLink || ""),
     _ygpAttachment: attachment.chosen ? { ...attachment.chosen, noticeId: String(row.noticeId || ""), candidates: attachment.candidates } : null,
   };
-  if (exactCombinedProject && PROJECT_SCALE_SIGNAL.test(exactCombinedProject) && !PROJECT_SCOPE_STRONG_SIGNAL.test(exactCombinedProject)) out.scale = exactCombinedProject;
+  if (exactCombinedProject && PROJECT_SCALE_SIGNAL.test(exactCombinedProject)) out.scale = exactCombinedProject;
   return out;
 }
 

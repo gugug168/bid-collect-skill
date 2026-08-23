@@ -825,6 +825,8 @@ test("项目内容覆盖编号段、采购需求、单位工程范围和惠州�
   const nestedScaleOut = M.extractDetail({}, nestedScale, { title: "果园项目招标公告", url: "x" }, "");
   assert.equal(nestedScaleOut.scale, "新建果园900亩，安装灌溉管网6km。");
   assert.doesNotMatch(nestedScaleOut.scale, /标段划分|计划工期/);
+  const topScale = M.extractDetail({}, "2.建设规模及内容：提升绿化1368㎡、增设照明105盏，总建设面积2.7万㎡。3.项目总投资：1亿元。", { title: "社区项目招标公告", url: "x" }, "");
+  assert.match(topScale.scale, /2\.7万㎡/);
 });
 
 test("最终详情覆盖交货期、表格工期、特定资格、明确无业绩和评标办法", () => {
@@ -845,6 +847,8 @@ test("最终详情覆盖交货期、表格工期、特定资格、明确无业�
   const deadline = M.extractDetail({}, "递交投标文件的截止时间：2026年09月11日09时30分。", { title: "电梯招标公告", url: "x" }, "");
   assert.equal(deadline.bidOpen, "2026-09-11 09:30");
   assert.equal(M.extractDetail({}, "技术评分项最高分6分。", { title: "项目招标公告", url: "x" }, "").fullScore, "");
+  assert.equal(M.extractDetail({}, "技术评分项满分标准：6分。", { title: "项目招标公告", url: "x" }, "").fullScore, "");
+  assert.equal(M.extractDetail({}, "投标总分满分标准：100分。", { title: "项目招标公告", url: "x" }, "").fullScore, "100分");
   assert.equal(M.extractDetail({}, "企业业绩要求：0个。", { title: "项目招标公告", url: "x" }, "").performance, "不要求");
   assert.equal(M.extractDetail({}, "业绩要求：的，应提供其他资料的有效扫描件予以证明。", { title: "项目招标公告", url: "x" }, "").performance, "");
   assert.equal(M.extractDetail({}, "合同履行期限：合同签订后。", { title: "项目招标公告", url: "x" }, "").duration, "");
