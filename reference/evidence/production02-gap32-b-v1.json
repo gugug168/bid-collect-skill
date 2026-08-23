@@ -1,0 +1,26 @@
+{
+  "schema_version": "production02-gap32-b.v1",
+  "source_commit": "56b4836",
+  "batch": ["anyang","changzhou","heilongjiang","jiaxing","ningxia","xinjiangbt","xuzhou","wuxi"],
+  "official_responses": {
+    "anyang": {"sha256":"101302f994ecff1b76751f385b501f443347dd3c8e6677027255f216e163fe07","url":"https://ggzy.anyang.gov.cn/jyxx/001001/001001002/20260821/ae02eba7-5099-4a44-aa58-01d86dbf673d.html"},
+    "changzhou": {"sha256":"7d94b9d7091c39cf035cd3b8d3d5c6350394df8cb3cbf425f4055843931c1f92","url":"https://ggzy.changzhou.gov.cn/jyzx/001001/001001001/001001001003/20260821/dd67b0ae-4ab3-4dec-81de-8894e13256dc.html"},
+    "ningxia": {"sha256":"54d39dcac025073ea00df948e28fa1172152fd45d66ff7ca4bdac15fbc304136","url":"https://ggzyjy.fzggw.nx.gov.cn/dzjy/001001/001001001/001001001001/20260821/b4a92ce6-cbc5-4d8c-8945-2ff5dbc712b9.html"},
+    "xuzhou": {"sha256":"0fc3f62a9828c3de58a04f1b6a727dce53b6f823b65eab37edac191a46683b49","url":"https://ggzy.zwb.xz.gov.cn/jyxx/003001/003001001/20260821/25b504ee-b640-44c3-8d63-372025b65ee9.html"},
+    "wuxi": {"sha256":"ab738559572565ce282661df5c3ba5ff6118fca6bffe55a21865de21963f437e","url":"https://ggzyjy.wuxi.gov.cn/doc/2026/08/21/4821306.shtml"}
+  },
+  "heilongjiang_rejections": [{"title":"20263.11测试","url":"https://ggzyjyw.hlj.gov.cn/jyfwdt/003002/003002001/003002001008/202603/","detail_status":404},{"title":"招标计划0309","detail_status":404},{"title":"黑龙江省房建市政综合打分法（无清单）(AI) 暗标清标","detail_status":404}],
+  "heilongjiang_terminal": {"status":"FAILED","reason":"30/90天空窗；365天剔除测试/招标计划后首条真实公告详情404，单次停止，不产生VERIFIED_RECORD"},
+  "replay": {
+    "xuzhou_html": "<p>2.2招标范围：包括施工图设计、预算编制、物资采购、工程施工，直至竣工验收备案、整体移交及保修。</p><p>2.3是否属于政府采购工程：是</p><p>3.4业绩要求：（1）投标人自2023年01月01日以来承担过类似设计、施工或工程总承包业绩；（2）工程总承包合同金额不低于3000万元。</p><p>3.5投标人及拟派项目负责人应具备其他要求。</p>",
+    "xuzhou_scope": "包括施工图设计、预算编制、物资采购、工程施工，直至竣工验收备案、整体移交及保修。",
+    "xuzhou_performance": "（1）投标人自2023年01月01日以来承担过类似设计、施工或工程总承包业绩；（2）工程总承包合同金额不低于3000万元。",
+    "classification_records": [
+      {"title":"2026年林州市石板岩镇乡村旅游产业路提升改造项目","qualification":"公路工程施工总承包贰级及以上资质","expected":"公路"},
+      {"title":"南京师范大学未来工学研究院（新科创中心）设计","qualification":"建筑行业甲级资质","expected":"房建市政"},
+      {"title":"泾源县大湾乡2026年基础设施补短板公益事业项目（一、二标段）施工招标公告","qualification":"市政公用工程施工总承包二级及以上资质","expected":"房建市政"},
+      {"title":"新沂骆马湖流域农村生活污水治理项目2026年农村生活污水治理项目","qualification":"市政公用工程施工总承包叁级及以上资质","expected":"房建市政"},
+      {"title":"2026年新吴区上跨高速桥梁安全整治工程施工","qualification":"市政公用工程三级及以上资质","expected":"房建市政"}
+    ]
+  }
+}

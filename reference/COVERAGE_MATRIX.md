@@ -14,7 +14,7 @@
 | jiangsu | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | ND | R | VD | VD | VD | VL | VD |
 | zhejiang | VL | VL | VD | VL | VD | VD | VD | VA | VD | VD | VD | R | R | VD | R | VL | VD |
 | hainan | VL | VL | VD | VD | VD | VD | VD | VD | VD | ND | VD | VD | VD | VD | R | VL | VD |
-| heilongjiang | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS |
+| heilongjiang | F | F | F | F | F | F | F | F | F | F | F | F | F | F | F | F | F |
 | suzhou | VL | VL | VD | VL | VD | ND | VD | VD | VD | VD | ND | OCR | VD | VD | OCR | VL | VD |
 | xuzhou | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | ND | R | VD | VD | VD | VL | VD |
 | anyang | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | VD | R | R | VD | R | VL | VD |

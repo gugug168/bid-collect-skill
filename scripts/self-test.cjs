@@ -58,7 +58,11 @@ test("招标公告实时状态总账覆盖全部 62 个 adapter", () => {
   assert.equal(new Set(rows).size, 62);
   assert.deepEqual([...new Set(rows)].sort(), Object.keys(M.ADAPTERS).sort());
   assert.match(text, /62个 adapter ×17字段已无 `FIELD_UNVERIFIED`/);
-  assert.doesNotMatch(text, /^\| [a-z][a-z0-9]+ \| `FAILED` \|/m);
+  const failedRows = text.split(/\r?\n/).filter((line) => /^\| [a-z][a-z0-9]+ \| `FAILED` \|/.test(line));
+  for (const row of failedRows) {
+    assert.match(row, /reference\/evidence\//, `FAILED缺少机器证据: ${row}`);
+    assert.doesNotMatch(row, /\|\s*(?:—|-)?\s*\|\s*$/, `FAILED缺少解释: ${row}`);
+  }
 });
 
 // 2026-08-16 V5 逐列取证回访：9 处漏抽修复（江西/遵义/海南/重庆/青海/烟台/江苏实测原文形态）
@@ -1014,6 +1018,24 @@ test("生产试运行02缺口32-A批次拒绝源脏值并标记OCR", () => {
   assert.equal(M.attachmentStatusFromNote("PDF文字层乱码，需OCR"), "ATTACHMENT_OCR_REQUIRED");
   for (const sample of replay.classification_titles) assert.equal(M.classifySheet(sample.title), sample.expected, sample.url);
   assert.equal(fixture.material_changes.length, 2);
+});
+
+test("生产试运行02缺口32-B批次拒绝测试记录并以详情资质纠偏弱分类", () => {
+  const fixture = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "production02-gap32-b-v1.json"), "utf8"));
+  for (const sample of fixture.heilongjiang_rejections) assert.equal(M.ADAPTERS.heilongjiang.itemAllowed(sample), false);
+  assert.equal(M.isNonRetryableHttpStatus(404), true);
+  assert.equal(M.isNonRetryableHttpStatus(429), true);
+  assert.equal(M.isNonRetryableHttpStatus(500), false);
+  assert.equal(M.shouldStopOnDetailError("HTTP_CLIENT_STOP 404"), true);
+  assert.equal(M.shouldStopOnDetailError("HTTP 500"), false);
+  const xz = M.ADAPTERS.xuzhou.detail(fixture.replay.xuzhou_html, { title: "徐州样本", url: "https://example.invalid/xz" }, "");
+  assert.equal(xz.scope, fixture.replay.xuzhou_scope);
+  assert.equal(xz.performance, fixture.replay.xuzhou_performance);
+  for (const sample of fixture.replay.classification_records) {
+    assert.equal(M.classifyRecordSheetEvidence(sample).sheet, sample.expected, sample.title);
+  }
+  assert.equal(M.classifyRecordSheetEvidence({ title: "某水库除险加固工程", qualification: "市政公用工程施工总承包三级" }).sheet, "水利");
+  assert.equal(M.classifyRecordSheetEvidence({ title: "某高速公路工程", qualification: "市政公用工程施工总承包三级" }).sheet, "公路");
 });
 
 test("生产P01-P05详情完整性按冻结官方摘录回放", () => {
