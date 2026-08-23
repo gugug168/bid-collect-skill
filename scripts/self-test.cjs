@@ -829,6 +829,8 @@ test("项目内容覆盖编号段、采购需求、单位工程范围和惠州�
   assert.match(topScale.scale, /2\.7万㎡/);
   const pdfScale = M.extractDetail({}, "", { title: "输水工程招标公告", url: "x" }, "2.工程规模：新建DN1800原水管，总长约2500米；新建DN600分质水管，总长约600米。\n3.本公告共划分为1个标段");
   assert.match(pdfScale.scale, /DN600分质水管/);
+  const topScope = M.extractDetail({}, "2.1项目概况：新建果园900亩。\n2.2招标范围 本项目施工图纸、工程量清单及答疑文件包含的全部施工内容。\n3.投标人资格要求", { title: "果园项目招标公告", url: "x" }, "");
+  assert.match(topScope.scope, /全部施工内容/);
 });
 
 test("最终详情覆盖交货期、表格工期、特定资格、明确无业绩和评标办法", () => {

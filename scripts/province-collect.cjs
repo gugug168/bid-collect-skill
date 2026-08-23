@@ -2716,10 +2716,11 @@ function extractProjectContent(html, text, flat) {
     else { scale = grabProjectValueAll(text, flat, SCALE_LABELS, "scale"); scaleExact = !!scale; }
   }
   if (!scope) {
+    const topLevelScope = cleanProjectContent(String(text || "").match(/(?:^|\n)\s*2\s*\.\s*2\s*招标范围\s*[:：]?\s*([\s\S]{4,2200}?)(?=\n\s*3\s*[.．、])/m)?.[1] || "");
     const numberedScope = grabNumberedProjectSection(text, SCOPE_LABELS, "scope");
     const procurementScope = cleanProjectContent(String(text || "").match(/采购需求\s*[:：]?\s*([\s\S]{4,1600}?)(?=合同履行期限|本项目(?:不)?接受联合体|二[、.．]\s*申请人)/)?.[1] || "");
     const exactScope = grabProjectValueAll(text, flat, SCOPE_LABELS, "scope");
-    scope = procurementScope || exactScope || numberedScope;
+    scope = topLevelScope || procurementScope || exactScope || numberedScope;
   }
 
   if (!scale || !scope) {
