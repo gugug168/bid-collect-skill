@@ -1323,6 +1323,7 @@ const ADAPTERS = {
       ? "https://szj.hebei.gov.cn/hbjyzx/jydt/001002/001002002/001002002001/jyxxList.html"
       : `https://szj.hebei.gov.cn/hbjyzx/jydt/001002/001002002/001002002001/${page}.html`,
     clientFilterOnly: true, // 列表页仅分页参数，无关键词检索，采集时按标题客户端过滤
+    detail: hebeiDetail,
     defaultType: "招标公告",
     // ---- B 阶段（Goal v2 · 2026-08-15 真机枚举 001002002 栏目树）：001=招标公告 002=变更公告 003=中标候选人公示 004=中标结果公告（005/006 空，无独立合同公示栏目→诚实不配 contract）----
     stages: {
@@ -1382,6 +1383,7 @@ const ADAPTERS = {
     rn: 15, // 必须 ≤20；perpage≥25 触发「公共资源」反爬 HTML 占位页
     clientFilterOnly: true, // 列表接口不支持中文关键词全文检索(recordnum=0)，关键词走客户端过滤
     allowNoUrl: false, // DOCPUBURL 为绝对 URL，已实测 200 可达
+    detail: liaoningDetail,
     defaultType: "招标公告",
     // B 阶段（2026-08-15 真机枚举 TRS WAS）：母栏目 channelId=219677 固定，仅 DOCCHANNEL 隔离；
     //   candidate=149561(中标候选人公示)、result=149562(中标结果公告)；合同=Y164624 走独立 layui 后端非 TRS → 诚实不配 contract
@@ -2421,8 +2423,8 @@ function numFrom(s) {
 // 调研证据（北京/山西/黑龙江/安徽/西藏 5 省真实详情页）：这些字段 90%+ 公告正文都有，但此前通用 extractDetail 不抽。
 const CODE_LABELS = ["项目编号", "招标项目编号", "标段编号", "交易项目编号", "项目代码", "招标编号", "标段号", "招标项目代码", "采购项目编号", "项目序号"];
 const METHOD_LABELS = ["招标方式", "招标组织形式", "采购方式", "发包方式"];
-const SCALE_LABELS = ["本标段工程的主要建设内容", "主要建设内容", "本次招标规模", "建设规模", "工程规模", "项目规模", "工程概况"];
-const SCOPE_LABELS = ["本标段招标范围", "标段招标范围", "设计及相关服务范围", "监理及相关服务范围", "招标范围和内容", "招标范围", "招标内容及范围", "招标内容"];
+const SCALE_LABELS = ["本标段工程的主要建设内容", "主要建设内容", "建设内容及规模", "本次招标规模", "建设规模", "工程规模", "项目规模", "工程概况描述", "工程概况"];
+const SCOPE_LABELS = ["单位工程及招标范围说明", "招标范围及标段划分", "本标段招标范围", "标段招标范围", "设计及相关服务范围", "监理及相关服务范围", "招标范围和内容", "招标范围", "招标内容及范围", "招标内容", "采购需求", "服务内容", "工作内容"];
 const AMBIGUOUS_PROJECT_LABELS = ["建设内容", "项目概况", "项目基本情况"];
 const COMBINED_PROJECT_LABEL = /^(?:招标范围及规模|招标范围和规模|建设规模及招标范围|项目概况及招标范围)$/;
 const APPROVAL_LABELS = ["批准文号", "审批文号", "核准文号", "备案号", "项目批准文号", "立项批复", "可研批复"];
@@ -2536,10 +2538,10 @@ function grabScope(text, flat) { return grabScopeLike(text, flat, SCOPE_LABELS, 
 
 // 项目内容必须区分两个事实：scale=整个项目建设什么/规模多大，scope=本次招标承包什么。
 // 优先结构化表格精确标签；合并字段只有命中可靠分界词才拆，不能拆时只进 scope 并留机器信号。
-const PROJECT_TAIL_ONLY = /^(?:招标人有权|建设内容.*?增减|进行增减|中标人不得有异议|以(?:施工图纸|工程量清单|招标文件).*为准|详见附件)[\s\S]*$/;
+const PROJECT_TAIL_ONLY = /^(?:招标人有权|建设内容.*?增减|进行增减|中标人不得有异议|以(?:施工图纸|工程量清单|招标文件).*为准|详见(?:施工图|工程量清单|招标文件|附件))[\s\S]*$/;
 const PROJECT_SCOPE_STRONG_SIGNAL = /本次招标|具体招标内容|招标范围|施工图纸|工程量清单|包括但不限于|施工总承包|工程总承包|设计服务|监理服务|采购内容|服务内容|全过程/;
 const PROJECT_SCOPE_SIGNAL = /本次招标|具体招标内容|招标范围|施工图纸|工程量清单|包括但不限于|^包括|施工总承包|工程总承包|设计服务|监理服务|采购内容|服务内容|全过程/;
-const PROJECT_SCALE_SIGNAL = /\d[\d,.]*\s*(?:m²|㎡|万m²|万㎡|平方米|万平方米|m³\/d|m3\/d|立方米\/日|公里|km|米|m|座|栋|层|处|个|套|户|吨|万吨|MW|kV|千伏)|[一二三四五六七八九十]+(?:项|座|栋|处)|新建|改建|扩建|整治面积|红线面积|设计规模|建设规模|道路工程|管网改造/;
+const PROJECT_SCALE_SIGNAL = /\d[\d,.]*\s*(?:m²|㎡|万m²|万㎡|平方米|万平方米|m³\/d|m3\/d|立方米\/日|公里|km|米|m|项|座|栋|层|处|个|套|户|吨|万吨|MW|kV|千伏)|[一二三四五六七八九十]+(?:项|座|栋|处)|新建|改建|扩建|整治面积|红线面积|设计规模|建设规模|道路工程|管网改造/;
 const PROJECT_SPLIT_MARKERS = ["具体招标内容包括", "具体招标内容", "本次招标内容", "本次招标范围", "本次招标", "2.招标内容：", "2、招标内容：", "招标内容：", "招标范围为", "招标范围包括"];
 
 function cleanProjectContent(value) {
@@ -2571,7 +2573,7 @@ function cleanProjectContent(value) {
   if (tail >= 12) v = v.slice(0, tail + 1).trim();
   const nextSection = v.search(/(?:(?:\d+(?:\.\d+)*)[、.．]\s*|\s+)(?:投标人|申请人|供应商)资格要求/);
   if (nextSection >= 4) v = v.slice(0, nextSection).trim();
-  const numberedSection = v.search(/\s*\d+\.\d+\.?\s*(?:工程建设地点|工程建设规模|招标范围和内容|招标范围|建筑安装工程费|合同预算价|合同估算价|标段估算价|招标控制价|最高投标限价|工期要求|服务期限|质量要求|标段划分)\s*[:：]/);
+  const numberedSection = v.search(/\s*\d+\.\d+\.?\s*(?:工程建设地点|工程建设规模|招标范围和内容|招标范围|建筑安装工程费|合同预算价|合同估算价|标段估算价|招标控制价|最高投标限价|工期要求|服务期限|质量要求|工程类别和技术复杂程度|标段划分)\s*[:：]/);
   if (numberedSection >= 4) v = v.slice(0, numberedSection).trim();
   const tenderAmountTail = v.search(/\s*[，,；;]?\s*(?:其中\s*[，,]?\s*□?\s*建筑面积|本次招标建安工程造价)/);
   if (tenderAmountTail >= 4) v = v.slice(0, tenderAmountTail).trim();
@@ -2589,6 +2591,25 @@ function splitCombinedProjectContent(value) {
     if (scale && scope) return { scale, scope, marker };
   }
   return null;
+}
+
+function grabNumberedProjectSection(text, labels, prefer) {
+  const names = labels.map(labRe).join("|");
+  const re = new RegExp(
+    "(?:^|[\\n\\r]|\\s)\\d+(?:\\.\\d+)+\\.?\\s*(?:" + names + ")\\s*[:：]?\\s*" +
+    "([\\s\\S]{4,2200}?)(?=(?:[\\n\\r]|\\s)\\d+(?:\\.\\d+)*(?:[.．、])?\\s*[\\u4e00-\\u9fa5]|$)", "gm");
+  const candidates = [];
+  let match;
+  while ((match = re.exec(String(text || "")))) {
+    const value = cleanProjectContent(match[1]);
+    if (!value) continue;
+    let score = Math.min(value.length, 500);
+    if (prefer === "scale" && PROJECT_SCALE_SIGNAL.test(value)) score += 1000;
+    if (prefer === "scope" && PROJECT_SCOPE_SIGNAL.test(value)) score += 1000;
+    candidates.push({ value, score });
+  }
+  candidates.sort((a, b) => b.score - a.score || b.value.length - a.value.length);
+  return candidates[0]?.value || "";
 }
 
 function tableProjectFields(html) {
@@ -2652,12 +2673,22 @@ function extractProjectContent(html, text, flat) {
   // 正文中的精确标签仍优先于“项目概况/建设内容”等歧义标签。
   // 天津实测同时出现“建设规模为97.966公里”和“项目概况：改造3.69公里”，必须保留前者为 scale。
   if (!scale) {
-    scale = grabProjectValueAll(text, flat, SCALE_LABELS, "scale");
-    if (scale) scaleExact = true;
+    const numberedOverview = String(text || "").match(/(?:^|\n)\s*2\s*\.\s*1\s*项目概况\s*([\s\S]{4,2200}?)(?=\n?\s*2\s*\.\s*2\s*(?:标段划分|招标范围))/m)?.[1] || "";
+    const embeddedScale = String(text || "").match(/建设规模\s*[:：]\s*([\s\S]{4,1800}?)(?=\s*2\s*\.\s*2\s*招标范围)/)?.[1] || "";
+    const numberedScale = grabNumberedProjectSection(text, SCALE_LABELS, "scale");
+    const numberedAmbiguous = grabNumberedProjectSection(text, ["建设内容", "项目基本情况"], "scale");
+    const cleanOverview = cleanProjectContent(numberedOverview);
+    if (cleanOverview) { scale = cleanOverview; scaleExact = true; }
+    else if (embeddedScale) { scale = cleanProjectContent(embeddedScale); scaleExact = !!scale; }
+    else if (numberedScale) { scale = numberedScale; scaleExact = true; }
+    else if (numberedAmbiguous && PROJECT_SCALE_SIGNAL.test(numberedAmbiguous)) { scale = numberedAmbiguous; scaleExact = false; }
+    else { scale = grabProjectValueAll(text, flat, SCALE_LABELS, "scale"); scaleExact = !!scale; }
   }
   if (!scope) {
-    const numberedScope = String(text || "").match(/(?:^|\n)\s*2\s*\.\s*2\s*招标范围\s*[:：]\s*([\s\S]{4,1800}?)(?=\n\s*2\s*\.\s*3\s*)/m)?.[1] || "";
-    scope = cleanProjectContent(numberedScope) || grabProjectValueAll(text, flat, SCOPE_LABELS, "scope");
+    const numberedScope = grabNumberedProjectSection(text, SCOPE_LABELS, "scope");
+    const procurementScope = cleanProjectContent(String(text || "").match(/采购需求\s*[:：]?\s*([\s\S]{4,1600}?)(?=合同履行期限|本项目(?:不)?接受联合体|二[、.．]\s*申请人)/)?.[1] || "");
+    const exactScope = grabProjectValueAll(text, flat, SCOPE_LABELS, "scope");
+    scope = procurementScope || exactScope || numberedScope;
   }
 
   if (!scale || !scope) {
@@ -2680,6 +2711,8 @@ function extractProjectContent(html, text, flat) {
   }
 
   scale = cleanProjectContent(scale);
+  scale = scale.replace(/[；;，,]?\s*项目总投资\s*$/, "").trim();
+  if (/^(?:本)?工程造价(?:约|为|[:：])?\s*\d[\d,.]*\s*(?:万元|万|元)[。；;]?$/.test(scale)) scale = "";
   const scopeBeforeFinalClean = String(scope || "").replace(/\s+/g, " ").trim();
   scope = cleanProjectContent(scope);
   if (/^\d+(?:\.\d+)+\s*(?:项目|工程|建设)规模\s*[:：]/.test(scopeBeforeFinalClean)) scope = "";
@@ -4590,9 +4623,36 @@ function normalizeHuizhouUrl(href) {
   return value.replace(/^https?:\/\/zyjy--huizhou--gov--cn--[^./]+\.proxy\.huizhou\.gov\.cn(?::80)?/i, "https://zyjy.huizhou.gov.cn");
 }
 
+function hebeiDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  const text = htmlToText(html);
+  const scale = text.match(/2\s*\.\s*1\s*\.\s*2\s*建设规模\s*[:：]?\s*([\s\S]{4,1200}?)(?=2\s*\.\s*1\s*\.\s*3\s*)/)?.[1]
+    || text.match(/建设规模\s*[:：]\s*([\s\S]{4,1200}?)(?=2\s*\.\s*2\s*招标范围)/)?.[1] || "";
+  const scope = text.match(/2\s*\.\s*2\s*招标范围及标段划分\s*[:：]?\s*([\s\S]{4,1600}?)(?=3\s*[.．]\s*投标人资格要求)/)?.[1] || "";
+  if (scale) out.scale = cleanProjectContent(scale);
+  if (scope) out.scope = cleanProjectContent(scope);
+  return out;
+}
+
+function liaoningDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  const text = htmlToText(html);
+  const overview = text.match(/2\s*\.\s*1\s*项目概况\s*([\s\S]{4,2400}?)(?=2\s*\.\s*2\s*招标范围)/)?.[1] || "";
+  const embeddedScale = overview.match(/建设规模\s*[:：]\s*([\s\S]{4,1800})/)?.[1] || "";
+  const nestedScope = text.match(/标段招标范围\s*[:：]\s*([\s\S]{4,1600}?)(?=标段类别|标段合同估算价|投标保证金)/)?.[1] || "";
+  const numberedScope = text.match(/2\s*\.\s*3\s*招标范围\s*[:：]?\s*([\s\S]{4,1800}?)(?=2\s*\.\s*4\s*)/)?.[1] || "";
+  if (embeddedScale || overview) out.scale = cleanProjectContent(embeddedScale || overview);
+  if (nestedScope || numberedScope) out.scope = cleanProjectContent(nestedScope || numberedScope);
+  return out;
+}
+
 function huizhouDetail(html, item, pdfText) {
   const out = extractDetail({}, html, item, pdfText);
   const f = parseLabelTable(html);
+  const scale = cleanProjectContent(String(f["招标范围及规模"] || "").replace(/（具体施工内容[\s\S]*?[）)][。；;]?\s*$/, ""));
+  const scope = cleanProjectContent(f["招标内容"] || "");
+  if (scale) out.scale = scale;
+  if (scope) out.scope = scope;
   out.projectSite = looseField(f, "招标项目实施（交货）地点", "项目实施（交货）地点") || out.projectSite || "";
   out.duration = looseField(f, "工期（交货期）", "工期") || out.duration || "";
   const limit = f["最高投标限价（投标报价上限值）"] || f["最高投标限价"] || f["投标报价上限值"] || "";
@@ -5119,11 +5179,12 @@ function parseQuanzhouPayload(detailPayload, bulletinPayload, item) {
   const text = htmlToText(body);
   const exactScale = text.match(/(?:建设规模|项目规模|工程规模)\s*[:：]\s*([\s\S]{4,1200}?)(?=招标范围|计划工期|工期要求|资质要求|投标人资格)/)?.[1] || "";
   const exactScope = text.match(/招标范围\s*[:：]\s*([\s\S]{4,1600}?)(?=计划工期|工期要求|资质要求|投标人资格|最高投标限价)/)?.[1] || "";
+  const nestedScope = text.match(/[（(]\s*3\s*[）)]\s*招标范围和内容\s*[:：]\s*([\s\S]{4,1800}?)(?=其中[，,]?\s*用于确定|2\s*\.\s*4\s*\.?\s*招标控制价)/)?.[1] || "";
   if (exactScale) {
     const candidate = cleanProjectContent(exactScale.replace(/[；;\s]*2\s*\.\s*3\s*\.?\s*$/, ""));
     out.scale = candidate && PROJECT_SCALE_SIGNAL.test(candidate) ? candidate : "";
   }
-  if (exactScope) out.scope = cleanProjectContent(exactScope);
+  if (nestedScope || exactScope) out.scope = cleanProjectContent(nestedScope || exactScope);
   out.title = String(item && item.title || project.projName || out.title || "");
   out.projectCode = String(project.projNo || out.projectCode || "");
   out.projectSite = String(project.buildArea || out.projectSite || "");
