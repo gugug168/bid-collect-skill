@@ -117,6 +117,7 @@ test("全国100条 v2 gold 固定替补与价格 Oracle", () => {
   assert.equal(gold.samples.find((row) => row.sample_id === "R002").official_url, "https://ggzyjy.shandong.gov.cn/jsgczbgg/14549923.jhtml");
   assert.equal(gold.stage_negatives[0].sample_id, "S012");
   assert.equal(gold.stage_negatives[1].sample_id, "S073");
+  assert.equal(gold.samples.flatMap((row) => Object.values(row.expected)).filter((field) => field.state === "REVIEW").length, 0);
   assert.equal(gold.samples.find((row) => row.sample_id === "S003").expected.controlPrice.value, "9469.330265");
   assert.equal(gold.samples.find((row) => row.sample_id === "S017").expected.controlPrice.value, "3513.4951");
   assert.equal(gold.samples.find((row) => row.sample_id === "S029").expected.controlPrice.value, "1015.62");
@@ -819,6 +820,25 @@ test("项目内容覆盖编号段、采购需求、单位工程范围和惠州�
   const agencyOut = M.extractDetail({}, agency, { title: "学校代建服务招标公告", url: "x" }, "");
   assert.match(agencyOut.scale, /规划学位2400个/);
   assert.equal(agencyOut.scope, "阶段性代建");
+});
+
+test("最终详情覆盖交货期、表格工期、特定资格、明确无业绩和评标办法", () => {
+  const delivery = M.extractDetail({}, "2.5☑交货期：自合同签订之日起90个自然日内完成供货，到货后30个自然日内完成安装调试；□工期：；", { title: "设备招标公告", url: "x" }, "");
+  assert.match(delivery.duration, /90个自然日/);
+  const table = M.extractDetail({}, "工期\n（天）\n标段编号\n标段名称\n招标范围\n240\n三、投标人资格要求", { title: "管道工程招标公告", url: "x" }, "");
+  assert.equal(table.duration, "240日历天");
+  const changzhou = M.extractDetail({}, "3.1工程设计资质须满足下列条件之一：①工程设计综合资质甲级；②建筑行业甲级资质。3.2投标人拟派项目负责人资格要求：一级注册建筑师。", { title: "设计招标公告", url: "x" }, "");
+  assert.match(changzhou.qualification, /工程设计综合资质甲级/);
+  const procurement = M.extractDetail({}, "本项目的特定资格要求：无。 三、获取招标文件", { title: "服务公开招标公告", url: "x" }, "");
+  assert.equal(procurement.qualification, "不要求");
+  const noPerformance = M.extractDetail({}, "投标人须具备电力工程施工资质，/的类似项目业绩，并具有相应施工能力。", { title: "EPC招标公告", url: "x" }, "");
+  assert.equal(noPerformance.performance, "不要求");
+  const managerPerformance = M.extractDetail({}, "拟派总承包项目经理须熟悉项目管理，并须具有类似项目业绩。", { title: "总承包招标公告", url: "x" }, "");
+  assert.equal(managerPerformance.performance, "总承包项目经理须具有类似项目业绩");
+  const evaluation = M.extractDetail({}, "本项目评标办法采用“宜昌市水利水电工程施工监理招标投标评分标准（非枢纽工程）”，采用“评定分离”方式定标。", { title: "监理招标公告", url: "x" }, "");
+  assert.equal(evaluation.evaluation, "宜昌市水利水电工程施工监理招标投标评分标准（非枢纽工程）；评定分离");
+  const deadline = M.extractDetail({}, "递交投标文件的截止时间：2026年09月11日09时30分。", { title: "电梯招标公告", url: "x" }, "");
+  assert.equal(deadline.bidOpen, "2026-09-11 09:30");
 });
 
 test("广东 siteCode 定向覆盖地级市与区县，未知词诚实回退全省", () => {

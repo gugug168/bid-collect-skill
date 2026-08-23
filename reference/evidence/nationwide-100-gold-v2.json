@@ -1,6 +1,6 @@
 {
   "schema_version": "nationwide-100-gold.v2",
-  "frozen_at": "2026-08-23T07:19:02.582Z",
+  "frozen_at": "2026-08-23T07:40:04.950Z",
   "source_commit": "c5c8dfa61e9f263fcfb6b1f75d2786e176c1af3e",
   "source_audit": "2026-08-23_全国100条准确率抽样验收",
   "fields": [
@@ -3425,10 +3425,10 @@
           ]
         },
         "performance": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "总承包项目经理须具有类似项目业绩",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "jilin-28044-002.json"
           ]
@@ -3576,10 +3576,10 @@
           ]
         },
         "duration": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "为自合同签订之日起90个自然日内完成合格物资的供货，到货后30个自然日内完成物资的安装及调试",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "hunan-37712-004.json",
             "hunan-37712-005.json"
@@ -5130,10 +5130,10 @@
           ]
         },
         "qualification": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "制造商 代理商（包括经销商、制造商下属销售子公司） 3.1.1 投标人为制造商应符合以下要求： （1）具备独立法人资格； （2）具备有效的《涉及饮用水卫生安全产品卫生许可批件》。 3.1.2 投标人为代理商应符合以下要求： （1）具备独立法人资格； （2）投标货物制造商应具备有效的《涉及饮用水卫生安全产品卫生许可批件》。； （3） 涂塑无缝钢管具有制造商授权书。 注：本招标项目同一标段中，一个制造商对同一品牌同一型号的货物，仅能委托一个代理商参加投标，否则各相关投标均无效； 同一品牌同一型号货物的制造商和代理商不得在本招标项目同一标段中投标，否则各相关投标均无效。",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "chongqing-36404-002.json"
           ]
@@ -5740,10 +5740,10 @@
           ]
         },
         "bidOpen": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "2026-09-11 09:30",
           "comparison": "datetime_minute",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "gansu-34992-006.json"
           ]
@@ -5868,10 +5868,10 @@
           ]
         },
         "docLink": {
-          "state": "REVIEW",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
           "value": "",
           "comparison": "url",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_FILE_RESTRICTED_OR_NO_READABLE_DIRECT_LINK",
           "evidence": [
             "gansu-34992-006.json"
           ]
@@ -6302,10 +6302,10 @@
           ]
         },
         "qualification": {
-          "state": "REVIEW",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
           "value": "",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_FILE_RESTRICTED_OR_NO_READABLE_DIRECT_LINK",
           "evidence": [
             "qingdao-25476-002.json",
             "qingdao-25476-003.json",
@@ -6313,10 +6313,10 @@
           ]
         },
         "performance": {
-          "state": "REVIEW",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
           "value": "",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_FILE_RESTRICTED_OR_NO_READABLE_DIRECT_LINK",
           "evidence": [
             "qingdao-25476-002.json",
             "qingdao-25476-003.json",
@@ -7500,10 +7500,10 @@
           ]
         },
         "qualification": {
-          "state": "REVIEW",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
           "value": "",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_FILE_RESTRICTED_OR_NO_READABLE_DIRECT_LINK",
           "evidence": [
             "qingdao-25476-004.json",
             "qingdao-25476-003.json",
@@ -7511,10 +7511,10 @@
           ]
         },
         "performance": {
-          "state": "REVIEW",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
           "value": "",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_FILE_RESTRICTED_OR_NO_READABLE_DIRECT_LINK",
           "evidence": [
             "qingdao-25476-004.json",
             "qingdao-25476-003.json",
@@ -9056,10 +9056,10 @@
           ]
         },
         "qualification": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "①工程设计综合资质甲级； ②建筑行业甲级资质或建筑行业（建筑工程）专业甲级资质；",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "changzhou-37296-002.json",
             "changzhou-37296-003.json",
@@ -9387,10 +9387,10 @@
           ]
         },
         "duration": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "240日历天",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "zhejiang-6960-004.json",
             "zhejiang-6960-005.json",
@@ -11295,10 +11295,10 @@
           ]
         },
         "performance": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "不要求",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "sichuan-9496-005.json",
             "sichuan-9496-006.json"
@@ -11625,10 +11625,10 @@
           ]
         },
         "qualification": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "不要求",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "jiangxi-31032-005.curl.json"
           ]
@@ -11967,10 +11967,10 @@
           ]
         },
         "qualification": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "有效的营业执照或事业单位法人证书，投标人不得以分公司名义进行投标，投标文件的单位盖章必须使用其法人公章，分公司盖章无效。【上传营业执照或事业单位法人证书原件扫描件、制造商对本项目的授权书（如有）】",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "yichang-19512-002.json",
             "yichang-19512-003.json",
@@ -12497,10 +12497,10 @@
           ]
         },
         "qualification": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "（1）提供二、三类医疗器械产品的须具有医疗器械注册证，提供一类医疗器械产品的须具有产品备案登记凭证； （2）提供在中华人民共和国境内生产的二、三类医疗器械产品的须具有医疗器械生产许可证,一类医疗器械产品须具有医疗器械生产备案凭证； （3）经营三类医疗器械的须具有医疗器械经营企业许可证，经营二类医疗器械须具有医疗器械经营企业备案登记凭证（医疗器械注册人、备案人或者生产企业在其住所或者生产地址销售医疗器械，不需提供）。",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "jiangxi-31032-007.curl.json",
             "jiangxi-31032-008.curl.json"
@@ -12884,10 +12884,10 @@
           ]
         },
         "evaluation": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "宜昌市水利水电工程施工监理招标投标评分标准（非枢纽工程）；评定分离",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "yichang-19512-005.json",
             "yichang-19512-003.json",
@@ -13134,7 +13134,7 @@
         },
         "region": {
           "state": "VALUE",
-          "value": "合肥市",
+          "value": "合肥",
           "comparison": "normalized_text",
           "reason": "official response or official route readback verified",
           "evidence": [
@@ -13201,10 +13201,10 @@
           ]
         },
         "qualification": {
-          "state": "REVIEW",
+          "state": "VALUE",
           "value": "不要求",
           "comparison": "normalized_text",
-          "reason": "QUALIFICATION_REDUCED_TO_NOT_REQUIRED",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "hefei-37524-002.json",
             "hefei-37524-001.json",
@@ -13641,7 +13641,7 @@
         },
         "region": {
           "state": "VALUE",
-          "value": "合肥市",
+          "value": "肥东",
           "comparison": "normalized_text",
           "reason": "official response or official route readback verified",
           "evidence": [
@@ -15133,10 +15133,10 @@
           ]
         },
         "duration": {
-          "state": "REVIEW",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
           "value": "",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "FIELD_OCR_REQUIRED",
           "evidence": [
             "shanxi-24944-012.curl.json",
             "shanxi-24944-003.json",
@@ -16555,10 +16555,10 @@
           ]
         },
         "performance": {
-          "state": "REVIEW",
-          "value": "详见投标人须知前附表附录2",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
           "comparison": "normalized_text",
-          "reason": "PERFORMANCE_POINTER_IS_NOT_A_FACT",
+          "reason": "POINTER_IS_NOT_A_FACT",
           "evidence": [
             "wenzhou-10224-002.json",
             "wenzhou-10224-003.json",
@@ -17756,10 +17756,10 @@
           ]
         },
         "duration": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "工程具备安装条件 （ 以建设单位通知为准 ） 后 90 日历天完成 安装 、 调试 、 系统联调 （ 含新旧系统接驳 ） 等全部工作 。",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "zunyi-36980-002.json",
             "zunyi-36980-003.json",
@@ -17767,10 +17767,10 @@
           ]
         },
         "qualification": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "1）具有独立承担民事责任的能力：在中华人民共和国境内注册的法人或其他组织，投标（响应）时提交有效的营业执照（或事业法人登记证或身份证等相关证明）副本复印件。分支机构投标的，须提供总公司和分公司营业执照副本复印件，总公司出具给分支机构的授权书。2）履行合同所必需的设备和专业技术能力：在投标文件中提供《资格条件承诺函》，承诺函格式自拟。3）参加采购活动前3年内，所投产品制造商未发生过严重质量问题或安全事故：在投标文件中提供《资格条件承诺函》，承诺函格式自拟。",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "zunyi-36980-002.json",
             "zunyi-36980-003.json",

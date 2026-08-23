@@ -1575,6 +1575,8 @@ function grabDateTime(text, labels) {
 
 // 评标办法：优先识别标准办法名词，避免抓到"5.1、评标入围"这类章节残片
 function grabEvaluation(text) {
+  const yichang = text.match(/评标办法采用[“"]([^”"]{4,80})[”"][\s\S]{0,80}?采用[“"](评定分离)[”"]方式定标/);
+  if (yichang) return `${yichang[1]}；${yichang[2]}`;
   const methods = [
     "智能筛查合理价格法", "经评审的最低投标价法", "合理低价中标法", "综合评估法",
     "最低投标价法", "合理低价法", "综合评分法", "性价比法", "双信封",
@@ -1956,6 +1958,9 @@ function grabPerfClause(flat) {
 }
 
 function grabPerformance(text, flat) {
+  if (/[，,]\s*[\/／]\s*的类似项目业绩/.test(text)) return "不要求";
+  const managerRequirement = text.match(/总承包项目经理[\s\S]{0,900}?须具有类似项目业绩/);
+  if (managerRequirement) return "总承包项目经理须具有类似项目业绩";
   const checkedDesign = text.match(/[R☑√■⊠]\s*设计业绩要求\s*[:：]\s*([\s\S]{20,800}?)(?=[□R☑√■⊠]\s*施工业绩要求|\n\s*3\s*\.\s*1\s*\.\s*3)/);
   if (checkedDesign) return cleanVal(checkedDesign[1].replace(/[\r\n]+/g, " ")).slice(0, 500);
   // 江苏建设工程通用模板会保留未勾选的 3.4.1「承担过类似工程」整段说明，说明文字本身又含
@@ -2141,7 +2146,7 @@ const OPEN_LABELS = [
   //   「递交资格预审申请文件截止时间(申请截止时间，下同)为 …」（江都区标段，r6 核验剩余 1 条漏抓）
   "资格预审申请文件递交截止时间", "递交资格预审申请文件截止时间",
   "资格预审申请文件递交截止", "递交资格预审申请文件截止", "申请文件递交截止时间",
-  "投标文件递交截止时间", "投标文件递交的截止时间", "递交投标文件截止时间",
+  "投标文件递交截止时间", "投标文件递交的截止时间", "递交投标文件的截止时间", "递交投标文件截止时间",
   "投标递交截止时间", "投标文件提交止时间",
   // 2026-08-16 V5 取证回访补词（江西竞争性磋商/遵义实测原文）：
   //   江西「四、提交 响应 文件截止时间、 磋商 时间…2026年08月27日 09点30分」（政采磋商措辞）
@@ -2163,7 +2168,7 @@ const FUND_LABELS = ["资金来源及比例", "建设资金来自", "资金来�
 //   放在"工期"前会抢先命中评分条款，把原本正确的"3年"污染成一整句评分描述（r5 回归实测退化）。
 // 上海等平台用「建设周期/设计周期」而非「工期」（2026-08-15 上海实测：详情页写
 // "设计周期：20日历天 建设周期：240日历天"，原 DUR_LABELS 无此标签 → 工期全空/误抓导航脏值）。
-const DUR_LABELS = ["计划监理与相关服务期", "勘察设计服务期限", "设计服务期限", "服务期限", "计划工期", "建设工期", "建设周期", "设计周期", "工期", "服务周期", "服务期",
+const DUR_LABELS = ["计划监理与相关服务期", "勘察设计服务期限", "设计服务期限", "供货期限", "交货期", "服务期限", "计划工期", "建设工期", "建设周期", "设计周期", "工期", "服务周期", "服务期",
   // 2026-08-16 V5 取证回访补词（江西政采公告）：「合同履行期限： 自合同签订生效之日起 45 天内完成…」
   // ——政采/磋商类公告以"合同履行期限"表达工期/服务期。放泛标签后（垫底层，防服务合同外误抓）。
   "合同履行期限"];
@@ -2255,6 +2260,10 @@ function grabDuration(text, flat) {
     const neighborhood = text.slice(direct.index, direct.index + 100);
     if (durUnitHit(candidate) && !DUR_SCORE_NOISE.test(neighborhood)) return candidate;
   }
+  const delivery = String(text || "").match(/交货期\s*[:：]\s*([\s\S]{0,260}?\d+\s*日历天[\s\S]{0,180}?)(?=\n\s*(?:计划开始交货日期|1\s*\.\s*3\s*\.\s*3)|□\s*工期|$)/)?.[1] || "";
+  if (delivery) return cleanVal(delivery.replace(/[\r\n]+/g, " ")).slice(0, 300);
+  const tableDays = String(text || "").match(/工期\s*[（(]\s*天\s*[）)][\s\S]{0,900}?\n\s*(\d{1,4})\s*\n\s*(?:三[、.]|投标人资格要求)/)?.[1] || "";
+  if (tableDays && Number(tableDays) > 0) return `${Number(tableDays)}日历天`;
   let v = "";
   for (const lab of DUR_LABELS) {              // 逐标签取值，等价于原 grabBoth(整列表)，但可对单个候选做质检
     const raw = grabBoth(text, flat, [lab]);
@@ -2341,6 +2350,15 @@ function countQual(s) {
 }
 
 function grabQualification(text, flat) {
+  if (/本项目的特定资格要求\s*[:：]\s*无(?=[。；;\s]|$)/.test(text)) return "不要求";
+  const exactSections = [
+    text.match(/3\s*\.\s*1\s*工程设计资质须满足下列条件之一\s*[:：]\s*([\s\S]{8,1200}?)(?=3\s*\.\s*2\s*投标人拟派)/)?.[1],
+    text.match(/3\s*\.\s*1\s*本次招标允许投标人以投标货物的下列身份参加投标\s*[:：]?\s*([\s\S]{8,1600}?)(?=3\s*\.\s*2\s*投标人还应)/)?.[1],
+    text.match(/本项目的特定资格要求\s*[:：]\s*([\s\S]{8,1600}?)(?=三[、.．]\s*获取招标文件)/)?.[1],
+    text.match(/3\s*\.\s*1\s*投标人申请资格要求\s*[:：]\s*([\s\S]{8,1600}?)(?=3\s*\.\s*2\s*业绩要求)/)?.[1],
+    text.match(/3\s*\.\s*1\s*投标人[（(][^）)]{0,100}[）)]\s*具备\s*([\s\S]{8,1600}?)(?=3\s*\.\s*2\s*投标人)/)?.[1],
+  ].filter(Boolean);
+  if (exactSections.length) return cleanVal(exactSections[0].replace(/[\r\n]+/g, " ")).slice(0, 500);
   const exact = text.match(/(?:\d+(?:\.\d+)+\s*)?投标人资质要求\s*[:：]\s*([^\n。；;]{1,300})/);
   if (exact) {
     const value = cleanVal(exact[1]).replace(/\s+/g, " ").trim();
