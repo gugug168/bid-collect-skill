@@ -866,6 +866,7 @@ const ADAPTERS = {
     cats: ["003001002", "002001001"], // 建设工程-招标公告 / 工程建设-招标公告(均实测有管网命中)
     sortField: "webdate",
     defaultType: "招标公告",
+    detail: sichuanDetail,
     // ---- B 阶段（Goal v2 · 2026-08-15 枚举）：四川 EPoint 栏目码实测（全在 00200100x 分支）
     // candidate=002001006(中标候选人公示) / result=002001008(中标结果公示) / contract=002001007(合同公示)
     stages: {
@@ -2954,11 +2955,21 @@ function zhejiangDetail(html, item, pdfText) {
   const overview = text.match(/(?:^|\n)\s*2\.1\s*项目概况\s*[:：]?\s*([\s\S]{4,6000}?)(?=\n\s*2\.2\s*招标范围)/m)?.[1] || "";
   const overviewScale = overview.match(/建设规模\s*[:：]\s*([\s\S]{1,2000}?)(?=\s*[，,]?\s*建设地点\s*[:：]|$)/)?.[1] || "";
   const scale = text.match(/(?:^|\n)\s*\d+(?:\.\d+)*\s*建设规模\s*[:：]?\s*([\s\S]{4,12000}?)(?=\n\s*\d+(?:\.\d+)*\s*招标范围\s*[:：]?)/m)?.[1] || "";
-  const scope = text.match(/(?:^|\n)\s*\d+(?:\.\d+)*\s*招标范围\s*[:：]?\s*([\s\S]{4,12000}?)(?=\n\s*\d+(?:\.\d+)*\s*(?:勘察设计服务期限|计划工期|施工工期|工期|投标人资格要求|是否属于政府采购工程)\s*[:：]?)/m)?.[1] || "";
+  const scopeSection = text.match(/(?:^|\n)\s*\d+(?:\.\d+)*\s*招标范围(?:及标段划分)?\s*[:：]?\s*([\s\S]{4,12000}?)(?=\n\s*\d+(?:\.\d+)*\s*(?:勘察设计服务(?:期限|周期)|计划工期|施工工期|工期|投标人资格要求|是否属于政府采购工程)\s*[:：]?)/m)?.[1] || "";
+  const nestedScope = scopeSection.match(/(?:^|\n)\s*招标范围\s*[:：]\s*([\s\S]{4,10000})/m)?.[1] || "";
+  const scope = nestedScope || scopeSection;
   const qualification = text.match(/(?:^|\n)\s*[☑√■⊠□]?\s*3\.1(?!\d)\s*([\s\S]{8,6000}?)(?=\n\s*[☑√■⊠□]?\s*3\.2(?!\d)\s*)/m)?.[1] || "";
   if (/^[\/／]\s*$/.test(overviewScale.trim())) out.scale = "";
   else if (scale || overviewScale) out.scale = cleanFullProjectFact(scale || overviewScale);
   if (scope) out.scope = cleanFullProjectFact(scope).replace(/[，,]\s*其中\s*[，,]?\s*□\s*建筑面积[\s\S]*$/, "").trim();
+  if (nestedScope && out.scope) out.scope = out.scope.replace(/。\s*$/, "");
+  const combined = String(out.scale || "").match(/^([\s\S]{20,}?)[；;]\s*招标范围\s*[:：]\s*([\s\S]{4,1600})$/);
+  if (combined) {
+    out.scale = cleanFullProjectFact(combined[1]);
+    out.scope = cleanFullProjectFact(combined[2])
+      .replace(/土\s+方/g, "土方")
+      .replace(/[；;]\s*(?:其它|其他)具体详见[\s\S]*$/, "；").trim();
+  }
   if (qualification) out.qualification = cleanQualificationOutput(cleanFactText(qualification), text, 0);
   return out;
 }
@@ -4079,6 +4090,8 @@ function mapFjDetailPayload(meta, content, item, ad) {
     ? String(Number(((String(base.PRICE_UNIT) === "0" ? contractAmount / 10000 : contractAmount)).toFixed(6)))
     : "";
   const detailText = htmlToText(html);
+  const exactScale = detailText.match(/(?:^|\n)\s*2\.2\.?\s*工程规模\s*[:：]?\s*([\s\S]{4,2600}?)(?=\s*2\.3\s*产业类型)/m)?.[1] || "";
+  if (exactScale) out.scale = cleanProjectContent(exactScale).replace(/[；;\s]+$/, "");
   const controlPriceDeferred = /招标控制价[\s\S]{0,120}?(?:最迟应|另行|后续)[\s\S]{0,60}?发布/.test(detailText);
   if (controlPriceDeferred) out.controlPrice = "";
   if (contractWan) recordPriceRejections(out, item, [{ label: "合同估算价", value_wan: Number(contractWan), reason_code: "PRICE_FACT_NOT_CONTROL" }]);
@@ -4730,6 +4743,14 @@ function hebeiDetail(html, item, pdfText) {
   const scope = text.match(/2\s*\.\s*2\s*招标范围及标段划分\s*[:：]?\s*([\s\S]{4,1600}?)(?=3\s*[.．]\s*投标人资格要求)/)?.[1] || "";
   if (scale) out.scale = cleanProjectContent(scale);
   if (scope) out.scope = cleanProjectContent(scope);
+  return out;
+}
+
+function sichuanDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  const text = String(pdfText || htmlToText(html));
+  const exactScope = text.match(/(?:^|\n)\s*2\.2\.3\s*招标范围\s*[:：]\s*([\s\S]{4,1800}?)(?=\s*3\s*[.．、]\s*投标人资格要求)/m)?.[1] || "";
+  if (exactScope) out.scope = cleanProjectContent(exactScope);
   return out;
 }
 
