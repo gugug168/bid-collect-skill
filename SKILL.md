@@ -118,6 +118,7 @@ node scripts/province-collect.cjs -p 浙江 -k 管网 -d 365 --verify
 - XLSX schema 以 `scripts/province-collect.cjs` 的三个 header 常量为真相源，均按房建市政、水利、公路、其他项目分 sheet。
 - Skill 日常业务表使用 `project18`：在项目名称后增加“建设规模/招标范围”，分别回答整个项目做什么与本次招标做什么。`biaobiaotong16` 保持严格兼容；`full29`/CSV 保持旧调用兼容。
 - 项目内容优先精确结构化标签与编号段：“建设内容及规模/工程概况描述/项目建设内容及规模”归 `scale`，“单位工程及招标范围说明/标段招标范围/采购需求/代建范围”归 `scope`。采购、服务公告默认把需求放入 `scope`；相同或包含关系事实只保留语义更明确的一列，不复制凑数。
+- 广东、武汉、浙江、北京已按生产证据使用平台精确完整事实路径，`scale/scope/qualification` 不做无标记半句截断。极端超过Excel安全范围时只在完整句/条款边界截断并追加说明，信号写入 `signals.field_truncations[]`；找不到安全边界则诚实留空并记 `FIELD_PRESENT_UNPARSED_NO_SAFE_BOUNDARY`。
 - Excel 只保存官方确定性事实，不生成 AI 摘要。合并字段无法可靠拆分时不复制到两列，机器原因写 sidecar/短备注。
 - XLSX 与 CSV 不是同一列集。预算 `budget` 与控制价 `controlPrice` 是两个事实，禁止合并。
 - `controlPrice` 只接受官方明确的“最高投标限价/招标控制价/最高限价/投标报价上限”事实；合同估算价、项目投资、工程造价、采购预算、发包估价和有总价时的单个分项价必须拒绝。被拒事实仅进入 run-report 的 `signals.price_rejections[]`，不写业务表或备注。
