@@ -1070,6 +1070,14 @@ test("生产试运行02缺口32-D批次修复山西范围与中山长字段", ()
   assert.equal(fixture.terminals.shaanxi, "CONNECTED_NO_RECENT_DATA");
 });
 
+test("生产试运行02最终硬字段按标题首次行政区并补齐房建主题", () => {
+  const fixture = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "production02-final-hard-v1.json"), "utf8"));
+  assert.equal(M.extractKnownArea(fixture.region.title), fixture.region.expected);
+  assert.equal(M.resolveRecordRegion(M.ADAPTERS.gansu, { city: "城关区", title: fixture.region.title }), fixture.region.expected);
+  for (const sample of fixture.classification) assert.equal(M.classifySheet(sample.title), sample.expected, sample.title);
+  assert.equal(fixture.material_changes.length, 3);
+});
+
 test("生产P01-P05详情完整性按冻结官方摘录回放", () => {
   const fixture = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "production-detail-completeness-v1.json"), "utf8")).replay;
   const ygp = (html, title) => M.parseYgpDetailPayload(

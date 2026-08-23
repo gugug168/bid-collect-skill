@@ -7983,7 +7983,8 @@ const KNOWN_ADMIN_AREAS = [...new Set(Object.values(PREFECTURE_DISTRICTS).flat()
 
 function extractKnownArea(text) {
   const compact = String(text || "").replace(/\s+/g, "");
-  return KNOWN_ADMIN_AREAS.find((name) => compact.includes(name)) || "";
+  return KNOWN_ADMIN_AREAS.map((name) => ({ name, index: compact.indexOf(name) })).filter((row) => row.index >= 0)
+    .sort((a, b) => a.index - b.index || b.name.length - a.name.length)[0]?.name || "";
 }
 
 function extractMostSpecificArea(text) {
@@ -8030,9 +8031,10 @@ function resolveRecordRegion(ad, rec, run) {
     if (district && KNOWN_ADMIN_AREAS.includes(district)) return district;
     listed = "";
   }
+  const titleArea = extractKnownArea(String(rec && rec.title || ""));
+  if (titleArea && /(?:区|县|市)至[\u4e00-\u9fa5]{2,8}(?:区|县|市)/.test(String(rec && rec.title || ""))) return titleArea;
   const detailArea = extractMostSpecificArea(String(rec && rec.projectSite || ""));
   if (detailArea) return detailArea;
-  const titleArea = extractKnownArea(String(rec && rec.title || ""));
   const listedArea = listed ? extractKnownArea(listed) : "";
   const listedIsProvince = /(?:省|自治区|生产建设兵团)$/.test(listedArea || listed);
   if (titleArea && (!listedArea || listedIsProvince)) return titleArea;
@@ -8133,7 +8135,7 @@ function classifySheetEvidence(title) {
   const text = String(title || "").replace(/\s+/g, "").trim();
   const highwayStrong = /高速公路|国道(?:[GＧ]?\d+)?|省道(?:[SＳ]?\d+)?|农村公路|产业路|公路工程|路基路面|(?:高速互通|互通式?立交)|收费站/;
   const highwayMunicipalAccessory = /(?:配套市政|市政配套)/;
-  const municipalStrong = /市政(?:道路|桥梁|供水|排水|污水|管网|设施)|城市(?:支路|次干路|主干路|道路)|配套市政工程|市容环境整治|生活污水治理|污水处理厂|上跨高速桥梁|室内设计|供水管网(?:互联互通|提升改造)|二次供水设施|(?:片区|城区|城镇)[^，。；]{0,20}排水防涝|(?:路|街|大道)(?:（[^）]*）|\([^)]*\))?道路工程/;
+  const municipalStrong = /市政(?:道路|桥梁|供水|排水|污水|管网|设施)|城市(?:支路|次干路|主干路|道路)|配套市政工程|市容环境整治|生活污水治理|污水处理厂|供热(?:干线|管网|设施)|上跨高速桥梁|室内设计|供水管网(?:互联互通|提升改造)|二次供水设施|(?:片区|城区|城镇)[^，。；]{0,20}排水防涝|(?:路|街|大道)(?:（[^）]*）|\([^)]*\))?道路工程/;
   const waterStrong = /水利(?:工程|枢纽)|水库(?:除险|加固|工程|建设|治理|扩容)|水塘|河湖建设|灌区|灌渠|堤防|水闸|河道(?:治理|整治)|防洪(?:工程|治理)|农田水利|水资源配置|输水管?工程/;
   if (highwayStrong.test(text) && (!municipalStrong.test(text) || highwayMunicipalAccessory.test(text))) return { sheet: "公路", rule: "HIGHWAY_STRONG" };
   if (municipalStrong.test(text)) return { sheet: "房建市政", rule: "MUNICIPAL_STRONG" };
@@ -8141,7 +8143,7 @@ function classifySheetEvidence(title) {
   if (highwayStrong.test(text)) return { sheet: "公路", rule: "HIGHWAY_STRONG" };
   if (/公路|高速|国道|省道|桥梁|隧道|路基|路面|道路工程/.test(text)) return { sheet: "公路", rule: "HIGHWAY_WEAK_LEGACY" };
   if (/水利|水库|灌区|灌渠|河道|水系|防洪|水环境|饮水|供水|排水|污水|管网|水厂|泵站|治水/.test(text)) return { sheet: "水利", rule: "WATER_WEAK_LEGACY" };
-  if (/房建|建筑|市政|装修|绿化|景观|厂房|科创中心|安置房|保障房|学校|中学|小学|幼儿园|医院|康养|街区|社区|消防|充电|公园|道路/.test(text)) return { sheet: "房建市政", rule: "MUNICIPAL_OR_BUILDING" };
+  if (/房建|建筑|市政|装修|绿化|景观|厂房|科创中心|安置房|保障房|小区|加装电梯|学校|中学|小学|幼儿园|医院|酒店|康养|街区|社区|消防|充电|公园|道路/.test(text)) return { sheet: "房建市政", rule: "MUNICIPAL_OR_BUILDING" };
   return { sheet: "其他项目", rule: "OTHER_DEFAULT" };
 }
 
