@@ -9,6 +9,10 @@ TRS 引擎：`getPublishResourceDealContent?sourceDataKey=` 公开 JSON 详情�
 ## 2026-08-21 A1 project18 结论
 默认请求固定 `noticeTypeName=招标公告`，并在客户端二次拒绝更正/结果；行业分类串不再冒充招标范围。17字段终态为 VL=4、VD=8、ND=3、R=2，无 `FIELD_UNVERIFIED`。样本未披露可用 scale/scope/performance，保证金与满分因文件可得性收口为受限。
 
+## 2026-08-23 全国100条 PR2 复核
+
+官方“招标公告”检索仍会混入询比采购和竞争性谈判。现由统一标题守卫拒绝并写 `STAGE_TITLE_REJECTED`；冻结负例 S012 不再进入 `zb`。列表中的“和谐小区”等项目名称不是行政区，地区回退到内蒙古自治区并写地区拒绝信号。
+
 ## 2026-08-14 验证结论
 ✅ **公开 JSON 详情**：nmgDetail 15/15 命中；注意过滤 1970 脏开标时间（源数据异常）。
 
