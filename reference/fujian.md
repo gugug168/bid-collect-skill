@@ -21,3 +21,7 @@ node scripts/province-collect.cjs -p fujian -k 管网 -d 30 --stage zb --limit 3
 ```
 
 只验收 `zb`；结构化字段不能覆盖正文中更精确的明确标签事实。
+
+## 2026-08-23 生产试运行02
+
+水利模板 `2.2 工程规模 → 2.3 产业类型` 使用福建adapter精确边界，正文金额 `6942.25万元` 不再被误判为下一编号，完整规模由冻结官方响应回放。fixture：`evidence/production02-residuals-v1.json`。

@@ -981,6 +981,22 @@ test("生产盲测10条分类覆盖真公路真水利与市政冲突", () => {
   assert.equal(zhejiangSupply.qualification, "具备市政公用工程施工总承包二级或以上资质。");
 });
 
+test("生产试运行02历史残差按平台精确边界闭环", () => {
+  const fixture = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "production02-residuals-v1.json"), "utf8"));
+  const replay = fixture.replay;
+  const fj = M.mapFjDetailPayload({}, { Contents: replay.fujian.html }, { title: "福建样本", url: "https://example.invalid/fj" }, M.ADAPTERS.fujian);
+  assert.equal(fj.scale, replay.fujian.expected_scale);
+  const design = M.ADAPTERS.zhejiang.detail("", { title: "浙江勘察设计样本", url: "https://example.invalid/zj-design" }, replay.zhejiang_design.text);
+  assert.equal(design.scope, replay.zhejiang_design.expected_scope);
+  const supply = M.ADAPTERS.zhejiang.detail("", { title: "浙江输水样本", url: "https://example.invalid/zj-supply" }, replay.zhejiang_supply.text);
+  assert.equal(supply.scale, replay.zhejiang_supply.expected_scale);
+  assert.equal(supply.scope, replay.zhejiang_supply.expected_scope);
+  const sichuan = M.ADAPTERS.sichuan.detail(replay.sichuan.html, { title: "四川样本", url: "https://example.invalid/sc" }, "");
+  assert.equal(sichuan.scope, replay.sichuan.expected_scope);
+  assert.equal(fixture.adjudications.find((row) => row.sample_id === "S030").status, "FIELD_RESTRICTED");
+  assert.equal(fixture.adjudications.filter((row) => row.status.startsWith("MATERIAL_CHANGE")).length, 2);
+});
+
 test("生产P01-P05详情完整性按冻结官方摘录回放", () => {
   const fixture = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "production-detail-completeness-v1.json"), "utf8")).replay;
   const ygp = (html, title) => M.parseYgpDetailPayload(

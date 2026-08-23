@@ -1,0 +1,33 @@
+{
+  "schema_version": "production02-residuals.v1",
+  "source_commit": "66a789b17b21b5bfc1d8fbb2a64fc01c70256dd9",
+  "archived_evidence_root": "E:/工程项目/招投标采集结果/2026-08-23_全国100条准确率抽样验收/official-responses",
+  "adjudications": [
+    {"sample_id":"S003","adapter":"guizhou","field":"scale","status":"MATERIAL_CHANGE_GOLD_NARROWER_THAN_VALID_SOURCE","evidence":"guizhou-37008-002.json","sha256":"e798f94c29460a0b0956b75e1b581db62424210e4e6769795b7f3e7f5cd6139a"},
+    {"sample_id":"S017","adapter":"fujian","field":"scale","status":"FIX_REQUIRED","evidence":"fujian-34612-003.json","sha256":"30a6bb27edc3dff8029c4f524ac2b1d0509810774feadacbaf31d9ae34e861f4"},
+    {"sample_id":"S030","adapter":"nanjing","field":"bond","status":"FIELD_RESTRICTED","reason":"官方招标文件预览端点超时；公告保持VERIFIED_RECORD，不伪造8万元","evidence":"nanjing-19344-003.json","sha256":"90ce1fac56b892febc1e4e1243bab7d10113b0928c28c8e9874b3c4e376256a5"},
+    {"sample_id":"S038","adapter":"zhejiang","field":"scope","status":"FIX_REQUIRED","evidence":"zhejiang-6960-003.json","sha256":"e90bd90d2cc675fa4fad90ae8076effcc22bb91700db83d370eb920a7d40efd6"},
+    {"sample_id":"S043","adapter":"zhejiang","field":"scope","status":"FIX_REQUIRED","evidence":"zhejiang-6960-005.json","sha256":"336e0406b3181f230edd83a93d0bdc317d190f0ace51001a48071c39723585f9"},
+    {"sample_id":"S048","adapter":"sichuan","field":"scope","status":"FIX_REQUIRED_ARCHIVED_EVIDENCE","evidence":"sichuan-9496-004.json","sha256":"1374307902307029940eaeb92db813ee1d4e26942ddcc011977be93217e38165"},
+    {"sample_id":"S072","adapter":"hebei","field":"scope","status":"MATERIAL_CHANGE_GOLD_NARROWER_THAN_VALID_SOURCE","evidence":"hebei-37268-002.json","sha256":"abeb456ac20c48760c8ea23e2ac1d1bcfdaa7d502255431db32b7f2320aaeb23"}
+  ],
+  "replay": {
+    "fujian": {
+      "html": "<p>2.2. 工程规模：</p><p>项目总投资估算为 6942.25 万元，其中工程费 5283.41 万元项目包含莲柄港灌区主干渠综合整治共19.14km、支渠综合整治共26.56km、灌区配套建筑物改造共31座、3座电灌站更新改造；</p><p>2.3 产业类型：第二产业；</p>",
+      "expected_scale": "项目总投资估算为 6942.25 万元，其中工程费 5283.41 万元项目包含莲柄港灌区主干渠综合整治共19.14km、支渠综合整治共26.56km、灌区配套建筑物改造共31座、3座电灌站更新改造"
+    },
+    "zhejiang_design": {
+      "text": "2.2 招标范围及标段划分：（说明勘察设计工作内容、标段划分等）。\n标段划分：本项目设一个标段。\n招标范围：包含本项目航道工程的初测初勘、定测详勘、初步设计、施工图设计、概预算文件编制、后续服务等全部工作。\n2.3 勘察设计服务周期：1210日历天。",
+      "expected_scope": "包含本项目航道工程的初测初勘、定测详勘、初步设计、施工图设计、概预算文件编制、后续服务等全部工作"
+    },
+    "zhejiang_supply": {
+      "text": "2. 工程概况：本工程新建DN1800原水管、清水管及DN600分质水管，总长约5600米；输水规模为30万m³/d；招标范围：土方开挖、回填，管道铺设，管件安装，阀门井浇筑等；其它具体详见招标文件、设计图纸及工程量清单。\n3.本公告共划分为1个标段",
+      "expected_scale": "本工程新建DN1800原水管、清水管及DN600分质水管，总长约5600米；输水规模为30万m³/d",
+      "expected_scope": "土方开挖、回填，管道铺设，管件安装，阀门井浇筑等；"
+    },
+    "sichuan": {
+      "html": "<p>2.2 招标范围</p><p>2.2.1质量标准：符合国家现行施工质量验收规范合格标准。</p><p>2.2.2计划工期：75日历天。</p><p>2.2.3招标范围：本次招标工程量清单和施工图纸所示的全部内容的施工。（简要说明本次招标标段名称、招标范围与内容、合同计划工期等）。</p><p>3. 投标人资格要求</p>",
+      "expected_scope": "本次招标工程量清单和施工图纸所示的全部内容的施工。（简要说明本次招标标段名称、招标范围与内容、合同计划工期等）。"
+    }
+  }
+}

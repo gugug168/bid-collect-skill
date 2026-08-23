@@ -210,4 +210,4 @@ node province-collect.cjs -p <adapter> --stage contract    # 合同公示
 - 冻结100条合法 `zb` 正例和2条阶段负例；阶段拒绝2/2，四个硬字段400/400。
 - 详情字段总体 union accuracy 99.42%、precision 99.59%、recall 99.42%；每个 `n≥20` 字段三项指标均不低于95%，控制价语义假阳性为0。
 - 前向盲测按固定 adapter 顺序选取30条未进入冻结集的官方公告，覆盖12个平台家族；硬字段120/120，纳入核对的258个详情事实均正确，132个未披露或受限事实不计作成功。
-- 冻结集保留7个可定位残差，不能把抽样通过写成“全国18列全部齐全”或“零错误”。机器证据：`reference/evidence/nationwide-100-final-and-blind30-v2.json`。
+- 原冻结集7个残差已在生产试运行02重新裁定：福建/浙江/四川4项平台精确修复，南京保证金按附件受限收口，贵州/河北2项记录为旧Gold窄于官方有效事实的 `MATERIAL_CHANGE`，不静默改Oracle。机器证据：`reference/evidence/production02-residuals-v1.json`。

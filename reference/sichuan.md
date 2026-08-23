@@ -36,3 +36,7 @@ performance / fullScore（源页普遍无评分细则/业绩要求，全省一�
 ## 2026-08-23 全国验收收口
 
 冻结样本确认明确“不要求类似业绩”可作为受控事实，`performance` 转为 `FIELD_VERIFIED_DETAIL`；前向样本的顶层招标范围亦完成回源复核。证据见 `evidence/nationwide-100-final-and-blind30-v2.json`。
+
+## 2026-08-23 生产试运行02
+
+四川施工模板的实际范围位于 `2.2.3 招标范围`；adapter现优先提取该段并在第3章资格要求前停止，不再把 `2.2.1质量标准/2.2.2计划工期` 写入scope。fixture：`evidence/production02-residuals-v1.json`。
