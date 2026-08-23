@@ -33,7 +33,9 @@ sidecar 保存 `snapshot_at`、参数、来源、记录数量、状态、错误�
 - `reference/COVERAGE_MATRIX.md` 只作为机器真相源的人读投影；使用 `node scripts/project18-capabilities.cjs --render` 更新，不手改投影区。
 - `reference/ZB_LIVE_STATUS_2026-08-15.md` 继续只记录采集运行状态；不得用一次 `VERIFIED_RECORD` 自动替换字段能力状态。
 - 阶段批次允许保留 `FIELD_UNVERIFIED`；全国收口运行 `node scripts/project18-capabilities.cjs --require-complete`，确保 1,054 格都有诚实终态。
-- 截至 2026-08-22，全国62个 adapter ×17字段共1,054格均已形成可审计终态，`FIELD_UNVERIFIED=0`。陕西、定西以无样本终态，广西/苏州含OCR终态，山东含详情失败终态；不得把全国可审计误写成全国字段齐全。
+- 截至 2026-08-23，全国62个 adapter ×17字段共1,054格均已形成可审计终态，`FIELD_UNVERIFIED=0`。陕西、定西含无样本终态，广西/苏州/山西含OCR终态，山东详情按当前网络与页面回读能力标记受限；不得把全国可审计误写成全国字段齐全。
+- 冻结100条官方 `zb` 公告验收：阶段负例2/2拒绝，硬字段400/400；详情总体 union accuracy 99.42%、precision 99.59%、recall 99.42%，每个 `n≥20` 字段均达到95%门槛。30条前向盲测覆盖30个 adapter、12个平台家族，硬字段120/120，纳入核对的详情事实258/258。机器证据见 `reference/evidence/nationwide-100-final-and-blind30-v2.json`。
+- 抽样通过不代表每列必有值或所有历史公告零缺陷。冻结集保留7个已知残差；扫描件、乱码 PDF、只给跳转按钮或源页未披露时继续使用 OCR/受限/未披露终态，不补造事实。
 
 ## 开始前
 
@@ -42,6 +44,7 @@ sidecar 保存 `snapshot_at`、参数、来源、记录数量、状态、错误�
 ```powershell
 node scripts/self-test.cjs
 node scripts/project18-capabilities.cjs --check
+node scripts/project18-capabilities.cjs --require-complete
 ```
 
 必须看到 `SELF_TEST … passed`（以 scripts/self-test.cjs 实际用例数为准）。失败时先修门禁，不开始批量联网。

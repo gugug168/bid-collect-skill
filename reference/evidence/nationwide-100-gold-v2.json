@@ -1,6 +1,6 @@
 {
   "schema_version": "nationwide-100-gold.v2",
-  "frozen_at": "2026-08-23T07:19:02.582Z",
+  "frozen_at": "2026-08-23T08:27:49.694Z",
   "source_commit": "c5c8dfa61e9f263fcfb6b1f75d2786e176c1af3e",
   "source_audit": "2026-08-23_全国100条准确率抽样验收",
   "fields": [
@@ -2696,9 +2696,9 @@
         },
         "scope": {
           "state": "VALUE",
-          "value": "招标人提供的施工图、《习水县循环农业酒糟综合利用项目施工招标工程量清单、拦标价、投标报价编制意见》招标答疑及招标期间补充通知等所示全部内容内的全部施工及与有关部门的验收、移交工作为准。。",
+          "value": "招标人提供的施工图、《习水县循环农业酒糟综合利用项目施工招标工程量清单、拦标价、投标报价编制意见》招标答疑及招标期间补充通知等所示全部内容内的全部施工及与有关部门的验收、移交工作为准。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "guizhou-37008-002.json"
           ]
@@ -3381,9 +3381,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "新建国风雕塑1座",
+          "value": "新建国风雕塑1座。主要包括完成雕塑基础新建，通过勘测制定安装方式，重新制作成钢结构新造型雕塑，新雕塑整体高度28.5m，底座直径12.7m，底座高3.5m，雕塑展开面积约2000m，高度25m，最大宽度21m。底座周围部分采用渤海古图案进行装饰。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "jilin-28044-002.json"
           ]
@@ -3425,10 +3425,10 @@
           ]
         },
         "performance": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "总承包项目经理须具有类似项目业绩",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "jilin-28044-002.json"
           ]
@@ -3576,10 +3576,10 @@
           ]
         },
         "duration": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "为自合同签订之日起90个自然日内完成合格物资的供货，到货后30个自然日内完成物资的安装及调试",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "hunan-37712-004.json",
             "hunan-37712-005.json"
@@ -3900,9 +3900,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "建筑面积约12.7万平方米，建设内容主要包含商品住宅，幼儿园，地下停车场等",
+          "value": "建筑面积约12.7万平方米，建设内容主要包含商品住宅，幼儿园，地下停车场等。（单体建筑层数最高：25层；建筑物高度最高：80米）。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "guizhou-37008-004.json"
           ]
@@ -4234,18 +4234,18 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "杜集“五七”干校旧址是安徽省第九批省级文物保护单位，现存单体建筑15栋，总建筑面积5157.72平方米",
+          "value": "杜集“五七”干校旧址是安徽省第九批省级文物保护单位，现存单体建筑15栋，总建筑面积5157.72平方米。本项目主要包括五七干校旧址1号平房,5号平房,6号平房,14号平房以及15号平房，共5幢建筑维修，总建筑面积约1237.35平方米。施工内容主要包括修补加固沉降破损墙体，重做水泥地面，复原原有门窗形制等。具体内容详见图纸及工程量清单控制价。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "anhui-19520-002.json"
           ]
         },
         "scope": {
-          "state": "VALUE",
-          "value": "本项目主要包括五七干校旧址1号平房,5号平房,6号平房,14号平房以及15号平房，共5幢建筑维修，总建筑面积约1237.35平方米。施工内容主要包括修补加固沉降破损墙体，重做水泥地面，复原原有门窗形制等。具体内容详见图纸及工程量清单控制价。",
+          "state": "NOT_DISCLOSED",
+          "value": "",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "DUPLICATE_OR_NOT_INDEPENDENT_PROJECT_FACT",
           "evidence": [
             "anhui-19520-002.json"
           ]
@@ -5121,19 +5121,19 @@
           ]
         },
         "duration": {
-          "state": "NOT_DISCLOSED_OR_RESTRICTED",
-          "value": "",
+          "state": "VALUE",
+          "value": "60日历天，计划开始交货日期：合同签订后10天内开始交货",
           "comparison": "normalized_text",
-          "reason": "not disclosed conclusively or official detail/attachment restricted",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "chongqing-36404-002.json"
           ]
         },
         "qualification": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "制造商 代理商（包括经销商、制造商下属销售子公司） 3.1.1 投标人为制造商应符合以下要求： （1）具备独立法人资格； （2）具备有效的《涉及饮用水卫生安全产品卫生许可批件》。 3.1.2 投标人为代理商应符合以下要求： （1）具备独立法人资格； （2）投标货物制造商应具备有效的《涉及饮用水卫生安全产品卫生许可批件》。； （3） 涂塑无缝钢管具有制造商授权书。 注：本招标项目同一标段中，一个制造商对同一品牌同一型号的货物，仅能委托一个代理商参加投标，否则各相关投标均无效； 同一品牌同一型号货物的制造商和代理商不得在本招标项目同一标段中投标，否则各相关投标均无效。",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "chongqing-36404-002.json"
           ]
@@ -5261,9 +5261,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "松苑项目总建筑面积约197208.72㎡",
+          "value": "松苑项目总建筑面积约197208.72㎡。其中：地上建筑面积约109699.75㎡，主要业态为多层洋房，其中18栋住宅楼，一栋幼儿园，若干配套用房；地下建筑面积约87508.97㎡，地下车库2层，局部1层；部分楼栋结构形式为预应力楼板、装配式建筑、钢结构。一标段： 装饰面积约：11922.55㎡，二标段：装饰面积约：23839.75㎡；",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "henan-37152-002.curl.json"
           ]
@@ -5427,9 +5427,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "项目总用地面积约73462m2，总建筑面积约146792m2，建设内容为组合厂房、科研室、配套用房等建筑安装工程及配套工程等，项目总投资约73764.40万元",
+          "value": "项目总用地面积约73462m2，总建筑面积约146792m2，建设内容为组合厂房、科研室、配套用房等建筑安装工程及配套工程等，项目总投资约73764.40万元。最终以政府规划部门审批通过的建设规模为准。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "anhui-19520-003.json"
           ]
@@ -5740,10 +5740,10 @@
           ]
         },
         "bidOpen": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "2026-09-11 09:30",
           "comparison": "datetime_minute",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "gansu-34992-006.json"
           ]
@@ -5786,10 +5786,10 @@
           ]
         },
         "duration": {
-          "state": "NOT_DISCLOSED_OR_RESTRICTED",
-          "value": "",
+          "state": "VALUE",
+          "value": "90日历天内完成旧电梯拆除并完成新电梯的采购、安装、调试以及最终验收合格（含取得有关部门颁发的电梯准用证）",
           "comparison": "normalized_text",
-          "reason": "not disclosed conclusively or official detail/attachment restricted",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "gansu-34992-006.json"
           ]
@@ -5868,10 +5868,10 @@
           ]
         },
         "docLink": {
-          "state": "REVIEW",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
           "value": "",
           "comparison": "url",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_FILE_RESTRICTED_OR_NO_READABLE_DIRECT_LINK",
           "evidence": [
             "gansu-34992-006.json"
           ]
@@ -6302,10 +6302,10 @@
           ]
         },
         "qualification": {
-          "state": "REVIEW",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
           "value": "",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_FILE_RESTRICTED_OR_NO_READABLE_DIRECT_LINK",
           "evidence": [
             "qingdao-25476-002.json",
             "qingdao-25476-003.json",
@@ -6313,10 +6313,10 @@
           ]
         },
         "performance": {
-          "state": "REVIEW",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
           "value": "",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_FILE_RESTRICTED_OR_NO_READABLE_DIRECT_LINK",
           "evidence": [
             "qingdao-25476-002.json",
             "qingdao-25476-003.json",
@@ -7127,9 +7127,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "本项目实施范围为规划浦六路平交口（不含）至出沪宁合、宁淮城际铁路六合西站30米临营定义范围，长度约435m（其中涉铁实施范围249.64m）",
+          "value": "本项目实施范围为规划浦六路平交口（不含）至出沪宁合、宁淮城际铁路六合西站30米临营定义范围，长度约435m（其中涉铁实施范围249.64m）。主要建设内容为路基、路面（不含人非慢行道）、桩板桥、U型槽、顶进框构、交通安全设施、照明、管综及铁路四电工程、铁路框架桥工程、涉铁相关工程等；采用城市快速路标准建设，双向六车道。工程总投资约3.71亿元，其中建安费约2.12亿元。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "nanjing-19344-003.json"
           ]
@@ -7500,10 +7500,10 @@
           ]
         },
         "qualification": {
-          "state": "REVIEW",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
           "value": "",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_FILE_RESTRICTED_OR_NO_READABLE_DIRECT_LINK",
           "evidence": [
             "qingdao-25476-004.json",
             "qingdao-25476-003.json",
@@ -7511,10 +7511,10 @@
           ]
         },
         "performance": {
-          "state": "REVIEW",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
           "value": "",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_FILE_RESTRICTED_OR_NO_READABLE_DIRECT_LINK",
           "evidence": [
             "qingdao-25476-004.json",
             "qingdao-25476-003.json",
@@ -8490,9 +8490,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "京杭运河湖州段（通河桥~五龙桥）扩能增智工程起点为湖州市南浔区通河桥，终点为湖州市德清县五龙桥，全长约23.14km，按内河限制性Ⅱ级航道标准建设，建设内容主要包括疏浚土方约237.8万m³，护岸工程约41.3km，拆除桥梁1座，以及桥梁防护、航道标志等配套工程，本项目估算总投资约18.12亿元，工程费用约13.66亿元",
+          "value": "京杭运河湖州段（通河桥~五龙桥）扩能增智工程起点为湖州市南浔区通河桥，终点为 湖州市德清县五龙桥，全长约23.14km，按内河限制性Ⅱ级航道标准建设，建设内容主要包括疏浚土方约 237.8万m³，护岸工程约41.3km，拆除桥梁1座，以及桥梁防护、航道标志等配套工程，本项目估算总投资约 18.12亿元，工程费用约13.66亿元。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "zhejiang-6960-003.json"
           ]
@@ -9021,9 +9021,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "本项目对新科创中心1幢甲、乙、丙单元，2幢甲、乙单元，6幢甲单元装修改造约24100㎡，购置相关设备，满足教学实验、科研创新、实训办公等办学功能",
+          "value": "本项目对新科创中心1幢甲、乙、丙单元，2幢甲、乙单元，6幢甲单元装修改造约24100㎡，购置相关设备，满足教学实验、科研创新、实训办公等办学功能。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "changzhou-37296-002.json"
           ]
@@ -9056,10 +9056,10 @@
           ]
         },
         "qualification": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "①工程设计综合资质甲级； ②建筑行业甲级资质或建筑行业（建筑工程）专业甲级资质；",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "changzhou-37296-002.json",
             "changzhou-37296-003.json",
@@ -9361,9 +9361,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "本工程新建DN1800大口径原水管、清水管及DN600分质水管，原水管、清水管工程起点位 于动力大道北侧，管道沿江赤大道东侧绿化或农田布置，终点位于朝阳路北侧",
+          "value": "本工程新建DN1800大口径原水管、清水管及DN600分质水管，原水管、清水管工程起点位 于动力大道北侧，管道沿江赤大道东侧绿化或农田布置，终点位于朝阳路北侧；分质水管工程起点位于双 峰路南侧，终点位于朝阳路北侧；本工程新建原水管管径为DN1800,总长约2500米；新建清水管管径为DN6 00~DN1800,总长约2500米；分质水管管径为DN600,总长约600米；输水规模为30 万m³/d；招标范围：土 方开挖、回填，管道铺设，管件安装，阀门井浇筑等；其它具体详见招标文件、设计图纸及工程量清单。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "zhejiang-6960-005.json"
           ]
@@ -9387,10 +9387,10 @@
           ]
         },
         "duration": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "240日历天",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "zhejiang-6960-004.json",
             "zhejiang-6960-005.json",
@@ -9889,9 +9889,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "对白马寺院区1号、2号、3号、6号病房楼和太康路院区5号病房楼进行提升改造,改造总建筑面积44916.11㎡",
+          "value": "对白马寺院区1号、2号、3号、6号病房楼和太康路院区5号病房楼进行提升改造,改造总建筑面积44916.11㎡。主要包括:(1)现有双人间、三人间提升改造;现有四人间、六人间部分改为三人间或双人间。(2)各病房楼单体进行提升改造:内外门窗更新、内装修更新、结构加固、屋顶保温防水更新、外立面更新、消防安全提升、功能使用提升、对需新增电梯的建筑加装医用电梯等。(3)配套完善相关附属设施:适儿适老设施完善、水电老旧管网更新、动力电力设备升级、消防设备改造、智能化升级及配套设备购置等。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "luoyang-31508-002.json"
           ]
@@ -10228,10 +10228,10 @@
           ]
         },
         "scale": {
-          "state": "NOT_DISCLOSED_OR_RESTRICTED",
-          "value": "",
+          "state": "VALUE",
+          "value": "新（改）建果园900亩，对果园进行调型、土壤培肥等；在果园内新建100m3混凝土蓄水池7个、整治灌溉山坪塘1个，安装灌溉管网6km（其中φ110mm管网4500m，φ160mm管网1500m）；修建 0.6m×0.6m条石排水渠1.1km、1.8m 宽生产便道 5.5km；建设面积约200㎡柑橘产业社会化服务中心1个、500m3冷藏库1个及专家工作站1个。（具体以施工图纸及财评清单为准）。",
           "comparison": "normalized_text",
-          "reason": "not disclosed conclusively or official detail/attachment restricted",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "sichuan-9496-004.json"
           ]
@@ -10911,9 +10911,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "新建焦作至平顶山铁路洛阳段全长106.139正线公里，施工范围为新建焦作至平顶山铁路（洛阳境内孟津区、伊川县、汝阳县，含G208相关线路）范围建设及运营的要求而受影响的“三电”及管线迁改",
+          "value": "新建焦作至平顶山铁路洛阳段全长106.139正线公里，施工范围为新建焦作至平顶山铁路（洛阳境内孟津区、伊川县、汝阳县，含G208相关线路）范围建设及运营的要求而受影响的“三电”及管线迁改。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "luoyang-31508-005.json"
           ]
@@ -11251,9 +11251,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "新建1座100MW/200MWh储能电站，采用磷酸铁锂电池，户外集装箱布置",
+          "value": "新建1座100MW/200MWh储能电站，采用磷酸铁锂电池，户外集装箱布置。配套新建1座110kV升压站,设1台110MVA主变，以1回110kV电缆线路接入牯牛山220kV变电站110kV间隔。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "sichuan-9496-005.json"
           ]
@@ -11295,10 +11295,10 @@
           ]
         },
         "performance": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "不要求",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "sichuan-9496-005.json",
             "sichuan-9496-006.json"
@@ -11625,10 +11625,10 @@
           ]
         },
         "qualification": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "不要求",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "jiangxi-31032-005.curl.json"
           ]
@@ -11967,10 +11967,10 @@
           ]
         },
         "qualification": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "有效的营业执照或事业单位法人证书，投标人不得以分公司名义进行投标，投标文件的单位盖章必须使用其法人公章，分公司盖章无效。【上传营业执照或事业单位法人证书原件扫描件、制造商对本项目的授权书（如有）】",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "yichang-19512-002.json",
             "yichang-19512-003.json",
@@ -12497,10 +12497,10 @@
           ]
         },
         "qualification": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "（1）提供二、三类医疗器械产品的须具有医疗器械注册证，提供一类医疗器械产品的须具有产品备案登记凭证； （2）提供在中华人民共和国境内生产的二、三类医疗器械产品的须具有医疗器械生产许可证,一类医疗器械产品须具有医疗器械生产备案凭证； （3）经营三类医疗器械的须具有医疗器械经营企业许可证，经营二类医疗器械须具有医疗器械经营企业备案登记凭证（医疗器械注册人、备案人或者生产企业在其住所或者生产地址销售医疗器械，不需提供）。",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "jiangxi-31032-007.curl.json",
             "jiangxi-31032-008.curl.json"
@@ -12809,9 +12809,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "在宜都市姚家店、五眼泉、红花套等10个乡镇改造更新给水管网4119km，新建城乡供水互联互通管网25km，建设水源调蓄工程、配套泵站、检查井及其他配套设施，打造智能供水监管系统",
+          "value": "在宜都市姚家店、五眼泉、红花套等10个乡镇改造更新给水管网4119km，新建城乡供水互联互通管网25km，建设水源调蓄工程、配套泵站、检查井及其他配套设施，打造智能供水监管系统。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "yichang-19512-005.json"
           ]
@@ -12845,9 +12845,9 @@
         },
         "qualification": {
           "state": "VALUE",
-          "value": "水利部颁发的水利工程施工监理乙级及以上资质和建设行政主管部门颁发的市政公用工程监理乙级及以上资质。",
+          "value": "3.2.1水利部颁发的水利工程施工监理乙级及以上资质和建设行政主管部门颁发的市政公用工程监理乙级及以上资质。 3.2.2水利部颁发的水利工程施工监理乙级及以上资质和建设行政主管部门颁发的工程监理综合资质。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "yichang-19512-005.json"
           ]
@@ -12884,10 +12884,10 @@
           ]
         },
         "evaluation": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "宜昌市水利水电工程施工监理招标投标评分标准（非枢纽工程）；评定分离",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "yichang-19512-005.json",
             "yichang-19512-003.json",
@@ -12989,9 +12989,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "小区供热设施整合改造，包括对繁荣广场、工商局家属院、物资局家属院、新郎家属院、丽都大厦等小区庭院管网进行改造、换热站整合更新改造等，具体详见工程量清单、图纸及招标文件",
+          "value": "小区供热设施整合改造，包括对繁荣广场、工商局家属院、物资局家属院、新郎家属院、丽都大厦等小区庭院管网进行改造、换热站整合更新改造等，具体详见工程量清单、图纸及招标文件。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "weifang-34204-005.json"
           ]
@@ -13134,7 +13134,7 @@
         },
         "region": {
           "state": "VALUE",
-          "value": "合肥市",
+          "value": "合肥",
           "comparison": "normalized_text",
           "reason": "official response or official route readback verified",
           "evidence": [
@@ -13201,10 +13201,10 @@
           ]
         },
         "qualification": {
-          "state": "REVIEW",
+          "state": "VALUE",
           "value": "不要求",
           "comparison": "normalized_text",
-          "reason": "QUALIFICATION_REDUCED_TO_NOT_REQUIRED",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "hefei-37524-002.json",
             "hefei-37524-001.json",
@@ -13340,9 +13340,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "临沭县2024年第二批老旧小区改造工程十三标段，交通局一家属院、公安局南家属院暖气改造工程",
+          "value": "临沭县2024年第二批老旧小区改造工程十三标段，交通局一家属院、公安局南家属院暖气改造工程。具体详见工程量清单",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "linyi-15604-002.json"
           ]
@@ -13505,9 +13505,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "项目位于烟台市莱山区与芝罘区交界，路线北起明达西路，南至站前路，项目全长约603米，红线宽度35.5～38.68米",
+          "value": "项目位于烟台市莱山区与芝罘区交界，路线北起明达西路，南至站前路，项目全长约603米，红线宽度35.5～38.68米。其中，非涉铁部分约451米。非涉铁部分主要包括道路、排水、桥涵、照明、交通、绿化及附属设施等内容。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "yantai-9152-002.json"
           ]
@@ -13641,7 +13641,7 @@
         },
         "region": {
           "state": "VALUE",
-          "value": "合肥市",
+          "value": "肥东",
           "comparison": "normalized_text",
           "reason": "official response or official route readback verified",
           "evidence": [
@@ -13844,9 +13844,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "临沭县2025年老旧小区改造项目（二期）二标段，主要含人民银行家属院、畜牧中心家属院、顺河路教体局家属院、农发行家属院、河滨小区、祥和家园、鑫鑫小区、锦华苑西区8个小区的供电改造工程",
+          "value": "临沭县2025年老旧小区改造项目（二期）二标段，主要含人民银行家属院、畜牧中心家属院、顺河路教体局家属院、农发行家属院、河滨小区、祥和家园、鑫鑫小区、锦华苑西区8个小区的供电改造工程。具体详见工程量清单",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "linyi-15604-003.json"
           ]
@@ -14428,10 +14428,10 @@
           ]
         },
         "duration": {
-          "state": "NOT_DISCLOSED_OR_RESTRICTED",
-          "value": "",
+          "state": "VALUE",
+          "value": "本次招标设备预计2027年9月30日前交货2台，2027年12月31日前交货2台",
           "comparison": "normalized_text",
-          "reason": "not disclosed conclusively or official detail/attachment restricted",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "hebei-37268-002.json"
           ]
@@ -15133,10 +15133,10 @@
           ]
         },
         "duration": {
-          "state": "REVIEW",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
           "value": "",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "FIELD_OCR_REQUIRED",
           "evidence": [
             "shanxi-24944-012.curl.json",
             "shanxi-24944-003.json",
@@ -15352,19 +15352,19 @@
           ]
         },
         "qualification": {
-          "state": "VALUE",
-          "value": "资质条件：详见附件1资格审查条件(资质最低要求)。",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "POINTER_IS_NOT_A_FACT",
           "evidence": [
             "hebei-37268-003.json"
           ]
         },
         "performance": {
-          "state": "VALUE",
-          "value": "详见附件1资格审查条件(业绩最低要求)",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "POINTER_IS_NOT_A_FACT",
           "evidence": [
             "hebei-37268-003.json"
           ]
@@ -16208,10 +16208,10 @@
           ]
         },
         "performance": {
-          "state": "VALUE",
-          "value": "详见附录 3 资格审查条件（业绩最低要求）",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "POINTER_IS_NOT_A_FACT",
           "evidence": [
             "huizhou-20004-009.json"
           ]
@@ -16555,10 +16555,10 @@
           ]
         },
         "performance": {
-          "state": "REVIEW",
-          "value": "详见投标人须知前附表附录2",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
           "comparison": "normalized_text",
-          "reason": "PERFORMANCE_POINTER_IS_NOT_A_FACT",
+          "reason": "POINTER_IS_NOT_A_FACT",
           "evidence": [
             "wenzhou-10224-002.json",
             "wenzhou-10224-003.json",
@@ -16895,19 +16895,19 @@
           ]
         },
         "qualification": {
-          "state": "VALUE",
-          "value": "详见附录1资格审查条件(资质最低要求)",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "POINTER_IS_NOT_A_FACT",
           "evidence": [
             "qinhuangdao-4776-003.json"
           ]
         },
         "performance": {
-          "state": "VALUE",
-          "value": "详见附录1资格审查条件(业绩最低要求)",
+          "state": "NOT_DISCLOSED_OR_RESTRICTED",
+          "value": "",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "POINTER_IS_NOT_A_FACT",
           "evidence": [
             "qinhuangdao-4776-003.json"
           ]
@@ -17730,9 +17730,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "智能箱式物流传输系统1套，工作站点共11个，需与医院已运行的物流传输系统无缝衔接（新旧系统接驳），互联互通，达到有序、高效运行",
+          "value": "智能箱式物流传输系统1套，工作站点共11个，需与医院已运行的物流传输系统无缝衔接（新旧系统接驳），互联互通，达到有序、高效运行。气动物流1发送站+1接收站一套。具体技术要求详见技术参数。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "zunyi-36980-002.json"
           ]
@@ -17756,10 +17756,10 @@
           ]
         },
         "duration": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "工程具备安装条件 （ 以建设单位通知为准 ） 后 90 日历天完成 安装 、 调试 、 系统联调 （ 含新旧系统接驳 ） 等全部工作 。",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "zunyi-36980-002.json",
             "zunyi-36980-003.json",
@@ -17767,10 +17767,10 @@
           ]
         },
         "qualification": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "1）具有独立承担民事责任的能力：在中华人民共和国境内注册的法人或其他组织，投标（响应）时提交有效的营业执照（或事业法人登记证或身份证等相关证明）副本复印件。分支机构投标的，须提供总公司和分公司营业执照副本复印件，总公司出具给分支机构的授权书。2）履行合同所必需的设备和专业技术能力：在投标文件中提供《资格条件承诺函》，承诺函格式自拟。3）参加采购活动前3年内，所投产品制造商未发生过严重质量问题或安全事故：在投标文件中提供《资格条件承诺函》，承诺函格式自拟。",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "zunyi-36980-002.json",
             "zunyi-36980-003.json",
@@ -18633,9 +18633,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "五粮液门户区项目用地位于宜宾市五粮液行政区南侧，东邻航天路，西至第七包装车间，南临岷江，北接五粮液大道，规划用地面积约221984㎡，建设内容包括办公区、商业区（主体已封顶）、游客中心、东方酒谷、重碧楼、酒店、大区景观等，以及各类配套基础设施",
+          "value": "五粮液门户区项目用地位于宜宾市五粮液行政区南侧，东邻航天路，西至第七包装车间，南临岷江，北接五粮液大道，规划用地面积约221984㎡，建设内容包括办公区、商业区（主体已封顶）、游客中心、东方酒谷、重碧楼、酒店、大区景观等，以及各类配套基础设施。本次拟招标范围为酒店项目，分为酒店A区和酒店B区。总建筑面积约5.98万㎡（其中地上4.25万㎡，地下1.73万㎡）。项目建设内容主要包括酒店A区、酒店B区主体工程及所有配套景观、附属工程等。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "yibin-36892-004.json"
           ]
@@ -18987,9 +18987,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "项目总建筑面积114823.82平方米，占地面积45690平方米。主要建设一栋单层立体库，一栋7层高层仓库，一栋附属配套设施。包含AS/RS立体库，四向穿梭库，多层穿梭车，AGV，机器人拣选，建设自动收货、存储、拣选等高度智能化现代物流中心。预计日均吞吐药品20万件，存储能力130万件。",
+          "value": "项目总建筑面积114823.82平方米，占地面积45690平方米。主要建设一栋单层立体库，一栋7层高层仓库，一栋附属配套设施。包含AS/RS立体库，四向穿梭库，多层穿梭车，AGV，机器人拣选，建设自动收货、存储、拣选等高度智能化现代物流中心。预计日均吞吐药品20万件，存储能力130万件。本次招标范围为通风空调及系统的设备采购、施工安装、调试、培训、验收、质保期服务以及货物有关的运输和保险在内的工程承包（具体内容详见工程量清单及图纸）",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "guangdong-23132-003.json"
           ]
@@ -19153,9 +19153,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "包括：道路工程、排水工程、交通工程、照明工程、电力工程、管线综合、绿化工程等",
+          "value": "项目位于南沙区龙穴岛北部，南起龙穴大道，北至鸡抱沙北路，规划线位下穿现状南沙港铁路，总长约440m，红线宽度40m，双向六车道，城市次干路。建设内容包括：道路工程、排水工程、交通工程、照明工程、电力工程、管线综合、绿化工程等。项目总投资约1.15亿元，建安费约8275万元。（本项目按联审决策模式组织建设方案研究，总投资和建安费按策划阶段初步方案估算，后续建设方案及估算金额以可研批复为准）。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "guangdong-23132-008.json"
           ]

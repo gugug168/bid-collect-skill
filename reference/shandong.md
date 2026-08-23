@@ -33,3 +33,7 @@ HTTPS_PROXY=http://127.0.0.1:7897 node province-collect.cjs -p shandong -k 管�
 
 ## 家族与通用纪律
 见 `FAMILY_INDEX.md`（家族总览 + 代理/鉴权/mustache 脏值拦截/去重坍缩等通用提醒）。
+
+## 2026-08-23 全国验收收口
+
+冻结样本与替补正例保持列表硬字段可核对；当前环境无法稳定回读详情，不再将此类终态误写为解析代码失败。除已单列控制价外，12个详情字段改为 `FIELD_RESTRICTED`；公告运行状态仍可为 `VERIFIED_RECORD`。证据见 `evidence/nationwide-100-final-and-blind30-v2.json`。

@@ -20,11 +20,15 @@ node scripts/self-test.cjs
 
 WorkBuddy 技能：跨省公共资源交易平台招投标公告采集器。覆盖 **32 个省/市级交易平台**，按「家族」逆向适配，支持招标公告、中标候选、中标结果与合同阶段。
 
-## 能力现状（2026-08-15）
+## 能力现状（2026-08-23）
 
 本 PR 的全国实时状态总账与分层验收只计招标公告（`zb`）；候选/中标/合同继续作为现有公开能力保留，但不以本 PR 的 zb 实测结果替它们背书全国准确率。各阶段实际覆盖以 `reference/FAMILY_INDEX.md` 为准。
 
 project18 全国分批推进已于 2026-08-22 完成：62个 adapter ×17字段共1,054格均有可审计终态，`FIELD_UNVERIFIED=0`。终态包含已验证、失败、OCR、无样本、未披露和受限；这表示全国支持 project18 输出并可审计，不表示每列均有值。
+
+2026-08-23 全国准确率验收使用冻结100条官方 `zb` 公告：阶段负例2/2拒绝，标题、发布日期、官方链接和地区共400/400正确；详情字段总体 union accuracy 99.42%、precision 99.59%、recall 99.42%，每个 `n≥20` 字段三项指标均不低于95%，`controlPrice` 估算/预算语义假阳性为0。另以30个不同 adapter、12个平台家族做前向盲测，硬字段120/120、源页披露且纳入核对的详情事实258/258正确。完整机器证据见 `reference/evidence/nationwide-100-final-and-blind30-v2.json`。
+
+上述结论是抽样验收，不表示全国每条公告、每个字段均非空或零缺陷。冻结集仍保留7个已知残差；源站未披露、扫描 PDF、乱码文本、附件受限和页面只给跳转入口时继续诚实留空或标记受限。
 
 ## 架构
 
@@ -62,7 +66,7 @@ node scripts/province-collect.cjs -p anhui -d 30 --limit 20 --detail \
 
 `controlPrice` 严格只收官方明确的最高投标限价、招标控制价、最高限价或投标报价上限。合同估算价、项目投资、工程造价、采购预算、发包估价及总价存在时的分项价不会进入业务表；拒绝事实只在 sidecar 的 `signals.price_rejections[]` 中保留标签、金额、来源层和原因码。
 
-字段能力以 `PROJECT18_CAPABILITIES.json` 为准，`reference/COVERAGE_MATRIX.md` 只是人读投影。已验证状态必须引用干净代码证据；`code_dirty=true` 的 run-report 不能转正能力。当前全国推进允许 `FIELD_UNVERIFIED`，最终门禁才要求全部形成诚实终态。
+字段能力以 `PROJECT18_CAPABILITIES.json` 为准，`reference/COVERAGE_MATRIX.md` 只是人读投影。已验证状态必须引用干净代码证据；`code_dirty=true` 的 run-report 不能转正能力。当前1,054格均已有诚实终态，`FIELD_UNVERIFIED=0`；受限、OCR、无样本和未披露不等于提取成功，也不得改写成空值覆盖率。
 
 ## 阶段选择
 
@@ -90,6 +94,7 @@ node scripts/province-collect.cjs -p hainan -c "海口,文昌" -k 管网 -d 30 -
 node --check scripts/province-collect.cjs
 node --check scripts/project18-capabilities.cjs
 node scripts/project18-capabilities.cjs --check
+node scripts/project18-capabilities.cjs --require-complete
 node scripts/self-test.cjs
 ```
 

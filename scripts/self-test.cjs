@@ -117,6 +117,7 @@ test("全国100条 v2 gold 固定替补与价格 Oracle", () => {
   assert.equal(gold.samples.find((row) => row.sample_id === "R002").official_url, "https://ggzyjy.shandong.gov.cn/jsgczbgg/14549923.jhtml");
   assert.equal(gold.stage_negatives[0].sample_id, "S012");
   assert.equal(gold.stage_negatives[1].sample_id, "S073");
+  assert.equal(gold.samples.flatMap((row) => Object.values(row.expected)).filter((field) => field.state === "REVIEW").length, 0);
   assert.equal(gold.samples.find((row) => row.sample_id === "S003").expected.controlPrice.value, "9469.330265");
   assert.equal(gold.samples.find((row) => row.sample_id === "S017").expected.controlPrice.value, "3513.4951");
   assert.equal(gold.samples.find((row) => row.sample_id === "S029").expected.controlPrice.value, "1015.62");
@@ -819,6 +820,46 @@ test("项目内容覆盖编号段、采购需求、单位工程范围和惠州�
   const agencyOut = M.extractDetail({}, agency, { title: "学校代建服务招标公告", url: "x" }, "");
   assert.match(agencyOut.scale, /规划学位2400个/);
   assert.equal(agencyOut.scope, "阶段性代建");
+
+  const nestedScale = `<p>2.1项目概况</p><p>2.1.1标段划分：1个。</p><p>2.1.2建设地点：某村。</p><p>2.1.3建设内容及规模：新建果园900亩，安装灌溉管网6km。</p><p>2.1.4计划工期：75日历天。</p><p>2.2招标范围：图纸清单全部内容。</p>`;
+  const nestedScaleOut = M.extractDetail({}, nestedScale, { title: "果园项目招标公告", url: "x" }, "");
+  assert.equal(nestedScaleOut.scale, "新建果园900亩，安装灌溉管网6km。");
+  assert.doesNotMatch(nestedScaleOut.scale, /标段划分|计划工期/);
+  const topScale = M.extractDetail({}, "2.建设规模及内容：提升绿化1368㎡、增设照明105盏，总建设面积2.7万㎡。3.项目总投资：1亿元。", { title: "社区项目招标公告", url: "x" }, "");
+  assert.match(topScale.scale, /2\.7万㎡/);
+  const pdfScale = M.extractDetail({}, "", { title: "输水工程招标公告", url: "x" }, "2.工程规模：新建DN1800原水管，总长约2500米；新建DN600分质水管，总长约600米。\n3.本公告共划分为1个标段");
+  assert.match(pdfScale.scale, /DN600分质水管/);
+  const topScope = M.extractDetail({}, "2.1项目概况：新建果园900亩。\n2.2招标范围 本项目施工图纸、工程量清单及答疑文件包含的全部施工内容。\n3.投标人资格要求", { title: "果园项目招标公告", url: "x" }, "");
+  assert.match(topScope.scope, /全部施工内容/);
+});
+
+test("最终详情覆盖交货期、表格工期、特定资格、明确无业绩和评标办法", () => {
+  const delivery = M.extractDetail({}, "2.5☑交货期：自合同签订之日起90个自然日内完成供货，到货后30个自然日内完成安装调试；□工期：；", { title: "设备招标公告", url: "x" }, "");
+  assert.match(delivery.duration, /90个自然日/);
+  const table = M.extractDetail({}, "工期\n（天）\n标段编号\n标段名称\n招标范围\n240\n三、投标人资格要求", { title: "管道工程招标公告", url: "x" }, "");
+  assert.equal(table.duration, "240日历天");
+  const changzhou = M.extractDetail({}, "3.1工程设计资质须满足下列条件之一：①工程设计综合资质甲级；②建筑行业甲级资质。3.2投标人拟派项目负责人资格要求：一级注册建筑师。", { title: "设计招标公告", url: "x" }, "");
+  assert.match(changzhou.qualification, /工程设计综合资质甲级/);
+  const procurement = M.extractDetail({}, "本项目的特定资格要求：无。 三、获取招标文件", { title: "服务公开招标公告", url: "x" }, "");
+  assert.equal(procurement.qualification, "不要求");
+  const noPerformance = M.extractDetail({}, "投标人须具备电力工程施工资质，/的类似项目业绩，并具有相应施工能力。", { title: "EPC招标公告", url: "x" }, "");
+  assert.equal(noPerformance.performance, "不要求");
+  const managerPerformance = M.extractDetail({}, "拟派总承包项目经理须熟悉项目管理，并须具有类似项目业绩。", { title: "总承包招标公告", url: "x" }, "");
+  assert.equal(managerPerformance.performance, "总承包项目经理须具有类似项目业绩");
+  const evaluation = M.extractDetail({}, "本项目评标办法采用“宜昌市水利水电工程施工监理招标投标评分标准（非枢纽工程）”，采用“评定分离”方式定标。", { title: "监理招标公告", url: "x" }, "");
+  assert.equal(evaluation.evaluation, "宜昌市水利水电工程施工监理招标投标评分标准（非枢纽工程）；评定分离");
+  const deadline = M.extractDetail({}, "递交投标文件的截止时间：2026年09月11日09时30分。", { title: "电梯招标公告", url: "x" }, "");
+  assert.equal(deadline.bidOpen, "2026-09-11 09:30");
+  assert.equal(M.extractDetail({}, "技术评分项最高分6分。", { title: "项目招标公告", url: "x" }, "").fullScore, "");
+  assert.equal(M.extractDetail({}, "技术评分项满分标准：6分。", { title: "项目招标公告", url: "x" }, "").fullScore, "");
+  assert.equal(M.extractDetail({}, "投标总分满分标准：100分。", { title: "项目招标公告", url: "x" }, "").fullScore, "100分");
+  assert.equal(M.extractDetail({}, "企业业绩要求：0个。", { title: "项目招标公告", url: "x" }, "").performance, "不要求");
+  assert.equal(M.extractDetail({}, "业绩要求：的，应提供其他资料的有效扫描件予以证明。", { title: "项目招标公告", url: "x" }, "").performance, "");
+  const pointerOnly = M.extractDetail({}, "资质条件：详见附件1资格审查条件（资质最低要求）。业绩要求：详见附录3资格审查条件。", { title: "项目招标公告", url: "x" }, "");
+  assert.equal(pointerOnly.qualification, "");
+  assert.equal(pointerOnly.performance, "");
+  assert.equal(M.extractDetail({}, "合同履行期限：合同签订后。", { title: "项目招标公告", url: "x" }, "").duration, "");
+  assert.equal(M.extractDetail({}, "投标保证担保对联合体成员有约束力。项目示例金额1234567819元。", { title: "项目招标公告", url: "x" }, "").bond, "");
 });
 
 test("广东 siteCode 定向覆盖地级市与区县，未知词诚实回退全省", () => {
@@ -870,6 +911,10 @@ test("广东详情解析精确字段并选取正式招标文件", () => {
   assert.match(out.scope, /施工图纸及清单/);
   assert.equal(out._ygpAttachment.fileName, "正式招标文件.pdf");
   assert.match(out.docLink, /\/pdf\?2$/);
+  const physical = `<table><tr><th>招标范围及规模</th><td>改造DN15-DN400供水管约33.392公里，其中标段二约11.679公里。</td></tr><tr><th>招标内容</th><td>施工图纸及工程量清单范围内全部施工。</td></tr></table>`;
+  const physicalOut = M.parseYgpDetailPayload({ title: "管网改造招标公告", tradingNoticeColumnModelList: [{ richtext: physical, noticeFileBOList: [] }] }, { ...row, noticeId: "detail-2", noticeTitle: "管网改造招标公告" }, M.ADAPTERS.guangdong, { title: "管网改造招标公告", url: "x" });
+  assert.match(physicalOut.scale, /33\.392公里/);
+  assert.match(physicalOut.scope, /工程量清单/);
 });
 
 test("广东招标文件补抽区分保证金、现行评标办法与定性满分", () => {
@@ -1233,6 +1278,9 @@ test("A1 天津精确建设规模与实际招标范围优先且评定分离不�
 });
 
 test("A1 贵州附件 GUID 使用官方 preview 路由而非不存在的根路径", () => {
+  const scope = M.guizhouCompleteScope("6.招标范围：设计招标范围：方案、初步设计及施工图设计。施工招标范围：施工图范围内全部施工、竣工交付和保修。3、投标人资格要求");
+  assert.match(scope, /设计招标范围/);
+  assert.match(scope, /施工招标范围/);
   assert.equal(
     M.guizhouAttachmentUrl(M.ADAPTERS.guizhou, "4bd65f98-0997-4fa2-8d4a-7e7a2635ab02"),
     "http://ztb.guizhou.gov.cn/api/upload/preview/4bd65f98-0997-4fa2-8d4a-7e7a2635ab02",

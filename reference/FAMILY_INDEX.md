@@ -204,3 +204,10 @@ node province-collect.cjs -p <adapter> --stage contract    # 合同公示
 ### 4. 通用标签池（抽字段的"词表"）
 - 招标人 owner / 代理 agency / 项目编号 projectCode / 控制价 controlPrice / 开标 bidOpen / 工期 duration / 资质 qualification / 业绩 performance / 评标办法 evaluation / 联合体 consortium / 满分 fullScore / 项目经理 manager / 联系电话 phone·contact / 招标文件 docLink / 中标人 winner / 中标价 winPrice / 项目负责人 winManager / 中标得分 winScore / 排名 rank / 合同金额 contractAmount / 招标人 partyA / 承包人 partyB。
 - 新增字段若某省抽不到，先查 `grabXxx` 标签池是否覆盖该省表述，再决定是否补标签（全局补，惠及所有省）。
+
+## 七、全国100条准确率与30条前向盲测（2026-08-23）
+
+- 冻结100条合法 `zb` 正例和2条阶段负例；阶段拒绝2/2，四个硬字段400/400。
+- 详情字段总体 union accuracy 99.42%、precision 99.59%、recall 99.42%；每个 `n≥20` 字段三项指标均不低于95%，控制价语义假阳性为0。
+- 前向盲测按固定 adapter 顺序选取30条未进入冻结集的官方公告，覆盖12个平台家族；硬字段120/120，纳入核对的258个详情事实均正确，132个未披露或受限事实不计作成功。
+- 冻结集保留7个可定位残差，不能把抽样通过写成“全国18列全部齐全”或“零错误”。机器证据：`reference/evidence/nationwide-100-final-and-blind30-v2.json`。

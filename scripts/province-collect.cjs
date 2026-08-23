@@ -1575,6 +1575,8 @@ function grabDateTime(text, labels) {
 
 // 评标办法：优先识别标准办法名词，避免抓到"5.1、评标入围"这类章节残片
 function grabEvaluation(text) {
+  const yichang = text.match(/评标办法采用[“"]([^”"]{4,80})[”"][\s\S]{0,80}?采用[“"](评定分离)[”"]方式定标/);
+  if (yichang) return `${yichang[1]}；${yichang[2]}`;
   const methods = [
     "智能筛查合理价格法", "经评审的最低投标价法", "合理低价中标法", "综合评估法",
     "最低投标价法", "合理低价法", "综合评分法", "性价比法", "双信封",
@@ -1907,9 +1909,11 @@ function chineseNumberToNumber(raw) {
 function grabBondWan(text) {
   const raw = String(text || "");
   if (/(?:本项目|本标段)?\s*(?:不收取|无需|不要求|免收|不缴纳|无需缴纳)\s*(?:投标)?保证金|(?:投标)?保证金\s*(?:为|金额为)?\s*0(?:\.0+)?\s*(?:元|万元|万)?/.test(raw)) return 0;
-  const explicit = raw.match(/(?:投标)?保证金(?:金额|数额)?[\s\S]{0,100}?(?:\d+(?:\.\d+)?|[零〇一二两三四五六七八九十百千万亿壹贰叁肆伍陆柒捌玖拾佰仟萬億元整]+)\s*(?:万元|万|元)/);
+  const explicit = raw.match(/(?:投标)?保证金(?:金额|数额)?[\s\S]{0,40}?(?:\d+(?:\.\d+)?|[零〇一二两三四五六七八九十百千万亿壹贰叁肆伍陆柒捌玖拾佰仟萬億元整]+)\s*(?:万元|万|元)/);
   if (!explicit) return "";
-  return grabMoneyWan(explicit[0], ["投标保证金", "保证金"]);
+  const value = grabMoneyWan(explicit[0], ["投标保证金", "保证金"]);
+  if (/123456/.test(explicit[0]) || Number(value) > 10000) return "";
+  return value;
 }
 
 function grabBudgetWan(text) {
@@ -1956,6 +1960,9 @@ function grabPerfClause(flat) {
 }
 
 function grabPerformance(text, flat) {
+  if (/[，,]\s*[\/／]\s*的类似项目业绩/.test(text)) return "不要求";
+  const managerRequirement = text.match(/总承包项目经理[\s\S]{0,900}?须具有类似项目业绩/);
+  if (managerRequirement) return "总承包项目经理须具有类似项目业绩";
   const checkedDesign = text.match(/[R☑√■⊠]\s*设计业绩要求\s*[:：]\s*([\s\S]{20,800}?)(?=[□R☑√■⊠]\s*施工业绩要求|\n\s*3\s*\.\s*1\s*\.\s*3)/);
   if (checkedDesign) return cleanVal(checkedDesign[1].replace(/[\r\n]+/g, " ")).slice(0, 500);
   // 江苏建设工程通用模板会保留未勾选的 3.4.1「承担过类似工程」整段说明，说明文字本身又含
@@ -1997,6 +2004,9 @@ function grabPerformance(text, flat) {
   // "以下业绩"：海南 G98 环岛高速检测公告写「2.投标人需同时具备以下业绩：2021年1月1日至…」，
   // 标签既不是"业绩要求"也不是"业绩条件"，原标签表全落空 → 真实业绩条款被当成"未载"。
   const v = grab(text, ["入围业绩要求", "业绩要求", "业绩条件", "企业业绩", "类似工程业绩", "以下业绩", "类似业绩"]);
+  if (/^(?:要求\s*[:：]\s*)?0\s*个$/.test(String(v || "").trim())) return "不要求";
+  if (/^的\s*[，,]|应提供其他资料|有效扫描件予以证明/.test(String(v || ""))) return "";
+  if (/^(?:详见|见)(?:附件|附录|投标人须知前附表|前附表)/.test(String(v || "").trim())) return "";
   if (v && PERF_TRUNC.test(v) && flat) {
     const c = grabPerfClause(flat);
     if (c && c.length > v.length) return c;   // 整段更完整才替换，避免无谓改动
@@ -2141,7 +2151,7 @@ const OPEN_LABELS = [
   //   「递交资格预审申请文件截止时间(申请截止时间，下同)为 …」（江都区标段，r6 核验剩余 1 条漏抓）
   "资格预审申请文件递交截止时间", "递交资格预审申请文件截止时间",
   "资格预审申请文件递交截止", "递交资格预审申请文件截止", "申请文件递交截止时间",
-  "投标文件递交截止时间", "投标文件递交的截止时间", "递交投标文件截止时间",
+  "投标文件递交截止时间", "投标文件递交的截止时间", "递交投标文件的截止时间", "递交投标文件截止时间",
   "投标递交截止时间", "投标文件提交止时间",
   // 2026-08-16 V5 取证回访补词（江西竞争性磋商/遵义实测原文）：
   //   江西「四、提交 响应 文件截止时间、 磋商 时间…2026年08月27日 09点30分」（政采磋商措辞）
@@ -2163,7 +2173,7 @@ const FUND_LABELS = ["资金来源及比例", "建设资金来自", "资金来�
 //   放在"工期"前会抢先命中评分条款，把原本正确的"3年"污染成一整句评分描述（r5 回归实测退化）。
 // 上海等平台用「建设周期/设计周期」而非「工期」（2026-08-15 上海实测：详情页写
 // "设计周期：20日历天 建设周期：240日历天"，原 DUR_LABELS 无此标签 → 工期全空/误抓导航脏值）。
-const DUR_LABELS = ["计划监理与相关服务期", "勘察设计服务期限", "设计服务期限", "服务期限", "计划工期", "建设工期", "建设周期", "设计周期", "工期", "服务周期", "服务期",
+const DUR_LABELS = ["计划监理与相关服务期", "勘察设计服务期限", "设计服务期限", "供货期限", "交货期", "服务期限", "计划工期", "建设工期", "建设周期", "设计周期", "工期", "服务周期", "服务期",
   // 2026-08-16 V5 取证回访补词（江西政采公告）：「合同履行期限： 自合同签订生效之日起 45 天内完成…」
   // ——政采/磋商类公告以"合同履行期限"表达工期/服务期。放泛标签后（垫底层，防服务合同外误抓）。
   "合同履行期限"];
@@ -2255,6 +2265,10 @@ function grabDuration(text, flat) {
     const neighborhood = text.slice(direct.index, direct.index + 100);
     if (durUnitHit(candidate) && !DUR_SCORE_NOISE.test(neighborhood)) return candidate;
   }
+  const delivery = String(text || "").match(/交货期\s*[:：]\s*([\s\S]{0,260}?\d+\s*日历天[\s\S]{0,180}?)(?=\n\s*(?:计划开始交货日期|1\s*\.\s*3\s*\.\s*3)|□\s*工期|$)/)?.[1] || "";
+  if (delivery) return cleanVal(delivery.replace(/[\r\n]+/g, " ")).slice(0, 300);
+  const tableDays = String(text || "").match(/工期\s*[（(]\s*天\s*[）)][\s\S]{0,900}?\n\s*(\d{1,4})\s*\n\s*(?:三[、.]|投标人资格要求)/)?.[1] || "";
+  if (tableDays && Number(tableDays) > 0) return `${Number(tableDays)}日历天`;
   let v = "";
   for (const lab of DUR_LABELS) {              // 逐标签取值，等价于原 grabBoth(整列表)，但可对单个候选做质检
     const raw = grabBoth(text, flat, [lab]);
@@ -2274,6 +2288,7 @@ function grabDuration(text, flat) {
       if (isMeaningful(one, 4) && !DUR_GARBAGE.test(one)) return one.slice(0, 60);
     }
   }
+  if (/^(?:合同签订后|合同生效后|收到通知后|开工通知后)$/.test(String(v || "").trim())) return "";
   return v || "";                                // 主通道虽无数字，也好过留空（如"详见招标文件"）
 }
 
@@ -2341,6 +2356,16 @@ function countQual(s) {
 }
 
 function grabQualification(text, flat) {
+  if (/本项目的特定资格要求\s*[:：]\s*无(?=[。；;\s]|$)/.test(text)) return "不要求";
+  const exactSections = [
+    text.match(/3\s*\.\s*2\s*投标人具备下列要求之一\s*[:：]?\s*([\s\S]{8,1800}?)(?=3\s*\.\s*3\s*投标人拟派)/)?.[1],
+    text.match(/3\s*\.\s*1\s*工程设计资质须满足下列条件之一\s*[:：]\s*([\s\S]{8,1200}?)(?=3\s*\.\s*2\s*投标人拟派)/)?.[1],
+    text.match(/3\s*\.\s*1\s*本次招标允许投标人以投标货物的下列身份参加投标\s*[:：]?\s*([\s\S]{8,1600}?)(?=3\s*\.\s*2\s*投标人还应)/)?.[1],
+    text.match(/本项目的特定资格要求\s*[:：]\s*([\s\S]{8,1600}?)(?=三[、.．]\s*获取招标文件)/)?.[1],
+    text.match(/3\s*\.\s*1\s*投标人申请资格要求\s*[:：]\s*([\s\S]{8,1600}?)(?=3\s*\.\s*2\s*业绩要求)/)?.[1],
+    text.match(/3\s*\.\s*1\s*投标人[（(][^）)]{0,100}[）)]\s*具备\s*([\s\S]{8,1600}?)(?=3\s*\.\s*2\s*投标人)/)?.[1],
+  ].filter(Boolean);
+  if (exactSections.length) return cleanVal(exactSections[0].replace(/[\r\n]+/g, " ")).slice(0, 500);
   const exact = text.match(/(?:\d+(?:\.\d+)+\s*)?投标人资质要求\s*[:：]\s*([^\n。；;]{1,300})/);
   if (exact) {
     const value = cleanVal(exact[1]).replace(/\s+/g, " ").trim();
@@ -2399,6 +2424,7 @@ function cleanQualificationOutput(value, source = "") {
   v = v.replace(/具备\s*具备/g, "具备");
   const compact = v.replace(/\s+/g, "");
   if (/履行合同的能力[，,]?(?:包括)?资质|具备如下资质[、，,]*并/.test(compact)) return "";
+  if (/^(?:资质条件\s*[:：]\s*)?(?:详见|见)(?:附件|附录|投标人须知前附表|前附表)/.test(v)) return "";
   if (/^1\s*[.、]\s*资质等级及范围[：:]/.test(v)) {
     const recovered = String(source || "").match(/企业要求\s*[:：]\s*([\s\S]{10,800}?)(?=(?:(?:三、|3\s*[.、．])\s*(?:报名|报名及获取|获取招标文件)|(?:四、|4\s*[.、．])\s*(?:投标|招标文件的获取|招标文件获取))|$)/)?.[1] || "";
     if (recovered) v = cleanVal(recovered.replace(/[\r\n]+/g, " "));
@@ -2423,7 +2449,7 @@ function numFrom(s) {
 // 调研证据（北京/山西/黑龙江/安徽/西藏 5 省真实详情页）：这些字段 90%+ 公告正文都有，但此前通用 extractDetail 不抽。
 const CODE_LABELS = ["项目编号", "招标项目编号", "标段编号", "交易项目编号", "项目代码", "招标编号", "标段号", "招标项目代码", "采购项目编号", "项目序号"];
 const METHOD_LABELS = ["招标方式", "招标组织形式", "采购方式", "发包方式"];
-const SCALE_LABELS = ["本标段工程的主要建设内容", "主要建设内容", "项目建设内容及规模", "建设内容及规模", "本次招标规模", "建设规模", "工程规模", "项目规模", "工程概况描述", "工程概况"];
+const SCALE_LABELS = ["本标段工程的主要建设内容", "主要建设内容", "项目建设内容及规模", "建设规模及内容", "建设内容及规模", "本次招标规模", "建设规模", "工程规模", "项目规模", "工程概况描述", "工程概况"];
 const SCOPE_LABELS = ["单位工程及招标范围说明", "招标范围及标段划分", "本标段招标范围", "标段招标范围", "设计及相关服务范围", "监理及相关服务范围", "代建范围", "招标范围和内容", "招标范围", "招标内容及范围", "招标内容", "采购需求", "服务内容", "工作内容"];
 const AMBIGUOUS_PROJECT_LABELS = ["建设内容", "项目概况", "项目基本情况"];
 const COMBINED_PROJECT_LABEL = /^(?:招标范围及规模|招标范围和规模|建设规模及招标范围|项目概况及招标范围)$/;
@@ -2546,6 +2572,8 @@ const PROJECT_SPLIT_MARKERS = ["具体招标内容包括", "具体招标内容",
 
 function cleanProjectContent(value) {
   let v = String(value || "").replace(/^[\s\[【]+|[\s\]】]+$/g, "").replace(/\s+/g, " ").trim();
+  v = v.replace(/^[：:\s]+/, "").trim();
+  v = v.replace(/^(?:及内容|和内容)\s*[:：]\s*/, "").trim();
   v = v.replace(/^[(（]工程特征、结构层次、建筑高度、道路宽度长度等[)）]\s*[:：]\s*/, "");
   v = v.replace(/^为\s*/, "").trim();
   v = v.replace(/^\d+\s*[;；]\s*(?=\S{4})/, "").trim();
@@ -2577,6 +2605,7 @@ function cleanProjectContent(value) {
   if (numberedSection >= 4) v = v.slice(0, numberedSection).trim();
   const tenderAmountTail = v.search(/\s*[，,；;]?\s*(?:其中\s*[，,]?\s*□?\s*建筑面积|本次招标建安工程造价)/);
   if (tenderAmountTail >= 4) v = v.slice(0, tenderAmountTail).trim();
+  v = v.replace(/[。；;]\s*[。；;]+$/, "。");
   return v.slice(0, 500);
 }
 
@@ -2596,7 +2625,7 @@ function splitCombinedProjectContent(value) {
 function grabNumberedProjectSection(text, labels, prefer) {
   const names = labels.map(labRe).join("|");
   const re = new RegExp(
-    "(?:^|[\\n\\r]|\\s)\\d+(?:\\.\\d+)+\\.?\\s*(?:" + names + ")(?:[（(][^）)]{0,100}[）)])?\\s*[:：]?\\s*" +
+    "(?:^|[\\n\\r]|\\s)\\d+(?:\\.\\d+)*[.．、]?\\s*(?:" + names + ")(?:[（(][^）)]{0,100}[）)])?\\s*[:：]?\\s*" +
     "([\\s\\S]{4,2200}?)(?=(?:[\\n\\r]|\\s)\\d+(?:\\.\\d+)*(?:[.．、])?\\s*[\\u4e00-\\u9fa5]|$)", "gm");
   const candidates = [];
   let match;
@@ -2674,21 +2703,24 @@ function extractProjectContent(html, text, flat) {
   // 天津实测同时出现“建设规模为97.966公里”和“项目概况：改造3.69公里”，必须保留前者为 scale。
   if (!scale) {
     const numberedOverview = String(text || "").match(/(?:^|\n)\s*2\s*\.\s*1\s*项目概况\s*([\s\S]{4,2200}?)(?=\n?\s*2\s*\.\s*2\s*(?:标段划分|招标范围))/m)?.[1] || "";
+    const topLevelScale = String(text || "").match(/(?:^|\n)\s*2\s*[.．、]\s*工程规模\s*[:：]\s*([\s\S]{4,2200}?)(?=\n\s*3\s*[.．、])/m)?.[1] || "";
     const embeddedScale = String(text || "").match(/建设规模\s*[:：]\s*([\s\S]{4,1800}?)(?=\s*2\s*\.\s*2\s*招标范围)/)?.[1] || "";
     const numberedScale = grabNumberedProjectSection(text, SCALE_LABELS, "scale");
     const numberedAmbiguous = grabNumberedProjectSection(text, ["建设内容", "项目基本情况"], "scale");
     const cleanOverview = cleanProjectContent(numberedOverview);
-    if (cleanOverview) { scale = cleanOverview; scaleExact = true; }
-    else if (embeddedScale) { scale = cleanProjectContent(embeddedScale); scaleExact = !!scale; }
+    if (topLevelScale) { scale = cleanProjectContent(topLevelScale); scaleExact = !!scale; }
     else if (numberedScale) { scale = numberedScale; scaleExact = true; }
+    else if (embeddedScale) { scale = cleanProjectContent(embeddedScale); scaleExact = !!scale; }
+    else if (cleanOverview) { scale = cleanOverview; scaleExact = true; }
     else if (numberedAmbiguous && PROJECT_SCALE_SIGNAL.test(numberedAmbiguous)) { scale = numberedAmbiguous; scaleExact = false; }
     else { scale = grabProjectValueAll(text, flat, SCALE_LABELS, "scale"); scaleExact = !!scale; }
   }
   if (!scope) {
+    const topLevelScope = cleanProjectContent(String(text || "").match(/(?:^|\n)\s*2\s*\.\s*2\s*招标范围\s*[:：]?\s*([\s\S]{4,2200}?)(?=\n\s*3\s*[.．、])/m)?.[1] || "");
     const numberedScope = grabNumberedProjectSection(text, SCOPE_LABELS, "scope");
     const procurementScope = cleanProjectContent(String(text || "").match(/采购需求\s*[:：]?\s*([\s\S]{4,1600}?)(?=合同履行期限|本项目(?:不)?接受联合体|二[、.．]\s*申请人)/)?.[1] || "");
     const exactScope = grabProjectValueAll(text, flat, SCOPE_LABELS, "scope");
-    scope = procurementScope || exactScope || numberedScope;
+    scope = topLevelScope || procurementScope || exactScope || numberedScope;
   }
 
   if (!scale || !scope) {
@@ -2759,10 +2791,14 @@ function grabManager(text, flat) {
 // 满分标准：原只认"满分标准"标签，漏掉"总分为XX分/满分XX分/评分满分"。2026-08-14 补强。
 function grabFullScore(text, flat) {
   const direct = grab(text, ["满分标准", "评分满分", "满分分值"]);
-  if (direct) return trimAtClause(direct).slice(0, 30);
+  if (direct) {
+    const value = trimAtClause(direct).slice(0, 30);
+    const number = Number(String(value).match(/\d+(?:\.\d+)?/)?.[0]);
+    if (Number.isFinite(number) && number >= 50) return value;
+  }
   // "总分为 100 分" / "满分 100 分" / "最高 100 分"
-  const m = text.match(/(?:总分|满分|最高分)\s*(?:为|：|:)?\s*(\d+(?:\.\d+)?)\s*分/);
-  if (m) return m[1] + "分";
+  const m = text.match(/(?:总分|满分)\s*(?:为|：|:)?\s*(\d+(?:\.\d+)?)\s*分/);
+  if (m && Number(m[1]) >= 50) return m[1] + "分";
   return "";
 }
 
@@ -3483,6 +3519,11 @@ async function hbDetail(ad, item) {
 // ---- 贵州：详情走结构化 JSON 接口（列表 id → /api/trade/detail）----
 // 列表层 url = /trade/bulletin/?id=<id>（含 id）；真实详情 JSON 在 /api/trade/detail?id=<id>。
 // 返回扁平对象 { Title, Content(HTML 正文), UploadFile, PdfFile, ContractDoc, OtherNoticefile, RegionCode, PublishDate, ... }。
+function guizhouCompleteScope(text) {
+  const value = String(text || "").match(/6\s*[.．、]\s*招标范围\s*[:：]\s*([\s\S]{8,2200}?)(?=3\s*[、.．]\s*投标人资格要求)/)?.[1] || "";
+  return cleanProjectContent(value);
+}
+
 async function gzDetail(ad, item) {
   const id = (item.url && /[?&]id=(\d+)/.test(item.url)) ? RegExp.$1 : "";
   if (!id) return {};
@@ -3496,6 +3537,9 @@ async function gzDetail(ad, item) {
   if (!d || !d.Content) return {};
   const df = extractDetail(ad, d.Content, item, "");
   const out = { ...df };
+  const detailText = htmlToText(d.Content);
+  const completeScope = guizhouCompleteScope(detailText);
+  if (completeScope) out.scope = completeScope;
   const att = [d.UploadFile, d.PdfFile, d.ContractDoc, d.OtherNoticefile]
     .filter(Boolean).map(s => String(s).trim()).filter(Boolean);
   if (att.length) {
@@ -5814,6 +5858,7 @@ function parseYgpDetailPayload(data, row, ad, item) {
   const generic = extractDetail(ad, html, item || { title: data && data.title || row.noticeTitle || "", url: buildYgpDetailUrl(row) }, "");
   const pairs = ygpTablePairs(html);
   const attachment = selectYgpTenderAttachment(sections, row);
+  const exactCombinedProject = cleanProjectContent(ygpPair(pairs, ["招标范围及规模"]));
   const out = {
     ...generic,
     title: String(data && data.title || generic.title || row.noticeTitle || "").trim(),
@@ -5832,6 +5877,7 @@ function parseYgpDetailPayload(data, row, ad, item) {
     docLink: attachment.chosen ? attachment.chosen.downloadUrl : (generic.docLink || ""),
     _ygpAttachment: attachment.chosen ? { ...attachment.chosen, noticeId: String(row.noticeId || ""), candidates: attachment.candidates } : null,
   };
+  if (exactCombinedProject && PROJECT_SCALE_SIGNAL.test(exactCombinedProject)) out.scale = exactCombinedProject;
   return out;
 }
 
@@ -6271,7 +6317,7 @@ async function enrichFromAttachment(rec, args, ad) {
       if (price.value) { rec.controlPrice = price.value; markFieldSource(rec, "controlPrice", "attachment"); filled.push("controlPrice"); }
     }
     if (!rec.budget) { const v = grabBudgetWan(flatten(text)); if (v) { rec.budget = v; filled.push("budget"); } }
-    if (!rec.bond) { const v = grabMoneyWan(text, ["投标保证金", "保证金"]); if (v) { rec.bond = v; markFieldSource(rec, "bond", "attachment"); filled.push("bond"); } }
+    if (!rec.bond) { const v = grabBondWan(text); if (v !== "") { rec.bond = v; markFieldSource(rec, "bond", "attachment"); filled.push("bond"); } }
     if (need.includes("scale") || need.includes("scope")) {
       const p = extractProjectContent("", text, flatten(text));
       if (need.includes("scale") && p.scale) { rec.scale = p.scale; markFieldSource(rec, "scale", "attachment"); filled.push("scale"); }
@@ -8636,5 +8682,6 @@ function resolveOutputPaths(args) {
 module.exports = { ADAPTERS, PROV_ALIAS, PROJECT18_AUDIT_FIELDS, XLSX_HEADER, BIAOBIAOTONG_HEADER, PROJECT18_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, resolveYgpCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, isStrictZbTitle, isStrictZbDetailText, extractDetail, extractProjectContent, extractControlPriceFact, extractRejectedPriceFacts, auditedFieldValue, isFilledFieldValue, ensureFieldSources, markFieldSource, buildFieldStats, xlsxColumnWidths, buildYgpDetailUrl, parseYgpListRows, unwrapYgpPayload, parseYgpJsonText, selectYgpTenderAttachment, parseYgpDetailPayload, extractYgpAttachmentFields, attachmentStatusFromNote, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, guizhouAttachmentUrl, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, ningboExactDuration, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseNanjingPayload, cleanNanjingQualification, nanjingDetail, parseHuizhouHtml, parseHuizhouSearchJsonp, normalizeHuizhouUrl, huizhouDetail, parseZhongshanPayload, zhongshanControlPrice, zhongshanDetail, parseJinanPayload, jinanDetail, parseWuhanHtml, wuhanDetail, parseQingdaoHtml, parseStrongTableFields, cleanA3ScopeAmountTail, cleanQingdaoPerformance, qingdaoDetail, parseShenzhenList, parseBgTableFields, shenzhenProjectContent, qualitativeFullScore, exactMoneyWan,
   hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, fjDetail, mapFjDetailPayload, cqList, tjList, nmgList, lnList, normalizeGsCityName, gsList };
 module.exports.cleanQualificationOutput = cleanQualificationOutput;
+module.exports.guizhouCompleteScope = guizhouCompleteScope;
 module.exports.parseQuanzhouPayload = parseQuanzhouPayload;
 module.exports.parseYibinDetailPayload = parseYibinDetailPayload;
