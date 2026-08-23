@@ -20,3 +20,7 @@ node scripts/province-collect.cjs -p 深圳 -k 管网 -d 30 --stage zb --limit 3
 
 ## 诚实限制
 仅收 `noticeTypeName=招标公告`；即使 `rank1NoticeTypeName=招标公告`，截标信息等其他阶段也必须排除。源页未披露字段保持空白。
+
+## 2026-08-23 生产试运行02
+
+商业改造项目的室内设计服务使用“室内设计”明确主题归房建市政；定性评审继续使用受控满分值，不改字段契约。fixture：`evidence/production02-gap32-d-v1.json`。

@@ -1055,6 +1055,21 @@ test("生产试运行02缺口32-C批次完整提取长范围并拒绝业绩指�
   for (const sample of replay.classification_records) assert.equal(M.classifyRecordSheetEvidence(sample).sheet, sample.expected, sample.title);
 });
 
+test("生产试运行02缺口32-D批次修复山西范围与中山长字段", () => {
+  const fixture = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "production02-gap32-d-v1.json"), "utf8"));
+  const replay = fixture.replay;
+  const sx = M.ADAPTERS.shanxi.detail("", { title: "山西样本", url: "https://example.invalid/sx" }, replay.shanxi_text);
+  assert.equal(sx.scale, replay.shanxi_scale);
+  assert.equal(sx.scope, replay.shanxi_scope);
+  const zs = M.zhongshanDetail(replay.zhongshan_html, { title: "中山样本", url: "https://example.invalid/zs" }, "");
+  assert.equal(zs.scale, replay.zhongshan_scale);
+  assert.equal(zs.scope, replay.zhongshan_scope);
+  assert.equal(zs.qualification, replay.zhongshan_qualification);
+  for (const sample of replay.classification_records) assert.equal(M.classifyRecordSheetEvidence(sample).sheet, sample.expected, sample.title);
+  assert.equal(fixture.terminals.dingxi, "CONNECTED_NO_RECENT_DATA");
+  assert.equal(fixture.terminals.shaanxi, "CONNECTED_NO_RECENT_DATA");
+});
+
 test("生产P01-P05详情完整性按冻结官方摘录回放", () => {
   const fixture = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "production-detail-completeness-v1.json"), "utf8")).replay;
   const ygp = (html, title) => M.parseYgpDetailPayload(

@@ -1296,6 +1296,7 @@ const ADAPTERS = {
       : `https://www.sxbid.com.cn/f/new/notice/list/11?pageNo=${page}`,
     clientFilterOnly: true, // 列表页仅 pageNo 参数，无关键词检索，采集时按标题客户端过滤
     defaultType: "招标公告",
+    detail: shanxiDetail,
     parse(html) {
       const items = [];
       const trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
@@ -4834,6 +4835,16 @@ function mianyangDetail(html, item, pdfText) {
   return out;
 }
 
+function shanxiDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  const text = String(pdfText || htmlToText(html));
+  const scale = text.match(/(?:^|\n)\s*2\.2\s*项目建设规模及内容\s*[:：]\s*([\s\S]{10,3000}?)(?=\s*2\.3\s*招标内容与范围)/m)?.[1] || "";
+  const scope = text.match(/(?:^|\n)\s*2\.3\s*招标内容与范围[\s\S]{0,1000}?招标范围\s*[:：]\s*([\s\S]{10,3000}?)(?=\s*2\.4\s*建设地点)/m)?.[1] || "";
+  if (scale) out.scale = cleanFullProjectFact(scale);
+  if (scope) out.scope = cleanFullProjectFact(scope);
+  return out;
+}
+
 function liaoningDetail(html, item, pdfText) {
   const out = extractDetail({}, html, item, pdfText);
   const text = htmlToText(html);
@@ -4944,10 +4955,14 @@ function zhongshanDetail(html, item, pdfText) {
   const out = extractDetail({}, html, item, pdfText);
   const f = parseLabelTable(html);
   const text = htmlToText(html);
+  const exactScale = looseField(f, "招标范围及规模", "建设规模");
+  if (exactScale) out.scale = cleanFullProjectFact(exactScale.replace(/\s*(?:项目估算总投资|本次招标最高投标限价)[\s\S]*$/, ""));
   out.projectSite = looseField(f, "招标项目实施（交货）地点", "项目实施（交货）地点");
   out.duration = looseField(f, "工期（交货期）", "工期");
   const qualification = looseField(f, "投标资格能力要求", "投标人资格要求", "投标资格能力要求（包括但不限于资质人员、业绩等要求）");
-  if (qualification) out.qualification = qualification.slice(0, 500);
+  if (qualification) out.qualification = cleanFullProjectFact(qualification);
+  const exactScope = looseField(f, "招标内容", "本次招标内容");
+  if (exactScope) out.scope = cleanFullProjectFact(exactScope);
   out.controlPrice = zhongshanControlPrice(text, f) || out.controlPrice || "";
   out.docLink = "";
   out._attachNote = "招标文件下载需验证码，静态采集不绕过";
@@ -8118,7 +8133,7 @@ function classifySheetEvidence(title) {
   const text = String(title || "").replace(/\s+/g, "").trim();
   const highwayStrong = /高速公路|国道(?:[GＧ]?\d+)?|省道(?:[SＳ]?\d+)?|农村公路|产业路|公路工程|路基路面|(?:高速互通|互通式?立交)|收费站/;
   const highwayMunicipalAccessory = /(?:配套市政|市政配套)/;
-  const municipalStrong = /市政(?:道路|桥梁|供水|排水|污水|管网|设施)|城市(?:支路|次干路|主干路|道路)|配套市政工程|市容环境整治|生活污水治理|污水处理厂|上跨高速桥梁|供水管网(?:互联互通|提升改造)|二次供水设施|(?:片区|城区|城镇)[^，。；]{0,20}排水防涝|(?:路|街|大道)(?:（[^）]*）|\([^)]*\))?道路工程/;
+  const municipalStrong = /市政(?:道路|桥梁|供水|排水|污水|管网|设施)|城市(?:支路|次干路|主干路|道路)|配套市政工程|市容环境整治|生活污水治理|污水处理厂|上跨高速桥梁|室内设计|供水管网(?:互联互通|提升改造)|二次供水设施|(?:片区|城区|城镇)[^，。；]{0,20}排水防涝|(?:路|街|大道)(?:（[^）]*）|\([^)]*\))?道路工程/;
   const waterStrong = /水利(?:工程|枢纽)|水库(?:除险|加固|工程|建设|治理|扩容)|水塘|河湖建设|灌区|灌渠|堤防|水闸|河道(?:治理|整治)|防洪(?:工程|治理)|农田水利|水资源配置|输水管?工程/;
   if (highwayStrong.test(text) && (!municipalStrong.test(text) || highwayMunicipalAccessory.test(text))) return { sheet: "公路", rule: "HIGHWAY_STRONG" };
   if (municipalStrong.test(text)) return { sheet: "房建市政", rule: "MUNICIPAL_STRONG" };
@@ -8141,6 +8156,7 @@ function classifyRecordSheetEvidence(rec) {
   const qualification = String(rec && rec.qualification || "").replace(/\s+/g, "");
   if (/基础设施补短板/.test(facts) && /市政公用工程/.test(qualification)) return { sheet: "房建市政", rule: "DETAIL_CONFIRMED_MUNICIPAL_INFRASTRUCTURE" };
   if (/规划[^，。；]{0,20}路工程/.test(facts) && /市政(?:行业|公用工程)/.test(qualification)) return { sheet: "房建市政", rule: "DETAIL_CONFIRMED_MUNICIPAL_PLANNED_ROAD" };
+  if (/(?:配套设施建设[\s\S]{0,30}地块|地块项目)/.test(facts) && /建筑工程施工总承包/.test(qualification)) return { sheet: "房建市政", rule: "DETAIL_CONFIRMED_BUILDING_SITE" };
   return titleDecision;
 }
 

@@ -32,3 +32,7 @@ B 阶段 `stages` 未配置（003001004 定标结果等子栏目待逐项枚举�
 
 ## 家族与通用纪律
 见 `FAMILY_INDEX.md`。同类独立市级平台总账见 [`CITY_PLATFORMS.md`](CITY_PLATFORMS.md)。
+
+## 2026-08-23 生产试运行02
+
+“配套设施建设/地块项目”标题本身仍不强判；只有详情同时披露建筑面积、厂房内容和建筑工程施工总承包资质时才归房建市政。附件解析受限与完整HTML scale/scope分开记录。fixture：`evidence/production02-gap32-d-v1.json`。

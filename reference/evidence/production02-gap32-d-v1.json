@@ -1,0 +1,30 @@
+{
+  "schema_version": "production02-gap32-d.v1",
+  "source_commit": "c0517a8",
+  "batch": ["dingxi","guangxi","shaanxi","shandong","shanxi","shenzhen","suzhou","zhongshan"],
+  "official_responses": {
+    "guangxi": {"sha256":"04c16919b6f575bcf758643d3fab5d23033e133eacfd131780d42760a697709f","url":"http://zbtb.gxi.gov.cn:9000/biddingBulletin/2026-08-21/571714.html","status":"FIELD_OCR_REQUIRED"},
+    "shanxi_pdf": {"sha256":"a1e01f7215994ceeff2e753ce7792056b7ed612d5b2a8443568c63b4322f1cd8","url":"https://www.sxbid.com.cn/f/downloadByFileName?type=3&fname=ee9169b9-0ad9-4a11-811e-557394bf272a"},
+    "shenzhen": {"sha256":"1127af118fb0487a5b2876eb7d2eea218063510bf4713fcbb404a039a90970a2","url":"https://new.szggzy.com/jygg/details.html?contentId=20593334&channelId=2851"},
+    "suzhou": {"sha256":"ce5b8a95df907e068d073f7420c948ca3cd598ecbf3cd505cc4a16b02d2ac3fd","url":"https://ggzy.suzhou.gov.cn/jyxx/003001/003001001/20260821/621d9400-52de-411e-8bbe-5be193c58b99.html"},
+    "zhongshan": {"sha256":"9aaef7304b7152e2bb55482071a1da963c28083938070895112d214fddfe55f5","url":"https://www.zsjypt.cn/artical/58/250432"}
+  },
+  "terminals": {
+    "dingxi":"CONNECTED_NO_RECENT_DATA",
+    "shaanxi":"CONNECTED_NO_RECENT_DATA",
+    "shandong":"VERIFIED_RECORD_WITH_DETAIL_TRANSPORT_ERROR"
+  },
+  "replay": {
+    "shanxi_text": "2.2 项目建设规模及内容：新建两回10KV线路，总长度4.288km，同步建设通信光缆和铁塔基础。\n2.3 招标内容与范围：本项目划分一个标段。招标范围：线路工程工程量清单及施工设计图纸中的全部工程内容。\n2.4 建设地点：临汾市安泽县。",
+    "shanxi_scale": "新建两回10KV线路，总长度4.288km，同步建设通信光缆和铁塔基础。",
+    "shanxi_scope": "线路工程工程量清单及施工设计图纸中的全部工程内容。",
+    "zhongshan_html": "<table><tr><td>招标范围及规模</td><td>建设植被缓冲带117.65万平方米、水下森林27.218万平方米及滨水生态空间48.369万平方米。项目估算总投资58001.56万元。</td></tr><tr><td>招标内容</td><td>（1）勘察内容：初勘、详勘和工程测量。（2）设计内容：方案设计、初步设计、施工图设计及全过程服务。</td></tr><tr><td>投标资格能力要求</td><td>具备工程勘察岩土工程专业乙级及以上资质、工程设计水利行业甲级资质和工程设计市政行业甲级资质；联合体成员不得超过3个。</td></tr></table>",
+    "zhongshan_scale": "建设植被缓冲带117.65万平方米、水下森林27.218万平方米及滨水生态空间48.369万平方米。",
+    "zhongshan_scope": "（1）勘察内容：初勘、详勘和工程测量。（2）设计内容：方案设计、初步设计、施工图设计及全过程服务。",
+    "zhongshan_qualification": "具备工程勘察岩土工程专业乙级及以上资质、工程设计水利行业甲级资质和工程设计市政行业甲级资质；联合体成员不得超过3个。",
+    "classification_records": [
+      {"title":"深业上城CEEC商业改造项目室内设计服务","expected":"房建市政"},
+      {"title":"相城长旺新材料技术创新基地配套设施建设（黄埭金龙片区）项目-3号地块项目","scale":"项目总建筑面积79326平方米","qualification":"建筑工程施工总承包三级及以上资格","expected":"房建市政"}
+    ]
+  }
+}
