@@ -2792,7 +2792,7 @@ function grabFullScore(text, flat) {
   }
   // "总分为 100 分" / "满分 100 分" / "最高 100 分"
   const m = text.match(/(?:总分|满分)\s*(?:为|：|:)?\s*(\d+(?:\.\d+)?)\s*分/);
-  if (m) return m[1] + "分";
+  if (m && Number(m[1]) >= 50) return m[1] + "分";
   return "";
 }
 
@@ -6303,7 +6303,7 @@ async function enrichFromAttachment(rec, args, ad) {
       if (price.value) { rec.controlPrice = price.value; markFieldSource(rec, "controlPrice", "attachment"); filled.push("controlPrice"); }
     }
     if (!rec.budget) { const v = grabBudgetWan(flatten(text)); if (v) { rec.budget = v; filled.push("budget"); } }
-    if (!rec.bond) { const v = grabMoneyWan(text, ["投标保证金", "保证金"]); if (v) { rec.bond = v; markFieldSource(rec, "bond", "attachment"); filled.push("bond"); } }
+    if (!rec.bond) { const v = grabBondWan(text); if (v !== "") { rec.bond = v; markFieldSource(rec, "bond", "attachment"); filled.push("bond"); } }
     if (need.includes("scale") || need.includes("scope")) {
       const p = extractProjectContent("", text, flatten(text));
       if (need.includes("scale") && p.scale) { rec.scale = p.scale; markFieldSource(rec, "scale", "attachment"); filled.push("scale"); }
