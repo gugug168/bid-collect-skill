@@ -820,6 +820,11 @@ test("项目内容覆盖编号段、采购需求、单位工程范围和惠州�
   const agencyOut = M.extractDetail({}, agency, { title: "学校代建服务招标公告", url: "x" }, "");
   assert.match(agencyOut.scale, /规划学位2400个/);
   assert.equal(agencyOut.scope, "阶段性代建");
+
+  const nestedScale = `<p>2.1项目概况</p><p>2.1.1标段划分：1个。</p><p>2.1.2建设地点：某村。</p><p>2.1.3建设内容及规模：新建果园900亩，安装灌溉管网6km。</p><p>2.1.4计划工期：75日历天。</p><p>2.2招标范围：图纸清单全部内容。</p>`;
+  const nestedScaleOut = M.extractDetail({}, nestedScale, { title: "果园项目招标公告", url: "x" }, "");
+  assert.equal(nestedScaleOut.scale, "新建果园900亩，安装灌溉管网6km。");
+  assert.doesNotMatch(nestedScaleOut.scale, /标段划分|计划工期/);
 });
 
 test("最终详情覆盖交货期、表格工期、特定资格、明确无业绩和评标办法", () => {

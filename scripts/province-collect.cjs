@@ -2564,6 +2564,7 @@ const PROJECT_SPLIT_MARKERS = ["具体招标内容包括", "具体招标内容",
 
 function cleanProjectContent(value) {
   let v = String(value || "").replace(/^[\s\[【]+|[\s\]】]+$/g, "").replace(/\s+/g, " ").trim();
+  v = v.replace(/^[：:\s]+/, "").trim();
   v = v.replace(/^[(（]工程特征、结构层次、建筑高度、道路宽度长度等[)）]\s*[:：]\s*/, "");
   v = v.replace(/^为\s*/, "").trim();
   v = v.replace(/^\d+\s*[;；]\s*(?=\S{4})/, "").trim();
@@ -2595,6 +2596,7 @@ function cleanProjectContent(value) {
   if (numberedSection >= 4) v = v.slice(0, numberedSection).trim();
   const tenderAmountTail = v.search(/\s*[，,；;]?\s*(?:其中\s*[，,]?\s*□?\s*建筑面积|本次招标建安工程造价)/);
   if (tenderAmountTail >= 4) v = v.slice(0, tenderAmountTail).trim();
+  v = v.replace(/[。；;]\s*[。；;]+$/, "。");
   return v.slice(0, 500);
 }
 
@@ -2696,9 +2698,9 @@ function extractProjectContent(html, text, flat) {
     const numberedScale = grabNumberedProjectSection(text, SCALE_LABELS, "scale");
     const numberedAmbiguous = grabNumberedProjectSection(text, ["建设内容", "项目基本情况"], "scale");
     const cleanOverview = cleanProjectContent(numberedOverview);
-    if (cleanOverview) { scale = cleanOverview; scaleExact = true; }
+    if (numberedScale) { scale = numberedScale; scaleExact = true; }
     else if (embeddedScale) { scale = cleanProjectContent(embeddedScale); scaleExact = !!scale; }
-    else if (numberedScale) { scale = numberedScale; scaleExact = true; }
+    else if (cleanOverview) { scale = cleanOverview; scaleExact = true; }
     else if (numberedAmbiguous && PROJECT_SCALE_SIGNAL.test(numberedAmbiguous)) { scale = numberedAmbiguous; scaleExact = false; }
     else { scale = grabProjectValueAll(text, flat, SCALE_LABELS, "scale"); scaleExact = !!scale; }
   }

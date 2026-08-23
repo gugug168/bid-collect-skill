@@ -1,6 +1,6 @@
 {
   "schema_version": "nationwide-100-gold.v2",
-  "frozen_at": "2026-08-23T07:40:04.950Z",
+  "frozen_at": "2026-08-23T07:46:02.047Z",
   "source_commit": "c5c8dfa61e9f263fcfb6b1f75d2786e176c1af3e",
   "source_audit": "2026-08-23_全国100条准确率抽样验收",
   "fields": [
@@ -3381,9 +3381,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "新建国风雕塑1座",
+          "value": "新建国风雕塑1座。主要包括完成雕塑基础新建，通过勘测制定安装方式，重新制作成钢结构新造型雕塑，新雕塑整体高度28.5m，底座直径12.7m，底座高3.5m，雕塑展开面积约2000m，高度25m，最大宽度21m。底座周围部分采用渤海古图案进行装饰。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "jilin-28044-002.json"
           ]
@@ -5121,10 +5121,10 @@
           ]
         },
         "duration": {
-          "state": "NOT_DISCLOSED_OR_RESTRICTED",
-          "value": "",
+          "state": "VALUE",
+          "value": "60日历天，计划开始交货日期：合同签订后10天内开始交货",
           "comparison": "normalized_text",
-          "reason": "not disclosed conclusively or official detail/attachment restricted",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "chongqing-36404-002.json"
           ]
@@ -5786,10 +5786,10 @@
           ]
         },
         "duration": {
-          "state": "NOT_DISCLOSED_OR_RESTRICTED",
-          "value": "",
+          "state": "VALUE",
+          "value": "90日历天内完成旧电梯拆除并完成新电梯的采购、安装、调试以及最终验收合格（含取得有关部门颁发的电梯准用证）",
           "comparison": "normalized_text",
-          "reason": "not disclosed conclusively or official detail/attachment restricted",
+          "reason": "OFFICIAL_DETAIL_FIELD_ADJUDICATED",
           "evidence": [
             "gansu-34992-006.json"
           ]
@@ -8490,9 +8490,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "京杭运河湖州段（通河桥~五龙桥）扩能增智工程起点为湖州市南浔区通河桥，终点为湖州市德清县五龙桥，全长约23.14km，按内河限制性Ⅱ级航道标准建设，建设内容主要包括疏浚土方约237.8万m³，护岸工程约41.3km，拆除桥梁1座，以及桥梁防护、航道标志等配套工程，本项目估算总投资约18.12亿元，工程费用约13.66亿元",
+          "value": "京杭运河湖州段（通河桥~五龙桥）扩能增智工程起点为湖州市南浔区通河桥，终点为 湖州市德清县五龙桥，全长约23.14km，按内河限制性Ⅱ级航道标准建设，建设内容主要包括疏浚土方约 237.8万m³，护岸工程约41.3km，拆除桥梁1座，以及桥梁防护、航道标志等配套工程，本项目估算总投资约 18.12亿元，工程费用约13.66亿元。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "zhejiang-6960-003.json"
           ]
@@ -9021,9 +9021,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "本项目对新科创中心1幢甲、乙、丙单元，2幢甲、乙单元，6幢甲单元装修改造约24100㎡，购置相关设备，满足教学实验、科研创新、实训办公等办学功能",
+          "value": "本项目对新科创中心1幢甲、乙、丙单元，2幢甲、乙单元，6幢甲单元装修改造约24100㎡，购置相关设备，满足教学实验、科研创新、实训办公等办学功能。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "changzhou-37296-002.json"
           ]
@@ -10228,10 +10228,10 @@
           ]
         },
         "scale": {
-          "state": "NOT_DISCLOSED_OR_RESTRICTED",
-          "value": "",
+          "state": "VALUE",
+          "value": "新（改）建果园900亩，对果园进行调型、土壤培肥等；在果园内新建100m3混凝土蓄水池7个、整治灌溉山坪塘1个，安装灌溉管网6km（其中φ110mm管网4500m，φ160mm管网1500m）；修建 0.6m×0.6m条石排水渠1.1km、1.8m 宽生产便道 5.5km；建设面积约200㎡柑橘产业社会化服务中心1个、500m3冷藏库1个及专家工作站1个。（具体以施工图纸及财评清单为准）。",
           "comparison": "normalized_text",
-          "reason": "not disclosed conclusively or official detail/attachment restricted",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "sichuan-9496-004.json"
           ]
@@ -11251,9 +11251,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "新建1座100MW/200MWh储能电站，采用磷酸铁锂电池，户外集装箱布置",
+          "value": "新建1座100MW/200MWh储能电站，采用磷酸铁锂电池，户外集装箱布置。配套新建1座110kV升压站,设1台110MVA主变，以1回110kV电缆线路接入牯牛山220kV变电站110kV间隔。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "sichuan-9496-005.json"
           ]
@@ -17730,9 +17730,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "智能箱式物流传输系统1套，工作站点共11个，需与医院已运行的物流传输系统无缝衔接（新旧系统接驳），互联互通，达到有序、高效运行",
+          "value": "智能箱式物流传输系统1套，工作站点共11个，需与医院已运行的物流传输系统无缝衔接（新旧系统接驳），互联互通，达到有序、高效运行。气动物流1发送站+1接收站一套。具体技术要求详见技术参数。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "zunyi-36980-002.json"
           ]
