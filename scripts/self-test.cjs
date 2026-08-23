@@ -543,6 +543,9 @@ test("C3 泉州动态详情映射且遵义资格模板去重", () => {
   const qzMoney = M.parseQuanzhouPayload({ data: {} }, { data: [{ fileTitle: "项目（招标公告）", fileContent: '<p>项目规模：<input value="工程总造价4131万元；2.3."></p><p>招标范围：<input value="新建污水管道1700米"></p>' }] }, { title: "项目", url: "x" });
   assert.equal(qzMoney.scale, "");
   assert.match(qzMoney.scope, /1700米/);
+  const qzNested = M.parseQuanzhouPayload({ data: {} }, { data: [{ fileTitle: "综合楼（招标公告）", fileContent: '<p>2.2 工程建设规模：本工程造价为2771.1967万元；</p><p>2.3 招标范围和内容：（1）工程类别：房屋建筑；（2）招标类型：施工总承包；（3）招标范围和内容：用地3333平方米，总建筑面积7107.23平方米，建设1栋综合楼。具体以施工图纸及工程量清单为准；其中，用于确定企业资质的数据：地上七层；</p><p>2.4 招标控制价：27711967元</p>' }] }, { title: "综合楼", url: "x" });
+  assert.equal(qzNested.scale, "");
+  assert.match(qzNested.scope, /用地3333平方米/);
   const zy = M.cleanQualificationOutput("本次招标要求投标人须具备具备水利水电工程施工总承包二级资质、，并在人员、设备、资金等方面具有相应的施工能力");
   assert.equal(zy, "本次招标要求投标人须具备水利水电工程施工总承包二级资质");
   assert.equal(M.cleanQualificationOutput(". 具备水利工程资质证书）资质"), "具备水利工程资质证书）");
@@ -779,6 +782,43 @@ test("项目内容拒绝法律尾句并保守处理歧义标签", () => {
   const plantOut = M.extractProjectContent(plant, M.htmlToText(plant), M.flatten(M.htmlToText(plant)));
   assert.match(plantOut.scale, /5万m³\/d/);
   assert.match(plantOut.scope, /施工图设计/);
+});
+
+test("项目内容覆盖编号段、采购需求、单位工程范围和惠州精确双字段", () => {
+  const numbered = `<p>2.2 建设内容及规模：疏浚河道1335m，控制疏浚区面积44.69公顷。</p><p>2.3 计划工期：540日历天</p><p>2.4 招标范围：施工总承包（以图纸清单为准）</p>`;
+  const numberedOut = M.extractDetail({}, numbered, { title: "河道疏浚招标公告", url: "x" }, "");
+  assert.match(numberedOut.scale, /44\.69公顷/);
+  assert.match(numberedOut.scope, /施工总承包/);
+
+  const nantong = `<p>2.3建设内容：总建筑面积约1785平方米。</p><p>2.5工程规模：详见施工图。</p><p>2.7单位工程及招标范围说明：27#楼工程（含幕墙、装修），具体详见施工图及工程量清单。</p><p>2.8工程类别：中型</p>`;
+  const nantongOut = M.extractDetail({}, nantong, { title: "27号楼招标公告", url: "x" }, "");
+  assert.equal(nantongOut.scale, "总建筑面积约1785平方米。");
+  assert.match(nantongOut.scope, /含幕墙、装修/);
+
+  const purchase = `<p>采购需求：采购条目名称 普通病床 数量 1批 技术需求详见附件</p><p>合同履行期限：15个工作日</p>`;
+  const purchaseOut = M.extractDetail({}, purchase, { title: "病床公开招标公告", url: "x" }, "");
+  assert.equal(purchaseOut.scale, "");
+  assert.match(purchaseOut.scope, /普通病床/);
+
+  const huizhou = `<table><tr><td>招标范围及规模</td><td>总用地面积1755㎡，总建筑面积2335.64㎡。（具体施工内容以施工图及清单为准）。</td></tr><tr><td>招标内容</td><td>按施工图纸和资料，主要建设内容包括土建、安装、园建、绿化工程等的施工及保修。</td></tr></table>`;
+  const hzOut = M.huizhouDetail(huizhou, { title: "派出所项目招标公告", url: "x" }, "");
+  assert.equal(hzOut.scale, "总用地面积1755㎡，总建筑面积2335.64㎡。");
+  assert.match(hzOut.scope, /土建、安装/);
+
+  const hebei = `<p>2.1.2建设规模：改造任丘、西演、卢龙3对服务区消防系统。</p><p>2.1.3计划工期：3个月</p><p>2.2招标范围及标段划分：施工准备、施工、竣工和缺陷责任期全部工作。</p><p>3．投标人资格要求</p>`;
+  const hbOut = M.ADAPTERS.hebei.detail(hebei, { title: "服务区消防改造招标公告", url: "x" }, "");
+  assert.match(hbOut.scale, /3对服务区/);
+  assert.match(hbOut.scope, /缺陷责任期/);
+
+  const liaoning = `<p>2.1 项目概况 建设地点：沈阳市。建设规模：总用地258853.90平方米，总建筑面积69000平方米。</p><p>2.2 招标范围 标段划分：1个。标段招标范围：施工准备、施工、竣工、结算审计及保修阶段全过程监理服务。标段类别：监理</p><p>2.3 其他：/</p>`;
+  const lnOut = M.ADAPTERS.liaoning.detail(liaoning, { title: "商业项目监理招标公告", url: "x" }, "");
+  assert.match(lnOut.scale, /总建筑面积69000平方米/);
+  assert.match(lnOut.scope, /全过程监理服务/);
+
+  const agency = `<p>2.4项目建设内容及规模（主要指标）：总用地62263㎡，总建筑面积46947㎡，规划学位2400个。</p><p>2.5代建范围：□全过程代建；☑阶段性代建</p><p>2.6投资控制目标：21009万元</p>`;
+  const agencyOut = M.extractDetail({}, agency, { title: "学校代建服务招标公告", url: "x" }, "");
+  assert.match(agencyOut.scale, /规划学位2400个/);
+  assert.equal(agencyOut.scope, "阶段性代建");
 });
 
 test("广东 siteCode 定向覆盖地级市与区县，未知词诚实回退全省", () => {

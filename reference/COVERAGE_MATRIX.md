@@ -11,21 +11,21 @@
 | adapter | publishDate | region | bidOpen | title | scale | scope | funding | duration | qualification | performance | controlPrice | bond | evaluation | consortium | fullScore | url | docLink |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | shandong | VL | VL | F | VL | F | F | F | F | F | F | R | F | F | F | F | VL | F |
-| jiangsu | VL | VL | VD | VL | VD | PU | VD | VD | VD | VD | ND | R | VD | VD | VD | VL | VD |
+| jiangsu | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | ND | R | VD | VD | VD | VL | VD |
 | zhejiang | VL | VL | VD | VL | VD | VD | VD | PU | VD | VD | VD | R | R | VD | R | VL | VD |
-| hainan | VL | VL | VD | VD | PU | VD | VD | VD | VD | ND | VD | VD | VD | VD | R | VL | VD |
+| hainan | VL | VL | VD | VD | VD | VD | VD | VD | VD | ND | VD | VD | VD | VD | R | VL | VD |
 | heilongjiang | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS |
 | suzhou | VL | VL | VD | VL | VD | ND | VD | VD | VD | VD | ND | OCR | VD | VD | OCR | VL | VD |
 | xuzhou | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | ND | R | VD | VD | VD | VL | VD |
 | anyang | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | VD | R | R | VD | R | VL | VD |
 | changzhou | VL | VL | VD | VL | VD | VD | VD | VD | PU | VD | VD | VA | VD | VD | R | VL | VD |
 | luoyang | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | VD |
-| zhengzhou | VL | VL | VD | VL | PU | VD | VD | VD | VD | VD | ND | R | R | VD | R | VL | R |
-| mianyang | VL | VL | VD | VL | PU | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | R |
+| zhengzhou | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | ND | R | R | VD | R | VL | R |
+| mianyang | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | R |
 | qinhuangdao | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | R |
-| nantong | VL | VL | VD | VL | VD | PU | VD | VD | VD | VD | ND | R | VD | VD | VD | VL | VD |
+| nantong | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | ND | R | VD | VD | VD | VL | VD |
 | nanjing | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | ND | R | VD | VD | VD | VL | VD |
-| huizhou | VL | VL | VD | VL | ND | PU | VD | VD | VD | VD | VD | R | R | VD | R | VL | VD |
+| huizhou | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | VD |
 | zhongshan | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | VD | R | R | VD | R | VL | R |
 | jinan | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | ND | R | R | VD | R | VL | R |
 | wuhan | VL | VL | VD | VD | ND | VD | ND | VD | VD | VD | ND | R | VD | VD | R | VL | R |
@@ -35,12 +35,12 @@
 | shenzhen | VL | VL | VD | VL | ND | VD | ND | VD | VD | VD | ND | VD | VD | VD | VD | VL | R |
 | linyi | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | ND | R | R | VD | R | VL | R |
 | yantai | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | ND | R | R | VD | R | VL | R |
-| hefei | VL | VL | VD | VL | VD | PU | VD | VD | PU | VD | ND | ND | VD | VD | ND | VL | VD |
+| hefei | VL | VL | VD | VL | VD | VD | VD | VD | PU | VD | ND | ND | VD | VD | ND | VL | VD |
 | wenzhou | VL | VL | VD | VL | VD | VD | VD | VD | VD | PU | VD | ND | ND | VD | ND | VL | VD |
 | ningbo | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | R | R | VD | R | VL | VD |
 | jiaxing | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | ND | ND | ND | VD | ND | VL | VD |
 | wuxi | VL | VL | VD | VL | VD | ND | VD | VD | VD | VD | ND | VA | VD | VD | ND | VL | VD |
-| quanzhou | VL | VL | VD | VL | PU | VD | VD | VD | VD | VD | VD | VD | VD | VD | ND | VL | R |
+| quanzhou | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | VD | VD | VD | ND | VL | R |
 | yueyang | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | VD | VD | VD | VD | ND | VL | R |
 | zunyi | VL | VL | VD | VL | VD | VD | VD | PU | PU | VD | VD | VA | R | VD | R | VL | VD |
 | yibin | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | ND | VD | VD | VD | PU | VL | VD |
@@ -54,8 +54,8 @@
 | shaanxi | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS | NS |
 | ningxia | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | ND | R | R | VD | R | VL | VD |
 | xinjiang | VL | VL | VD | VL | VD | VD | VD | ND | VD | VD | ND | R | VD | VD | R | VL | R |
-| jiangxi | VL | VL | VD | VL | PU | VD | VD | VD | PU | ND | VD | R | VD | VD | R | VL | VD |
-| hunan | VL | VD | VD | VL | PU | VD | VD | PU | VD | VD | VD | R | VD | VD | R | VL | R |
+| jiangxi | VL | VL | VD | VL | ND | VD | VD | VD | PU | ND | VD | R | VD | VD | R | VL | VD |
+| hunan | VL | VD | VD | VL | VD | VD | VD | PU | VD | VD | VD | R | VD | VD | R | VL | R |
 | guangxi | VL | VL | OCR | VL | OCR | OCR | OCR | OCR | OCR | OCR | OCR | OCR | OCR | OCR | OCR | VL | R |
 | chongqing | VL | VL | VD | VL | VD | VD | VD | VD | PU | ND | ND | R | VD | VD | R | VL | R |
 | guizhou | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | VD | VA | VA | VD | VA | VL | VD |
@@ -63,14 +63,14 @@
 | hubei | VL | VL | VD | VL | VD | VD | VD | VD | VD | VD | ND | VD | VD | VD | R | VL | R |
 | jilin | VL | VL | VD | VL | VD | VD | VD | VD | VD | PU | ND | R | R | VD | R | VL | R |
 | fujian | VL | VD | VD | VL | VD | VD | VD | VD | VD | VD | VD | VD | R | VD | R | VL | R |
-| beijing | VL | VD | VD | VL | VD | PU | VD | VD | VD | ND | ND | ND | VD | VD | ND | VL | VD |
+| beijing | VL | VD | VD | VL | VD | VD | VD | VD | VD | ND | ND | ND | VD | VD | ND | VL | VD |
 | tianjin | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | VD | R | R | VD | R | VL | R |
 | shanxi | VL | VL | VD | VL | VD | ND | VD | PU | VD | ND | ND | ND | VD | VD | ND | VL | VD |
-| hebei | VL | VD | VD | VL | VD | PU | VD | ND | ND | VD | ND | ND | ND | VD | ND | VL | ND |
+| hebei | VL | VD | VD | VL | VD | VD | VD | ND | ND | VD | ND | ND | ND | VD | ND | VL | ND |
 | neimenggu | VL | VL | VD | VL | ND | ND | VD | VD | VD | ND | VD | R | VD | VD | R | VL | VD |
-| liaoning | VL | VD | VD | VL | PU | ND | VD | VD | VD | ND | ND | R | VD | VD | R | VL | R |
+| liaoning | VL | VD | VD | VL | VD | VD | VD | VD | VD | ND | ND | R | VD | VD | R | VL | R |
 | gansu | VL | VD | PU | VL | ND | VD | VD | VD | VD | ND | R | R | R | VD | R | VL | PU |
-| shanghai | VL | VD | VD | VL | PU | ND | ND | VD | VD | VD | VD | VD | ND | VD | ND | VL | ND |
+| shanghai | VL | VD | VD | VL | VD | ND | ND | VD | VD | VD | VD | VD | ND | VD | ND | VL | ND |
 | qinghai | VL | VL | VD | VL | VD | VD | VD | VD | VD | ND | ND | R | VD | VD | R | VL | VD |
 
 <!-- PROJECT18_CAPABILITIES:END -->

@@ -1,6 +1,6 @@
 {
   "schema_version": "nationwide-100-gold.v2",
-  "frozen_at": "2026-08-23T06:50:01.412Z",
+  "frozen_at": "2026-08-23T07:19:02.582Z",
   "source_commit": "c5c8dfa61e9f263fcfb6b1f75d2786e176c1af3e",
   "source_audit": "2026-08-23_全国100条准确率抽样验收",
   "fields": [
@@ -2339,18 +2339,18 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "（建设工程类型、主要技术指标、总投资额等）：总用地面积:62263.43㎡，约93.4亩，总建筑面积46947.12㎡，其中地上建筑面积为40770.76㎡",
+          "value": "总用地面积:62263.43㎡，约93.4亩，总建筑面积46947.12㎡，其中地上建筑面积为40770.76㎡。地下室面积6176.36㎡，人防面积2500.60㎡，包括3#栋教学楼、4#教学楼、5#栋科技楼、6#图书馆艺术综合楼、9#食堂扩建、10#学生宿舍、11#学生宿舍、14#垃圾站、15#门卫室、12#田径场看台、16#配电房及地下室。规划学位2400个，开设班级48个，配备教学及相关设备设施，同时完成400米田径场、室外篮球场及排球场、停车场、内部道路管网、绿化、大门、围墙、挡土墙等配套工程。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "hunan-37712-003.json"
           ]
         },
         "scope": {
           "state": "VALUE",
-          "value": "2.1招标人：中方县教育局",
+          "value": "阶段性代建",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "hunan-37712-003.json"
           ]
@@ -3548,10 +3548,10 @@
           ]
         },
         "scale": {
-          "state": "REVIEW",
+          "state": "NOT_DISCLOSED",
           "value": "",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "DUPLICATE_OR_NOT_INDEPENDENT_PROJECT_FACT",
           "evidence": [
             "hunan-37712-004.json",
             "hunan-37712-005.json"
@@ -4757,19 +4757,19 @@
           ]
         },
         "scale": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "2.1.1秦皇岛至沈阳高速公路松岭门至沈阳段（即：“秦沈高速”） 秦沈高速起点为秦沈高速与丹锡高速交界处（朝阳县松岭门蒙古族乡松岭门村），终点为秦沈高速与沈阳绕城高速交界处（于洪区迎宾路街道姚家村），路线全长约238公里，设计时速120公里/小时，均为新建路段，其中四车道高速公路约194公里，路基宽度27.0米，六车道高速公路约45公里，路基宽度34.5米。项目沿线共设置桥梁23528米/81座，其中大桥20881米/43座，中小桥2647米/38座涵洞198道；隧道5265米/2座；项目全线共设置17处互通式立交，主线上跨分离式立交23819米/87座，主线下穿分离式立交510米/6座，通道1235米/76座；服务区4处，养护工区6处；监控通信分中心1处，监控通信站5处。 2.1.2丹东至阜新高速公路新民至阜新段（即：“新阜高速”） 新阜高速起于秦沈高速与辽中环线金五台枢纽立交以西14公里绕阳河枢纽立交处，终于奈营高速海棠山互通立交以北约3公里处，总建设里程约62公里，按照四车道高速公路标准建设，路基宽度27.0米，设计速度为120公里/小时。沿线共设置桥梁2428米/22座，其中大",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "liaoning-37576-002.json"
           ]
         },
         "scope": {
-          "state": "NOT_DISCLOSED_OR_RESTRICTED",
-          "value": "",
+          "state": "VALUE",
+          "value": "对全线通信管道、道路监控系统、收费系统及通信系统，隧道（仅秦沈项目）照明、供配电、通风、监控、消防系统，运行状态感知、气象环境感知等智慧高速以及基础设施结构监测等机电工程实施全过程施工监理，监理服务包括质量控制、进度控制、投资控制、合同管理、信息管理、组织协议和安全监理、费用监理、试验检测的全部工作的监理。 统筹管理：秦沈项目QSJD-1标段的中标单位，除完成标段内的机电工程施工监理服务外，仍须负责统筹协调秦沈两个标段的机电工程施工监理服务工作，包括但不限于：牵头制定机电工程施工监理服务制度及服务规程；统一各类成果的框架体系及撰写格式；协助委托人传达指令并收集、汇总各类汇报材料及总结报告；对重要事项牵头组织研讨，形成一致意见后汇报委托人。",
           "comparison": "normalized_text",
-          "reason": "not disclosed conclusively or official detail/attachment restricted",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "liaoning-37576-002.json"
           ]
@@ -5925,9 +5925,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "项目总用地面积为258853.90平方米",
+          "value": "项目总用地面积为258853.90平方米。本期新建总用地面积约为30886.00平方米，总建筑面积约为69000平方米，共计新建建筑：地上13栋，地下1栋（最终面积以规划核定面积为准）。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "liaoning-37576-003.json"
           ]
@@ -5936,7 +5936,7 @@
           "state": "VALUE",
           "value": "居住、商业（3.1期）项目的施工准备阶段、施工阶段、工程收尾阶段、竣工验收阶段、结算审计阶段、缺陷责任期及保修阶段的全过程监理服务。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "liaoning-37576-003.json"
           ]
@@ -8330,10 +8330,10 @@
           ]
         },
         "scope": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "设计图纸及工程量清单范围内工程施工",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "jiangsu-34080-002.json"
           ]
@@ -8665,10 +8665,10 @@
           ]
         },
         "scale": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "南渡江定安县墩山村河段泥沙淤积严重，形成大面积的滩地挤占河道，使河道行洪能力降低，且淤积范围逐步向上游取水口发展，不利于取水口运行安全。本次工程任务主要 对南渡江该段河道进行疏浚，提高河道行洪能力，保证河道行洪安全。定安县南渡江(墩山段)河道疏浚项目河道疏浚工程的疏浚范围为南渡江定安县墩山村北部段河道，其河道清淤疏浚长度1335m, 控制疏浚区面积为44.69公顷。",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "hainan-35084-002.json",
             "hainan-35084-003.json",
@@ -9193,9 +9193,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "项目拟对大屯片区生活污水处理提质增效",
+          "value": "项目拟对大屯片区生活污水处理提质增效。主要工程内容包括:市政道路雨污分流改造工程约18.7公里;老旧小区改造约27.3公里、城中村约21.6公里、企事业单位约0.3公里、清淤管道约38公里;排水关键节点监测共计25套。监理费约157万元。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "jiangsu-34080-003.json"
           ]
@@ -9539,9 +9539,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "建设内容及面积：建设任务80284.5亩，其中森林质量提升80284.53亩（含森林抚育49337.4亩、低质低效林改造30947.1亩）",
+          "value": "建设内容及面积：建设任务80284.5亩，其中森林质量提升80284.53亩（含森林抚育49337.4亩、低质低效林改造30947.1亩）。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "hainan-35084-005.json"
           ]
@@ -9550,7 +9550,7 @@
           "state": "VALUE",
           "value": "设计范围：根据项目需要进行调查及作业设计，项目建设范围内的初步设计及概算、施工图设计、规划方案编制、图纸审核、需要的深化设计、技术把关及跟踪服务、施工过程中的方案优化及设计变更、施工过程中必要的监测及后续服务。施工范围：项目建设范围内的实施阶段全过程建设及管理，直至工程竣工验收、项目移交、完成并配合政府结（决)算审计、承担管护期（竣工验收后三十六个月）内的管护责任等与本工程有关的一切建设内容（具体以双方签订的合同内容为准）",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "hainan-35084-005.json"
           ]
@@ -10064,9 +10064,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "该项目位于郑东新区龙湖地区南部，具体位于郑州市郑东新区如意东路东、如意河东十街北，项目地块用地性质为商业用地，总投资约7.2亿元",
+          "value": "该项目位于郑东新区龙湖地区南部，具体位于郑州市郑东新区如意东路东、如意河东十街北，项目地块用地性质为商业用地，总投资约7.2亿元。项目总占地约44.01亩，由商店和交通服务场站2个块地构成，其中：商店占地约32.26亩，总建筑面积约6.16万㎡（地上建筑面积约2.63万㎡，地下建筑面积约3.53万㎡）；地上建筑层数两层，主要功能为卖场、配套用房及卸货区；地下两层主要功能为车库及设备用房。交通服务场站占地约11.74亩，主要设置为机动车停车位；",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "zhengzhou-33796-002.json"
           ]
@@ -11081,10 +11081,10 @@
           ]
         },
         "scale": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "该项目位于郑东新区龙湖地区南部，具体位于郑州市郑东新区如意东路东、如意河东十街北，项目地块用地性质为商业用地，总投资约7.2亿元。项目总占地约44.01亩，由商店和交通服务场站2个块地构成，其中：商店占地约32.26亩，总建筑面积约6.16万㎡（地上建筑面积约2.63万㎡，地下建筑面积约3.53万㎡）；地上建筑层数两层，主要功能为卖场、配套用房及卸货区；地下两层主要功能为车库及设备用房。交通服务场站占地约11.74亩，主要设置为机动车停车位。合同估算价约12.59万元；",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "zhengzhou-33796-003.json"
           ]
@@ -11598,10 +11598,10 @@
           ]
         },
         "scope": {
-          "state": "NOT_DISCLOSED_OR_RESTRICTED",
-          "value": "",
+          "state": "VALUE",
+          "value": "采购条目编号 采购条目名称 采购品目 数量 单位 采购预算(人民币) 技术需求或服务要求 龙财购2026F000217087 龙南市殡葬服务中心鲜花类殡葬服务项目 殡葬服务 1 项 1000000.00元 详见公告附件",
           "comparison": "normalized_text",
-          "reason": "not disclosed conclusively or official detail/attachment restricted",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "jiangxi-31032-005.curl.json"
           ]
@@ -12458,20 +12458,20 @@
           ]
         },
         "scale": {
-          "state": "REVIEW",
+          "state": "NOT_DISCLOSED",
           "value": "",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "DUPLICATE_OR_NOT_INDEPENDENT_PROJECT_FACT",
           "evidence": [
             "jiangxi-31032-007.curl.json",
             "jiangxi-31032-008.curl.json"
           ]
         },
         "scope": {
-          "state": "NOT_DISCLOSED_OR_RESTRICTED",
-          "value": "",
+          "state": "VALUE",
+          "value": "采购条目编号 采购条目名称 采购品目 数量 单位 采购预算(人民币) 技术需求或服务要求 赣购2026F000220466 3号楼配置病床-（普通病床、监护室电动床） 手术室设备及附件 1 批 1030000.00元 详见公告附件",
           "comparison": "normalized_text",
-          "reason": "not disclosed conclusively or official detail/attachment restricted",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "jiangxi-31032-007.curl.json",
             "jiangxi-31032-008.curl.json"
@@ -13171,10 +13171,10 @@
           ]
         },
         "scope": {
-          "state": "REVIEW",
+          "state": "NOT_DISCLOSED",
           "value": "",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "DUPLICATE_OR_NOT_INDEPENDENT_PROJECT_FACT",
           "evidence": [
             "hefei-37524-002.json",
             "hefei-37524-001.json",
@@ -13670,9 +13670,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "项目涉及土地面积约350亩，含10亩设施农业用地",
+          "value": "项目涉及土地面积约350亩，含10亩设施农业用地。主要包括分拣车间、仓储用房、约3000平方米玻璃大棚、约80000平方米加强型暖棚等建设，配套供配电、给排水、农村道路、智能种植设施设备等建设安装。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "hefei-37524-004.json"
           ]
@@ -14017,10 +14017,10 @@
           ]
         },
         "scope": {
-          "state": "REVIEW",
+          "state": "NOT_DISCLOSED",
           "value": "",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "DUPLICATE_OR_NOT_INDEPENDENT_PROJECT_FACT",
           "evidence": [
             "beijing-1696-002.curl.json",
             "beijing-1696-003.curl.json"
@@ -14402,9 +14402,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "开采方式为地下开采，主要包括采矿工程、选矿工程、充填工程及配套公辅设施",
+          "value": "开采方式为地下开采，主要包括采矿工程、选矿工程、充填工程及配套公辅设施。年生产能力为采、选综合处理能力2500万吨铁矿石。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "hebei-37268-002.json"
           ]
@@ -15317,18 +15317,18 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "本项目对任丘、西演、卢龙3对服务区，在既有服务区建筑及配套设施的基础上对消防系统进行改造",
+          "value": "本项目对任丘、西演、卢龙3对服务区，在既有服务区建筑及配套设施的基础上对消防系统进行改造。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "hebei-37268-003.json"
           ]
         },
         "scope": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "河北高速燕赵驿行集团有限公司2026年服务区消防改造项目施工准备阶段、施工阶段、竣（交）工阶段、缺陷责任期阶段的全部相关工作。本项目共分为1个标段。",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "hebei-37268-003.json"
           ]
@@ -15481,10 +15481,10 @@
           ]
         },
         "scale": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "花园饭店为五星级标准的饭店（酒店），工程主要内容：10楼为局部装修，11至15楼整层装修，10至15楼共计96套客房，以及对应楼面的走道及电梯厅装饰装修工程。本次装修涉及消防设计变动，装修面积约4456平方米，不涉及外立面。",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "shanghai-36364-003.json"
           ]
@@ -15649,10 +15649,10 @@
           ]
         },
         "scale": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "综合治理河道长16.48km，改建堤防5.55km，改建护岸10.91km，加固堤防2.81km，其中:高川乡茅香村段改建堤防1.47km，改建护岸0.735km，加固堤防1.37km;太平桥至银河化工段改建堤防0.68km，改建护岸1.675km，加固堤防1.44km；塔水镇及河清镇段改建堤防3.40km，改建护岸8.50km，塔水镇及河清镇段于插山排洪沟沟口新建排洪闸1处，包含环境保护工程及水土保持工程建设内容。",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "mianyang-36380-002.json",
             "mianyang-36380-022.json"
@@ -15986,18 +15986,18 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "详见施工图",
+          "value": "总建筑面积约1785平方米。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "nantong-33824-002.json"
           ]
         },
         "scope": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "R24025地块建设项目一期27#楼工程（含幕墙、装修），具体详见施工图及工程量清单范围中所示内容。",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "nantong-33824-002.json",
             "nantong-33824-003.json",
@@ -16162,10 +16162,10 @@
           ]
         },
         "scale": {
-          "state": "NOT_DISCLOSED_OR_RESTRICTED",
-          "value": "",
+          "state": "VALUE",
+          "value": "本项目位于博罗县省道S254线，改造路线全长12.53km(实施范围为K130+603～K143+133)，主要在既有公路上进行路面改造，在现有水泥路面基础上加铺沥青路面；修复加固桥梁伸缩缝、完善排水设施、交通安全设施等。项目为路面改造工程，维持现有一级公路技术标准，设计速度：80km/h，路基宽度：24.5m、28m。",
           "comparison": "normalized_text",
-          "reason": "not disclosed conclusively or official detail/attachment restricted",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "huizhou-20004-009.json",
             "huizhou-4396-009.json"
@@ -16690,9 +16690,9 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "室外给排水、供配电、消防设施和场地道路等配套工程建设",
+          "value": "室外给排水、供配电、消防设施和场地道路等配套工程建设。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "mianyang-36380-023.json"
           ]
@@ -17025,18 +17025,18 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "详见施工图",
+          "value": "用地面积约45760平方米，总建筑面积约108081.53平方米。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "nantong-33824-005.json"
           ]
         },
         "scope": {
-          "state": "REVIEW",
-          "value": "",
+          "state": "VALUE",
+          "value": "R24025地块建设项目一期桩基工程，详见施工图及工程量清单范围中所示内容。",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "nantong-33824-005.json",
             "nantong-33824-003.json",
@@ -17206,18 +17206,18 @@
         },
         "scale": {
           "state": "VALUE",
-          "value": "包括：土建、安装、园建、绿化工程等的施工及保修（具体施工内容以招标人提供的施工图及工程量清单为准，当施工图与清单不一致时，以招标人的书面通知为准）",
+          "value": "本项目总用地面积：1755㎡；总建筑面积：2335.64㎡，其中，计容建筑面积：2228.66㎡，不计容建筑面积：106.98㎡；容积率为1.27,建筑密度51.90%,绿化率10%。",
           "comparison": "normalized_text",
-          "reason": "official record-correlated value or controlled semantic mapping verified",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "huizhou-20004-013.json"
           ]
         },
         "scope": {
-          "state": "REVIEW",
-          "value": "按招标人提供的施工图纸和有关资料及说明，主要建设内容。",
+          "state": "VALUE",
+          "value": "按招标人提供的施工图纸和有关资料及说明，主要建设内容包括：土建、安装、园建、绿化工程等的施工及保修（具体施工内容以招标人提供的施工图及工程量清单为准，当施工图与清单不一致时，以招标人的书面通知为准）。",
           "comparison": "normalized_text",
-          "reason": "SCOPE_TRUNCATED_BEFORE_ACTUAL_CONTENT",
+          "reason": "OFFICIAL_PROJECT_CONTENT_ADJUDICATED",
           "evidence": [
             "huizhou-20004-013.json",
             "huizhou-4396-013.json"
@@ -17384,10 +17384,10 @@
           ]
         },
         "scale": {
-          "state": "REVIEW",
+          "state": "NOT_DISCLOSED",
           "value": "",
           "comparison": "normalized_text",
-          "reason": "SOURCE_DISCLOSED_BUT_OUTPUT_EMPTY",
+          "reason": "DUPLICATE_OR_NOT_INDEPENDENT_PROJECT_FACT",
           "evidence": [
             "quanzhou-35160-002.json",
             "quanzhou-35160-003.json"
