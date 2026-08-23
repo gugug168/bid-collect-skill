@@ -1,0 +1,29 @@
+{
+  "schema_version": "production02-gap32-a.v1",
+  "source_commit": "02846e7",
+  "batch": ["chongqing","gansu","jilin","liaoning","neimenggu","tianjin","xizang","yunnan"],
+  "official_responses": {
+    "chongqing": {"sha256":"fe2ac28129bdd0345abd6cfe308c2ceedc4506a79ce592d2e059252c9b6ac891","url":"https://www.cqggzy.com/trade/014001/800ae301-8365-494f-911f-6f751e5502cd?categoryNum=014001001007"},
+    "gansu": {"sha256":"9afc4a95979abd2363a65cedc0a73cf8b86cadb912d8a2b3f8fcb2e2f8f06042","url":"https://lzggzyjy.lanzhou.gov.cn/jygk/002001/002001001/20260821/1348bbd5-b23e-4afa-ac9f-afa40fd46859.html","status":"FIELD_RESTRICTED_HTML_SHELL"},
+    "liaoning": {"sha256":"8dcad34d793f8a4c642a19eb8a4590b28a3521f326b74c0bde2d377825942d5c","evidence":"liaoning-37576-002.json"},
+    "neimenggu": {"sha256":"f16de8d3a09870ec4bb63f077b1cbc18acc4ab52ab74b8e19ce5c188611b2073","url":"https://source.nmgztb.com.cn/bulletin/files/9717964c1c71b052819c1d51e6aba80d_801393.pdf"},
+    "tianjin": {"sha256":"dd8a9a26ae55db29126fc650168a825010027cc1b99b65bcf92f0cc3ff1bfd25","url":"https://ggzy.zwfwb.tj.gov.cn/p54/1764315.html"},
+    "yunnan": {"sha256":"be47e17a27971774a83b2ea4cc592145e4807a2240792691b35d9af664e5b8d1","url":"https://ggzy.yn.gov.cn/ynggfwpt-home-api/jyzyCenter/jyInfo/gcjs/findZbggByGuid?guid=bc933383-6706-4555-ac36-59b8cfc149dd"}
+  },
+  "material_changes": [
+    {"sample_id":"S016","adapter":"liaoning","fields":["scale","qualification"],"reason":"旧Gold把500字静默截断值标为VALUE；需单独批准修订Oracle后再改输出"},
+    {"sample_id":"S006","adapter":"tianjin","fields":["qualification","performance","consortium"],"reason":"旧Gold包含截断qualification、误抽performance和与官方3.2相反的consortium；需单独批准修订Oracle"}
+  ],
+  "replay": {
+    "chongqing_html": "<p>2.2 项目概况与建设规模</p><p>（1）龙洞水厂工程：新建取水井1座、输水管道6.264公里、日处理500立方米净水设备1套。</p><p>（2）白杨村集中供水工程：设计供水规模1256立方米/天，安装管网172.082公里。</p><p>2.3 本次招标项目货物采购估算金额：1701.27万元。</p>",
+    "chongqing_scale": "（1）龙洞水厂工程：新建取水井1座、输水管道6.264公里、日处理500立方米净水设备1套。 （2）白杨村集中供水工程：设计供水规模1256立方米/天，安装管网172.082公里。",
+    "yunnan_dirty": {"title":"项目招标公告322b3365-f2fe-426a-8923-9c942a8dc73b","scale":"980322b3365-f2fe-426a-8923-9c942a8dc73b","funding":"国资 100.0% 自筹 % 贷款 % 外资 % 322b3365-f2fe-426a-8923-9c942a8dc73b"},
+    "yunnan_text": "标段名称：项目一标段 招标文件获取截止时间：2026-08-28 本次招标内容：拖翅村新建生产道路、灌溉管网及水池。 项目现场的具体位置和周边环境：/ 标段名称：项目二标段 招标文件获取截止时间：2026-08-28 本次招标内容：矿山村新建生产道路、灌溉管网、水池及水坝。 项目现场的具体位置和周边环境：/",
+    "yunnan_sections": [{"name":"项目一标段","content":"拖翅村新建生产道路、灌溉管网及水池。"},{"name":"项目二标段","content":"矿山村新建生产道路、灌溉管网、水池及水坝。"}],
+    "garbled_pdf_text": "\u0082æ\u0003/Bÿ\u0090Î§þùÿÐ\u008doÖ6\u0091gsoª_K,ac\u0091\u0089RO'æ=+f\u0080¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080+ß\u008b;9.¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080(¢\u0080",
+    "classification_titles": [
+      {"title":"和平区2026年市容环境整治项目1标段施工招标公告","expected":"房建市政","url":"https://ggzy.zwfwb.tj.gov.cn/p54/1764315.html"},
+      {"title":"北杜辖区市容环境整治围墙修补项目采购公告","expected":"房建市政","url":"https://ggzyjy.xixianxinqu.gov.cn/jydt/001001/4.html"}
+    ]
+  }
+}

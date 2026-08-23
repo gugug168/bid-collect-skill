@@ -28,3 +28,7 @@ performance / fullScore（源页普遍无评分细则/业绩要求，全省一�
 
 ## 家族与通用纪律
 见 `FAMILY_INDEX.md`（家族总览 + 代理/鉴权/mustache 脏值拦截/去重坍缩等通用提醒）。
+
+## 2026-08-23 生产试运行02
+
+官方详情偶发把GUID拼入建设规模、资金来源和标题尾部；adapter只删除确定的GUID尾串，并对多标段公告按“标段名称＋本次招标内容”汇总完整scale/scope。sidecar记录 `SOURCE_DIRTY_ID_STRIPPED` 与 `YUNNAN_MULTI_SECTION_COMBINED`，不由附件短残句回填。证据见 `evidence/production02-gap32-a-v1.json`。
