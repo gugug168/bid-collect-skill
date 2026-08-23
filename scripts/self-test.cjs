@@ -527,7 +527,7 @@ test("C2 未勾选业绩与范围金额尾部不进入 project18", () => {
   assert.match(wz.scale, /10\.941公里/);
   assert.match(wz.scope, /全过程监理/);
   assert.match(wz.duration, /^17个月/);
-  assert.equal(wz.performance, "详见投标人须知前附表附录2");
+  assert.equal(wz.performance, "");
   assert.doesNotMatch(wz.qualification, /þ/);
 });
 
@@ -1036,6 +1036,23 @@ test("生产试运行02缺口32-B批次拒绝测试记录并以详情资质纠�
   }
   assert.equal(M.classifyRecordSheetEvidence({ title: "某水库除险加固工程", qualification: "市政公用工程施工总承包三级" }).sheet, "水利");
   assert.equal(M.classifyRecordSheetEvidence({ title: "某高速公路工程", qualification: "市政公用工程施工总承包三级" }).sheet, "公路");
+});
+
+test("生产试运行02缺口32-C批次完整提取长范围并拒绝业绩指针", () => {
+  const fixture = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "production02-gap32-c-v1.json"), "utf8"));
+  const replay = fixture.replay;
+  assert.equal(M.ningboExactScope(replay.ningbo_text), replay.ningbo_scope);
+  const qh = M.ADAPTERS.qinghai.detail("", { title: "青海样本", url: "https://example.invalid/qh" }, replay.qinghai_text);
+  assert.equal(qh.scale, replay.qinghai_scale);
+  assert.equal(qh.scope, replay.qinghai_scope);
+  const my = M.ADAPTERS.mianyang.detail("", { title: "绵阳样本", url: "https://example.invalid/my" }, replay.mianyang_text);
+  assert.equal(my.scale, replay.mianyang_scale);
+  assert.equal(my.scope, replay.mianyang_scope);
+  const myConflict = M.ADAPTERS.mianyang.detail("", { title: "绵阳冲突样本", url: "https://example.invalid/my-conflict" }, replay.mianyang_conflict_text);
+  assert.equal(myConflict.performance, "");
+  assert.equal(myConflict._fieldConflict.reason_code, "SOURCE_CONFLICT_CHECKBOX");
+  assert.equal(M.jinanDetail(replay.jinan_html, { title: "济南样本", url: "https://example.invalid/jn" }, "").performance, replay.jinan_performance);
+  for (const sample of replay.classification_records) assert.equal(M.classifyRecordSheetEvidence(sample).sheet, sample.expected, sample.title);
 });
 
 test("生产P01-P05详情完整性按冻结官方摘录回放", () => {

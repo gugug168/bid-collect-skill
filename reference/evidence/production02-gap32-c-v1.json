@@ -1,0 +1,31 @@
+{
+  "schema_version": "production02-gap32-c.v1",
+  "source_commit": "3f9c5bd",
+  "batch": ["ningbo","qinghai","xinjiang","jinan","mianyang","qinhuangdao","wenzhou","yueyang"],
+  "official_responses": {
+    "ningbo_api": {"sha256":"5619e992f9e7e02b28acd1a7f9c011f3562c6a0933bf85068466cf4c6f24f390","url":"https://jyxt.zwb.ningbo.gov.cn:4011/websiteapi/getArticle/?projectid=A3302810380026492003&channel=020105&articeid=9443206"},
+    "qinghai": {"sha256":"949aafe2079282c656ccd43d703823fc5928963836c9b974047bbcecb6f590c8","url":"https://www.qhggzyjy.gov.cn/ggzy/jyxx/001001/001001001/20260821/356cd983-dc0c-47d1-afd6-5721d0ec6f24.html"},
+    "jinan": {"sha256":"c267a60c8e81ab4e3aeaa5ba43fd3933328b29f0fc183b3b0c2b112779951e3c","url":"https://jnggzy.jinan.gov.cn/jnggzyztb/front/showNotice.do?iid=FF29ED72E7B0CC84F0EC82247827837A&isnew=1&xuanxiang=招标公告"},
+    "mianyang": {"sha256":"f8433cf0247cd30d4555a72b6f3fb43f8621f13cf2ba6863030a9470bb19bce4","url":"https://ggzy.my.gov.cn/myggzy/jsgc/001001/20260821/edbfda90-82ec-4c93-984d-9c78b886a8d9.html"},
+    "wenzhou": {"sha256":"469091ffb79f055e439cbda6f78d790716bb74d55b09161c7931d38e5f0ade6d","url":"https://ggzyjy-eweb.wenzhou.gov.cn/col/col1229696276/art/2026/art_ae964348c43947f58848d98d4593042a.html"},
+    "yueyang": {"sha256":"fb855c4f7011c40a47f201d7313350827d434925dfc8dc954bc1ac74c99e34f6","url":"https://ggzy.yueyang.gov.cn/56114/56125/56126/content_2334424.html"}
+  },
+  "replay": {
+    "ningbo_text": "2.2 招标范围：本项目为EPC+O全部工作内容。其中：\n2.2.1设计服务包括施工图设计和现场配合。\n2.2.2建安工程包括主体、装修和安装工程。\n2.2.3代建管理包括工程管理和验收移交。\n2.2.4销售管理包括销售策划和交付。\n3、投标人资格要求",
+    "ningbo_scope": "本项目为EPC+O全部工作内容。其中： 2.2.1设计服务包括施工图设计和现场配合。 2.2.2建安工程包括主体、装修和安装工程。 2.2.3代建管理包括工程管理和验收移交。 2.2.4销售管理包括销售策划和交付。",
+    "qinghai_text": "2.1 项目概况 建设地点：西宁市 招标范围：河湖系统治理6.6km、排水闸门改造37座、堤岸生态化改造2.8km。\n2.2 招标范围及标段划分 标段名称：标段三 建设内容：河湖水系连通、堤岸功能完善、污水管网改造525m、水土保持工程。 投标所需身份类型：施工单位\n3、投标人资格要求",
+    "qinghai_scale": "河湖系统治理6.6km、排水闸门改造37座、堤岸生态化改造2.8km。",
+    "qinghai_scope": "河湖水系连通、堤岸功能完善、污水管网改造525m、水土保持工程。",
+    "mianyang_text": "2.1 招标范围：施工图设计阶段勘察、施工图设计、设备采购和施工，直至竣工验收及保修。\n2.2 标段划分：1个标段。\n2.4 建设内容及规模：综合治理河道16.48km，改建堤防5.55km，改建护岸10.91km。\n2.5 计划工期：18个月。",
+    "mianyang_scope": "施工图设计阶段勘察、施工图设计、设备采购和施工，直至竣工验收及保修。",
+    "mianyang_scale": "综合治理河道16.48km，改建堤防5.55km，改建护岸10.91km。",
+    "mianyang_conflict_text": "2.1 招标范围：勘察设计施工总承包。 2.2 标段划分：1个标段。 2.4 建设内容及规模：治理河道16.48km。 2.5 计划工期：18个月。 3.1.2业绩要求：☑设计业绩要求：不少于1个类似项目。☑无业绩要求。",
+    "jinan_html": "<div>4、业绩要求：投标人近5年承担过市政道路全过程工程咨询业绩。\n5、信誉要求：未被列入失信名单。</div>",
+    "jinan_performance": "投标人近5年承担过市政道路全过程工程咨询业绩。",
+    "classification_records": [
+      {"title":"青海省南川河幸福河湖建设项目标段三","expected":"水利"},
+      {"title":"岳阳市中心城区南津港污水处理厂提标改造项目代建单位","expected":"房建市政"},
+      {"title":"国家级园区基础设施建设项目规划三路工程全过程工程咨询招标公告","qualification":"工程设计市政行业（道路工程）乙级资质","expected":"房建市政"}
+    ]
+  }
+}

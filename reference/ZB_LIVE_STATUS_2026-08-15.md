@@ -36,7 +36,7 @@
 | gansu | `VERIFIED_RECORD` | 3 | — | `reference/evidence/a2-structured-project18-20260821.json` | 管网3+非管网1条；文件入口HTML壳单独记受限 |
 | qinghai | `VERIFIED_RECORD` | 3 | 30 天命中3，停止扩大 | `reference/evidence/b3-epointx-project18-20260822.json` | B3 管网3+河湖治理1；评标模板不再污染建设规模 |
 | ningxia | `VERIFIED_RECORD` | 3 | — | `reference/evidence/b2-epoint-project18-20260822.json` | B2 管网3+非管网1；标段划分与资金前缀已清理 |
-| xinjiang | `VERIFIED_RECORD` | 3 | 无关键词30天0 | `reference/evidence/b3-epointx-project18-20260822.json` | B3 管网3；无关键词复扫为空，不冒充非管网样本 |
+| xinjiang | `CONNECTED_NO_RECENT_DATA` | 0 | 无关键词30/90/365天均0 | `reference/evidence/production02-gap32-c-v1.json` | 保留B3历史管网VERIFIED证据；本次无关键词空窗不冒充历史无公告 |
 | xinjiangbt | `VERIFIED_RECORD` | 1 | 管网30/90/365天0 | `reference/evidence/b2-epoint-project18-20260822.json` | 无关键词官方公路招标1条，不冒充管网命中 |
 | anyang | `VERIFIED_RECORD` | 1 | — | `reference/evidence/b1-epoint-project18-20260822.json` | B1 排除竞争性磋商等非招标采购，管网招标1条 |
 | dingxi | `CONNECTED_NO_RECENT_DATA` | 0 | 管网/无关键词30/90/365均0 | `reference/evidence/d-restricted-project18-20260822.json` | D 源站2023年后停更，17字段NO_SAMPLE |

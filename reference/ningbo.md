@@ -27,3 +27,7 @@ node scripts/province-collect.cjs -p 宁波 -k 管网 -d 30 --limit 3 --csv --xl
 
 ## 家族与通用纪律
 见 `FAMILY_INDEX.md`。同类独立市级平台总账见 [`CITY_PLATFORMS.md`](CITY_PLATFORMS.md)。
+
+## 2026-08-23 生产试运行02
+
+EPC+O模板的 `2.2招标范围` 完整保留2.2.1设计、2.2.2建安、2.2.3代建和2.2.4销售管理四部分，并在第3章资格要求前停止，不再只剩“其中：”。fixture：`evidence/production02-gap32-c-v1.json`。
