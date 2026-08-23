@@ -1,0 +1,51 @@
+{
+  "schema_version": "project18-evidence.v1",
+  "batch": "nationwide-100-project-content-remediation-v2",
+  "stage": "zb",
+  "verified_at": "2026-08-23T15:21:11+08:00",
+  "code_dirty": false,
+  "oracle": {
+    "gold_path": "reference/evidence/nationwide-100-gold-v2.json",
+    "positive_samples": 100,
+    "fields": {
+      "scale": {"correct": 81, "wrong": 0, "false_positive": 0, "false_negative": 0, "excluded": 19, "union_accuracy": 1, "precision": 1, "recall": 1},
+      "scope": {"correct": 86, "wrong": 0, "false_positive": 0, "false_negative": 0, "excluded": 14, "union_accuracy": 1, "precision": 1, "recall": 1}
+    },
+    "review_cells_remaining_all_fields": 21
+  },
+  "live_run": {
+    "adapter_count": 14,
+    "verified_record_adapters": 14,
+    "records": 28,
+    "rate_limited_adapters": 0
+  },
+  "hashes": {
+    "source_commit_province_collect_sha256": "df0dd4a1140efb188c94474f55224d70fd69dbf009ed7e0dc1e9a7f09338892a",
+    "source_commit_self_test_sha256": "65f9239022dabe6992ba7762527da5959af816eb4df4e00b321dace2860eea7c"
+  },
+  "evidence": {
+    "fixture:nationwide-100-project-content-remediation-v2": {
+      "kind": "accuracy_audit",
+      "path": "reference/evidence/nationwide-100-project-content-remediation-v2.json",
+      "code_commit": "d0b2b4854415ffa2e5b480691954c5e034c12d11",
+      "code_dirty": false,
+      "note": "Frozen v2 scale 81/81 and scope 86/86; 14-adapter clean live run plus official-response SHA replay"
+    }
+  },
+  "capability_updates": {
+    "hunan": {"evidence_id":"fixture:nationwide-100-project-content-remediation-v2","verified_at":"2026-08-23T15:21:11+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["scale","scope"]}},
+    "liaoning": {"evidence_id":"fixture:nationwide-100-project-content-remediation-v2","verified_at":"2026-08-23T15:21:11+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["scale","scope"]}},
+    "jiangsu": {"evidence_id":"fixture:nationwide-100-project-content-remediation-v2","verified_at":"2026-08-23T15:21:11+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["scale","scope"]}},
+    "hainan": {"evidence_id":"fixture:nationwide-100-project-content-remediation-v2","verified_at":"2026-08-23T15:21:11+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["scale","scope"]}},
+    "zhengzhou": {"evidence_id":"fixture:nationwide-100-project-content-remediation-v2","verified_at":"2026-08-23T15:21:11+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["scale","scope"]}},
+    "jiangxi": {"evidence_id":"fixture:nationwide-100-project-content-remediation-v2","verified_at":"2026-08-23T15:21:11+08:00","statuses":{"FIELD_NOT_DISCLOSED":["scale"],"FIELD_VERIFIED_DETAIL":["scope"]}},
+    "hefei": {"evidence_id":"fixture:nationwide-100-project-content-remediation-v2","verified_at":"2026-08-23T15:21:11+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["scale","scope"]}},
+    "beijing": {"evidence_id":"fixture:nationwide-100-project-content-remediation-v2","verified_at":"2026-08-23T15:21:11+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["scale","scope"]}},
+    "hebei": {"evidence_id":"fixture:nationwide-100-project-content-remediation-v2","verified_at":"2026-08-23T15:21:11+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["scale","scope"]}},
+    "shanghai": {"evidence_id":"fixture:nationwide-100-project-content-remediation-v2","verified_at":"2026-08-23T15:21:11+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["scale"],"FIELD_NOT_DISCLOSED":["scope"]}},
+    "mianyang": {"evidence_id":"fixture:nationwide-100-project-content-remediation-v2","verified_at":"2026-08-23T15:21:11+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["scale","scope"]}},
+    "nantong": {"evidence_id":"fixture:nationwide-100-project-content-remediation-v2","verified_at":"2026-08-23T15:21:11+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["scale","scope"]}},
+    "huizhou": {"evidence_id":"fixture:nationwide-100-project-content-remediation-v2","verified_at":"2026-08-23T15:21:11+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["scale","scope"]}},
+    "quanzhou": {"evidence_id":"fixture:nationwide-100-project-content-remediation-v2","verified_at":"2026-08-23T15:21:11+08:00","statuses":{"FIELD_VERIFIED_DETAIL":["scale","scope"]}}
+  }
+}
