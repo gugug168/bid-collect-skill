@@ -1909,7 +1909,7 @@ function chineseNumberToNumber(raw) {
 function grabBondWan(text) {
   const raw = String(text || "");
   if (/(?:本项目|本标段)?\s*(?:不收取|无需|不要求|免收|不缴纳|无需缴纳)\s*(?:投标)?保证金|(?:投标)?保证金\s*(?:为|金额为)?\s*0(?:\.0+)?\s*(?:元|万元|万)?/.test(raw)) return 0;
-  const explicit = raw.match(/(?:投标)?保证金(?:金额|数额)?[\s\S]{0,100}?(?:\d+(?:\.\d+)?|[零〇一二两三四五六七八九十百千万亿壹贰叁肆伍陆柒捌玖拾佰仟萬億元整]+)\s*(?:万元|万|元)/);
+  const explicit = raw.match(/(?:投标)?保证金(?:金额|数额)?[\s\S]{0,40}?(?:\d+(?:\.\d+)?|[零〇一二两三四五六七八九十百千万亿壹贰叁肆伍陆柒捌玖拾佰仟萬億元整]+)\s*(?:万元|万|元)/);
   if (!explicit) return "";
   return grabMoneyWan(explicit[0], ["投标保证金", "保证金"]);
 }
@@ -2002,6 +2002,8 @@ function grabPerformance(text, flat) {
   // "以下业绩"：海南 G98 环岛高速检测公告写「2.投标人需同时具备以下业绩：2021年1月1日至…」，
   // 标签既不是"业绩要求"也不是"业绩条件"，原标签表全落空 → 真实业绩条款被当成"未载"。
   const v = grab(text, ["入围业绩要求", "业绩要求", "业绩条件", "企业业绩", "类似工程业绩", "以下业绩", "类似业绩"]);
+  if (/^(?:要求\s*[:：]\s*)?0\s*个$/.test(String(v || "").trim())) return "不要求";
+  if (/^的\s*[，,]|应提供其他资料|有效扫描件予以证明/.test(String(v || ""))) return "";
   if (v && PERF_TRUNC.test(v) && flat) {
     const c = grabPerfClause(flat);
     if (c && c.length > v.length) return c;   // 整段更完整才替换，避免无谓改动
@@ -2283,6 +2285,7 @@ function grabDuration(text, flat) {
       if (isMeaningful(one, 4) && !DUR_GARBAGE.test(one)) return one.slice(0, 60);
     }
   }
+  if (/^(?:合同签订后|合同生效后|收到通知后|开工通知后)$/.test(String(v || "").trim())) return "";
   return v || "";                                // 主通道虽无数字，也好过留空（如"详见招标文件"）
 }
 
@@ -2565,6 +2568,7 @@ const PROJECT_SPLIT_MARKERS = ["具体招标内容包括", "具体招标内容",
 function cleanProjectContent(value) {
   let v = String(value || "").replace(/^[\s\[【]+|[\s\]】]+$/g, "").replace(/\s+/g, " ").trim();
   v = v.replace(/^[：:\s]+/, "").trim();
+  v = v.replace(/^(?:及内容|和内容)\s*[:：]\s*/, "").trim();
   v = v.replace(/^[(（]工程特征、结构层次、建筑高度、道路宽度长度等[)）]\s*[:：]\s*/, "");
   v = v.replace(/^为\s*/, "").trim();
   v = v.replace(/^\d+\s*[;；]\s*(?=\S{4})/, "").trim();
@@ -2781,7 +2785,7 @@ function grabFullScore(text, flat) {
   const direct = grab(text, ["满分标准", "评分满分", "满分分值"]);
   if (direct) return trimAtClause(direct).slice(0, 30);
   // "总分为 100 分" / "满分 100 分" / "最高 100 分"
-  const m = text.match(/(?:总分|满分|最高分)\s*(?:为|：|:)?\s*(\d+(?:\.\d+)?)\s*分/);
+  const m = text.match(/(?:总分|满分)\s*(?:为|：|:)?\s*(\d+(?:\.\d+)?)\s*分/);
   if (m) return m[1] + "分";
   return "";
 }
@@ -5834,6 +5838,7 @@ function parseYgpDetailPayload(data, row, ad, item) {
   const generic = extractDetail(ad, html, item || { title: data && data.title || row.noticeTitle || "", url: buildYgpDetailUrl(row) }, "");
   const pairs = ygpTablePairs(html);
   const attachment = selectYgpTenderAttachment(sections, row);
+  const exactCombinedProject = cleanProjectContent(ygpPair(pairs, ["招标范围及规模"]));
   const out = {
     ...generic,
     title: String(data && data.title || generic.title || row.noticeTitle || "").trim(),
@@ -5852,6 +5857,7 @@ function parseYgpDetailPayload(data, row, ad, item) {
     docLink: attachment.chosen ? attachment.chosen.downloadUrl : (generic.docLink || ""),
     _ygpAttachment: attachment.chosen ? { ...attachment.chosen, noticeId: String(row.noticeId || ""), candidates: attachment.candidates } : null,
   };
+  if (exactCombinedProject && PROJECT_SCALE_SIGNAL.test(exactCombinedProject) && !PROJECT_SCOPE_STRONG_SIGNAL.test(exactCombinedProject)) out.scale = exactCombinedProject;
   return out;
 }
 

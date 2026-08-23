@@ -844,6 +844,11 @@ test("最终详情覆盖交货期、表格工期、特定资格、明确无业�
   assert.equal(evaluation.evaluation, "宜昌市水利水电工程施工监理招标投标评分标准（非枢纽工程）；评定分离");
   const deadline = M.extractDetail({}, "递交投标文件的截止时间：2026年09月11日09时30分。", { title: "电梯招标公告", url: "x" }, "");
   assert.equal(deadline.bidOpen, "2026-09-11 09:30");
+  assert.equal(M.extractDetail({}, "技术评分项最高分6分。", { title: "项目招标公告", url: "x" }, "").fullScore, "");
+  assert.equal(M.extractDetail({}, "企业业绩要求：0个。", { title: "项目招标公告", url: "x" }, "").performance, "不要求");
+  assert.equal(M.extractDetail({}, "业绩要求：的，应提供其他资料的有效扫描件予以证明。", { title: "项目招标公告", url: "x" }, "").performance, "");
+  assert.equal(M.extractDetail({}, "合同履行期限：合同签订后。", { title: "项目招标公告", url: "x" }, "").duration, "");
+  assert.equal(M.extractDetail({}, "投标保证担保对联合体成员有约束力。项目示例金额1234567819元。", { title: "项目招标公告", url: "x" }, "").bond, "");
 });
 
 test("广东 siteCode 定向覆盖地级市与区县，未知词诚实回退全省", () => {
@@ -895,6 +900,10 @@ test("广东详情解析精确字段并选取正式招标文件", () => {
   assert.match(out.scope, /施工图纸及清单/);
   assert.equal(out._ygpAttachment.fileName, "正式招标文件.pdf");
   assert.match(out.docLink, /\/pdf\?2$/);
+  const physical = `<table><tr><th>招标范围及规模</th><td>改造DN15-DN400供水管约33.392公里，其中标段二约11.679公里。</td></tr><tr><th>招标内容</th><td>施工图纸及工程量清单范围内全部施工。</td></tr></table>`;
+  const physicalOut = M.parseYgpDetailPayload({ title: "管网改造招标公告", tradingNoticeColumnModelList: [{ richtext: physical, noticeFileBOList: [] }] }, { ...row, noticeId: "detail-2", noticeTitle: "管网改造招标公告" }, M.ADAPTERS.guangdong, { title: "管网改造招标公告", url: "x" });
+  assert.match(physicalOut.scale, /33\.392公里/);
+  assert.match(physicalOut.scope, /工程量清单/);
 });
 
 test("广东招标文件补抽区分保证金、现行评标办法与定性满分", () => {
