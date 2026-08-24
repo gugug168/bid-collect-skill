@@ -323,6 +323,7 @@ const ADAPTERS = {
     base: "https://ggzy.suzhou.gov.cn",
     clientFilterOnly: true, // 无服务端关键词
     defaultType: "招标公告",
+    detail: suzhouDetail,
     listUrl: (page) => `https://ggzy.suzhou.gov.cn/jyxx/003001/003001001/tradeInfo.html?pageIndex=${page}`,
     parse(html) {
       const out = [];
@@ -464,6 +465,7 @@ const ADAPTERS = {
     clientFilterOnly: true,
     cityName: "秦皇岛市",
     defaultType: "招标公告",
+    detail: qinhuangdaoDetail,
     listUrl: (page) => page === 1
       ? "https://www.qhdggzy.cn/qhdggzy/jydt/001003/001003001/moreinfo.html"
       : `https://www.qhdggzy.cn/qhdggzy/jydt/001003/001003001/${page}.html`,
@@ -569,6 +571,7 @@ const ADAPTERS = {
     categoryNum: "003001002", // 工程建设-招标公告（003001004 中标候选人/003001005 中标结果）
     rn: 20,
     defaultType: "招标公告",
+    detail: yichangDetail,
   },
   // ===== 潍坊（城市级 · 2026-08-18 接入 · EpointWebBuilder 变体）=====
   // 官方列表页虽然混排多个阶段，但 getSecInfoListYzm 可锁 007001001=招标（资格预审）公告。
@@ -1935,7 +1938,12 @@ function chineseNumberToNumber(raw) {
  */
 function grabBondWan(text) {
   const raw = String(text || "");
-  if (/(?:本项目|本标段)?\s*(?:不收取|无需|不要求|免收|不缴纳|无需缴纳)\s*(?:投标)?保证金|(?:投标)?保证金\s*(?:为|金额为)?\s*0(?:\.0+)?\s*(?:元|万元|万)?/.test(raw)) return 0;
+  const noBond = /(?:本项目|本标段|政府投资项目)?\s*(?:不收取|无需|不要求|免收|不缴纳|无需缴纳)\s*(?:投标)?保证金|(?:投标)?保证金\s*(?:为|金额为)?\s*0(?:\.0+)?\s*(?:元|万元|万)?/g;
+  for (const match of raw.matchAll(noBond)) {
+    const prefix = raw.slice(Math.max(0, match.index - 12), match.index);
+    if (/[□£¨]\s*(?:方式\s*\d+[.、:：]?)?\s*$/.test(prefix)) continue;
+    return 0;
+  }
   const explicit = raw.match(/(?:投标)?保证金(?:金额|数额)?[\s\S]{0,40}?(?:\d+(?:\.\d+)?|[零〇一二两三四五六七八九十百千万亿壹贰叁肆伍陆柒捌玖拾佰仟萬億元整]+)\s*(?:万元|万|元)/);
   if (!explicit) return "";
   const value = grabMoneyWan(explicit[0], ["投标保证金", "保证金"]);
@@ -2940,8 +2948,16 @@ function tianjinDetail(html, item, pdfText) {
   const out = extractDetail({}, html, item, pdfText);
   if (out.evaluation === "评定分离") out.evaluation = "";
   const text = htmlToText(html);
+  const scale = text.match(/工程概况\s*[:：]\s*([\s\S]{20,3000}?)(?=\s*2\.2\s*招标范围)/m)?.[1] || "";
   const scope = text.match(/本次招标标段为[\s\S]{0,400}?招标范围\s*[:：]\s*([\s\S]{20,1400}?)(?=本标段最高投标限价|\n\s*2\.4|计划工期要求)/);
+  const qualification = text.match(/(?:^|\n)\s*3\.1\s*资质资格业绩要求\s*([\s\S]{20,8000}?)(?=\s*3\.2\s*联合体投标要求)/m)?.[1] || "";
+  const consortiumSection = text.match(/(?:^|\n)\s*3\.2\s*联合体投标要求\s*([\s\S]{4,1600}?)(?=\s*3\.3\s*投标人|\s*4\.\s*招标文件)/m)?.[1] || "";
+  if (scale) out.scale = cleanFullProjectFact(scale).replace(/\s*项目总投资[\s\S]*$/, "").trim();
   if (scope) out.scope = cleanProjectContent(scope[1]);
+  if (qualification) out.qualification = cleanFullProjectFact(qualification);
+  out.performance = "";
+  if (/允许联合体投标|接受联合体投标/.test(consortiumSection)) out.consortium = "接受";
+  else if (/不允许联合体投标|不接受联合体投标/.test(consortiumSection)) out.consortium = "不接受";
   return out;
 }
 
@@ -4818,6 +4834,15 @@ function qinghaiDetail(html, item, pdfText) {
   const section = text.match(/(?:^|\n)\s*2\.2\s*招标范围及标段划分[\s\S]{0,1000}?建设内容\s*[:：]\s*([\s\S]{20,8000}?)(?=\s*投标所需身份类型|\s*标段估算价|\s*3[、.．]\s*投标人资格要求)/m)?.[1] || "";
   if (overall) out.scale = cleanFullProjectFact(overall);
   if (section) out.scope = cleanFullProjectFact(section);
+  if (/西宁市[\s\S]{0,80}城中区[、，,][\s\S]{0,40}城西区[、，,][\s\S]{0,40}湟中区/.test(text)) out.projectSite = "西宁市";
+  return out;
+}
+
+function yichangDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  const text = String(pdfText || htmlToText(html));
+  const qualification = text.match(/(?:^|\n)\s*3\.2\s*投标人具备下列要求之一\s*[:：]?\s*([\s\S]{20,5000}?)(?=\s*3\.3\s*投标人拟派)/m)?.[1] || "";
+  if (qualification) out.qualification = cleanFullProjectFact(qualification);
   return out;
 }
 
@@ -4827,7 +4852,7 @@ function mianyangDetail(html, item, pdfText) {
   const scope = text.match(/(?:^|\n)\s*2\.1\s*招标范围\s*[:：]\s*([\s\S]{20,10000}?)(?=\s*2\.2\s*标段划分)/m)?.[1] || "";
   const scale = text.match(/(?:^|\n)\s*2\.4\s*建设内容及规模\s*[:：]\s*([\s\S]{20,5000}?)(?=\s*2\.5\s*计划工期)/m)?.[1] || "";
   if (scope) out.scope = cleanFullProjectFact(scope);
-  if (scale) out.scale = cleanFullProjectFact(scale);
+  if (scale) out.scale = cleanFullProjectFact(scale).replace(/\s*项目总投资[\s\S]*$/, "").trim();
   if (/[R☑√■⊠]\s*设计业绩要求[\s\S]{0,1200}?[R☑√■⊠]\s*无业绩要求/.test(text)) {
     out.performance = "";
     out._fieldConflict = { field: "performance", reason_code: "SOURCE_CONFLICT_CHECKBOX" };
@@ -4845,15 +4870,32 @@ function shanxiDetail(html, item, pdfText) {
   return out;
 }
 
+function qinhuangdaoDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  const text = String(pdfText || htmlToText(html));
+  const scale = text.match(/建设规模\s*[:：]\s*([\s\S]{20,2400}?)(?=\s*建设地点\s*[:：])/m)?.[1]
+    || text.match(/项目概况\s*[:：]\s*([\s\S]{20,2400}?)(?=\s*建设地点\s*[:：])/m)?.[1] || "";
+  if (scale) out.scale = cleanFullProjectFact(scale).replace(/[。；;\s]+$/, "");
+  return out;
+}
+
+function suzhouDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  out.scale = String(out.scale || "").replace(/[；;\s]+$/, "");
+  return out;
+}
+
 function liaoningDetail(html, item, pdfText) {
   const out = extractDetail({}, html, item, pdfText);
   const text = htmlToText(html);
-  const overview = text.match(/2\s*\.\s*1\s*项目概况\s*([\s\S]{4,2400}?)(?=2\s*\.\s*2\s*招标范围)/)?.[1] || "";
+  const overview = text.match(/2\s*\.\s*1\s*项目概况\s*([\s\S]{4,5000}?)(?=2\s*\.\s*2\s*(?:标段划分|招标范围))/)?.[1] || "";
   const embeddedScale = overview.match(/建设规模\s*[:：]\s*([\s\S]{4,1800})/)?.[1] || "";
   const nestedScope = text.match(/标段招标范围\s*[:：]\s*([\s\S]{4,1600}?)(?=标段类别|标段合同估算价|投标保证金)/)?.[1] || "";
   const numberedScope = text.match(/2\s*\.\s*3\s*招标范围\s*[:：]?\s*([\s\S]{4,1800}?)(?=2\s*\.\s*4\s*)/)?.[1] || "";
-  if (embeddedScale || overview) out.scale = cleanProjectContent(embeddedScale || overview);
+  const qualification = text.match(/(?:^|\n)\s*3\.1\s*(本次招标要求投标人[\s\S]{20,10000}?)(?=\s*3\.2\s*本次招标)/m)?.[1] || "";
+  if (embeddedScale || overview) out.scale = cleanFullProjectFact(embeddedScale || overview);
   if (nestedScope || numberedScope) out.scope = cleanProjectContent(nestedScope || numberedScope);
+  if (qualification) out.qualification = cleanFullProjectFact(qualification);
   return out;
 }
 
@@ -5689,6 +5731,7 @@ async function ningboDetail(ad, item) {
   // 平台 content 内保留大量旧模板 HTML 注释；先删注释，避免未选中的资质/联合体/开标块污染抽取。
   const content = String(d.content || "").replace(/<!--[\s\S]*?-->/g, "");
   const out = extractDetail(ad, content, item, "");
+  out.scale = String(out.scale || "").replace(/[；;]\s*建设地点\s*[:：][\s\S]*$/, "").trim();
   out.scope = cleanA3ScopeAmountTail(out.scope);
   const detailText = htmlToText(content);
   const exactScope = ningboExactScope(detailText);
@@ -8980,6 +9023,7 @@ module.exports.classifyRecordSheetEvidence = classifyRecordSheetEvidence;
 module.exports.isNonRetryableHttpStatus = isNonRetryableHttpStatus;
 module.exports.shouldStopOnDetailError = shouldStopOnDetailError;
 module.exports.ningboExactScope = ningboExactScope;
+module.exports.grabBondWan = grabBondWan;
 module.exports.guizhouCompleteScope = guizhouCompleteScope;
 module.exports.parseQuanzhouPayload = parseQuanzhouPayload;
 module.exports.parseYibinDetailPayload = parseYibinDetailPayload;

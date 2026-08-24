@@ -1,6 +1,7 @@
 "use strict";
 
 const assert = require("node:assert/strict");
+const crypto = require("node:crypto");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
@@ -1076,6 +1077,48 @@ test("生产试运行02最终硬字段按标题首次行政区并补齐房建主
   assert.equal(M.resolveRecordRegion(M.ADAPTERS.gansu, { city: "城关区", title: fixture.region.title }), fixture.region.expected);
   for (const sample of fixture.classification) assert.equal(M.classifySheet(sample.title), sample.expected, sample.title);
   assert.equal(fixture.material_changes.length, 3);
+});
+
+test("生产试运行02 Gold重基线前先修真实解析缺陷", () => {
+  const fixturePath = path.join(SKILL_ROOT, "reference", "evidence", "production02-gold-rebaseline-v1.json");
+  const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
+  const gold = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "nationwide-100-gold-v2.json"), "utf8"));
+  assert.equal(fixture.decisions.length, 40);
+  assert.equal(new Set(fixture.decisions.map((row) => `${row.sample_id}.${row.field}`)).size, 40);
+  assert.deepEqual(
+    Object.fromEntries(["UPDATE_GOLD_VALUE", "KEEP_GOLD_AFTER_CODE_FIX", "UPDATE_GOLD_TERMINAL"].map((action) => [action, fixture.decisions.filter((row) => row.action === action).length])),
+    { UPDATE_GOLD_VALUE: 29, KEEP_GOLD_AFTER_CODE_FIX: 7, UPDATE_GOLD_TERMINAL: 4 },
+  );
+  const goldById = new Map(gold.samples.map((sample) => [sample.sample_id, sample]));
+  for (const [sampleId, field] of [["S006", "performance"], ["S028", "bond"], ["S030", "bond"], ["S080", "performance"]]) {
+    assert.equal(goldById.get(sampleId).expected[field].state, "NOT_DISCLOSED_OR_RESTRICTED");
+    assert.equal(goldById.get(sampleId).expected[field].value, "");
+  }
+  assert.equal(goldById.get("S006").expected.consortium.value, "接受");
+  assert.equal(goldById.get("S041").expected.region.value, "新北区");
+  assert.equal(goldById.get("S057").expected.region.value, "西宁市");
+  assert.equal(goldById.get("S081").expected.region.value, "北戴河区");
+  assert.equal(gold.evidence_index["production02-gold-rebaseline-v1.json"].sha256, crypto.createHash("sha256").update(fs.readFileSync(fixturePath)).digest("hex"));
+  const replay = fixture.replay;
+  assert.equal(M.grabBondWan(replay.bond_text), "3");
+  const tj = M.ADAPTERS.tianjin.detail(replay.tianjin_html, { title: "天津样本", url: "https://example.invalid/tj" }, "");
+  assert.equal(tj.scale, replay.tianjin_scale);
+  assert.equal(tj.qualification, replay.tianjin_qualification);
+  assert.equal(tj.performance, "");
+  assert.equal(tj.consortium, "接受");
+  const ln = M.ADAPTERS.liaoning.detail(replay.liaoning_html, { title: "辽宁样本", url: "https://example.invalid/ln" }, "");
+  assert.equal(ln.scale, replay.liaoning_scale);
+  assert.equal(ln.qualification, replay.liaoning_qualification);
+  const qh = M.ADAPTERS.qinghai.detail("", { title: "青海样本", url: "https://example.invalid/qh" }, replay.qinghai_text);
+  assert.equal(qh.projectSite, "西宁市");
+  const yc = M.ADAPTERS.yichang.detail("", { title: "宜昌样本", url: "https://example.invalid/yc" }, replay.yichang_text);
+  assert.equal(yc.qualification, replay.yichang_qualification);
+  const my = M.ADAPTERS.mianyang.detail("", { title: "绵阳样本", url: "https://example.invalid/my" }, replay.mianyang_text);
+  assert.equal(my.scale, replay.mianyang_scale);
+  const qhd = M.ADAPTERS.qinhuangdao.detail(replay.qinhuangdao_html, { title: "秦皇岛样本", url: "https://example.invalid/qhd" }, "");
+  assert.equal(qhd.scale, replay.qinhuangdao_scale);
+  const sz = M.ADAPTERS.suzhou.detail(replay.suzhou_html, { title: "苏州样本", url: "https://example.invalid/sz" }, "");
+  assert.equal(sz.scale, replay.suzhou_scale);
 });
 
 test("生产P01-P05详情完整性按冻结官方摘录回放", () => {
