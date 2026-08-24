@@ -1124,8 +1124,10 @@ test("生产试运行02 Gold重基线前先修真实解析缺陷", () => {
 test("生产试运行02盲测同URL回放拒绝指针、跨章节与跨区县任取", () => {
   const fixture = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "production02-blind30-replay-v1.json"), "utf8"));
   const replay = fixture.replay;
-  assert.equal(fixture.decisions.length, 14);
-  assert.equal(new Set(fixture.decisions.map((row) => `${row.sample_id}.${row.field}`)).size, 14);
+  assert.equal(fixture.decisions.length, 16);
+  assert.equal(new Set(fixture.decisions.map((row) => `${row.sample_id}.${row.field}`)).size, 16);
+  const gold = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "nationwide-100-gold-v2.json"), "utf8"));
+  for (const sampleId of ["S026", "S033"]) assert.equal(gold.samples.find((row) => row.sample_id === sampleId).expected.region.value, "江汉区");
   assert.equal(M.fujianExactScope(replay.fujian_text), replay.fujian_scope);
   const wh = M.wuhanDetail(M.ADAPTERS.wuhan, replay.wuhan_html, { title: "设备更新项目" });
   assert.equal(wh.qualification, "");

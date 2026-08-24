@@ -3,6 +3,8 @@
   "source_commit": "0854941b990e45d1e38705062585644389fde530",
   "new_evidence": true,
   "decisions": [
+    { "sample_id": "S026", "field": "region", "action": "READJUDICATE_TO_OFFICIAL_DISTRICT", "value": "江汉区" },
+    { "sample_id": "S033", "field": "region", "action": "READJUDICATE_TO_OFFICIAL_DISTRICT", "value": "江汉区" },
     { "sample_id": "B001", "field": "region", "action": "READJUDICATE_TO_OFFICIAL_DISTRICT", "value": "赫山区" },
     { "sample_id": "B004", "field": "region", "action": "READJUDICATE_TO_OFFICIAL_DISTRICT", "value": "歙县" },
     { "sample_id": "B005", "field": "region", "action": "READJUDICATE_TO_OFFICIAL_DISTRICT", "value": "集美区" },

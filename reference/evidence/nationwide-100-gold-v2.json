@@ -6426,9 +6426,9 @@
         },
         "region": {
           "state": "VALUE",
-          "value": "武汉市",
+          "value": "江汉区",
           "comparison": "normalized_text",
-          "reason": "official response or official route readback verified",
+          "reason": "OFFICIAL_DISTRICT_READJUDICATED_BLIND30_CLEAN",
           "evidence": [
             "wuhan-19344-001.json",
             "wuhan-19344-002.json",
@@ -7624,9 +7624,9 @@
         },
         "region": {
           "state": "VALUE",
-          "value": "武汉市",
+          "value": "江汉区",
           "comparison": "normalized_text",
-          "reason": "official response or official route readback verified",
+          "reason": "OFFICIAL_DISTRICT_READJUDICATED_BLIND30_CLEAN",
           "evidence": [
             "wuhan-19344-001.json",
             "wuhan-19344-002.json",
