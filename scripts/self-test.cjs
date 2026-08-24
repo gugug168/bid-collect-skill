@@ -1121,6 +1121,24 @@ test("生产试运行02 Gold重基线前先修真实解析缺陷", () => {
   assert.equal(sz.scale, replay.suzhou_scale);
 });
 
+test("生产试运行02盲测同URL回放拒绝指针、跨章节与跨区县任取", () => {
+  const fixture = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "production02-blind30-replay-v1.json"), "utf8"));
+  const replay = fixture.replay;
+  assert.equal(fixture.decisions.length, 14);
+  assert.equal(new Set(fixture.decisions.map((row) => `${row.sample_id}.${row.field}`)).size, 14);
+  assert.equal(M.fujianExactScope(replay.fujian_text), replay.fujian_scope);
+  const wh = M.wuhanDetail(M.ADAPTERS.wuhan, replay.wuhan_html, { title: "设备更新项目" });
+  assert.equal(wh.qualification, "");
+  const zj = M.ADAPTERS.zhejiang.detail(replay.zhejiang_html, { title: "浙江样本", url: "https://example.invalid/zj" }, "");
+  assert.equal(zj.scale, replay.zhejiang_scale);
+  assert.equal(zj.scope, replay.zhejiang_scope);
+  const ly = M.ADAPTERS.luoyang.detail(replay.luoyang_html, { title: "洛阳样本", url: "https://example.invalid/ly" }, "");
+  assert.equal(ly.scope, replay.luoyang_scope);
+  assert.equal(M.normalizeHuizhouUrl(replay.huizhou_proxy_url), replay.huizhou_canonical_url);
+  const region = M.resolveRecordRegion(M.ADAPTERS.yantai, { title: "烟台南站西路北延工程", city: replay.cross_district_listed, projectSite: replay.cross_district_site, url: "https://example.invalid/yt" }, { region_rejections: [] });
+  assert.equal(region, replay.cross_district_listed);
+});
+
 test("生产P01-P05详情完整性按冻结官方摘录回放", () => {
   const fixture = JSON.parse(fs.readFileSync(path.join(SKILL_ROOT, "reference", "evidence", "production-detail-completeness-v1.json"), "utf8")).replay;
   const ygp = (html, title) => M.parseYgpDetailPayload(

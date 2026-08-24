@@ -1,0 +1,35 @@
+{
+  "schema_version": "production02-blind30-replay.v1",
+  "source_commit": "0854941b990e45d1e38705062585644389fde530",
+  "new_evidence": true,
+  "decisions": [
+    { "sample_id": "B001", "field": "region", "action": "READJUDICATE_TO_OFFICIAL_DISTRICT", "value": "赫山区" },
+    { "sample_id": "B004", "field": "region", "action": "READJUDICATE_TO_OFFICIAL_DISTRICT", "value": "歙县" },
+    { "sample_id": "B005", "field": "region", "action": "READJUDICATE_TO_OFFICIAL_DISTRICT", "value": "集美区" },
+    { "sample_id": "B007", "field": "region", "action": "READJUDICATE_TO_OFFICIAL_DISTRICT", "value": "市北区" },
+    { "sample_id": "B008", "field": "region", "action": "READJUDICATE_TO_OFFICIAL_DISTRICT", "value": "江汉区" },
+    { "sample_id": "B010", "field": "region", "action": "READJUDICATE_TO_OFFICIAL_DISTRICT", "value": "沭阳县" },
+    { "sample_id": "B015", "field": "region", "action": "READJUDICATE_TO_OFFICIAL_DISTRICT", "value": "纳溪区" },
+    { "sample_id": "B021", "field": "region", "action": "KEEP_AFTER_MULTI_DISTRICT_FIX", "value": "莱山区" },
+    { "sample_id": "B005", "field": "scope", "action": "KEEP_AFTER_CODE_FIX" },
+    { "sample_id": "B008", "field": "qualification", "action": "KEEP_EMPTY_AFTER_REFERENCE_REJECT" },
+    { "sample_id": "B011", "field": "scale", "action": "READJUDICATE_TO_FULL_OFFICIAL_FACT" },
+    { "sample_id": "B011", "field": "scope", "action": "READJUDICATE_TO_OFFICIAL_FACT", "value": "土方开挖、回填，管道铺设，管件安装，阀门井浇筑等；" },
+    { "sample_id": "B013", "field": "scope", "action": "KEEP_AFTER_SECTION_BOUNDARY_FIX" },
+    { "sample_id": "B025", "field": "docLink", "action": "KEEP_AFTER_CANONICAL_URL_FIX" }
+  ],
+  "replay": {
+    "fujian_text": "2.2 招标范围与内容 2.2.1工程类别：房屋建筑工程 2.2.2招标类型：施工总承包 2.2.3招标范围：包括但不限于基础土石方、桩基、土建、水电、装修、弱电、消防、景观工程及配套工程等，具体详见施工图纸及工程量清单。 2.3 投标人资格要求",
+    "fujian_scope": "包括但不限于基础土石方、桩基、土建、水电、装修、弱电、消防、景观工程及配套工程等，具体详见施工图纸及工程量清单。",
+    "wuhan_html": "<table><tr><td>招标项目名称</td><td>设备更新项目</td></tr><tr><td>工程地点</td><td>武汉市江汉区</td></tr><tr><td>其他要求</td><td>其他详见招标文件</td></tr></table>",
+    "zhejiang_html": "<p>2.1 项目概况</p><p>建设规模：本工程新建DN1800原水管，总长约2500米；招标范围：土方开挖、回填，管道铺设，管件安装，阀门井浇筑等；其它具体详见招标文件、设计图纸及工程量清单。</p><p>2.2 招标范围</p>",
+    "zhejiang_scale": "本工程新建DN1800原水管，总长约2500米",
+    "zhejiang_scope": "土方开挖、回填，管道铺设，管件安装，阀门井浇筑等；",
+    "luoyang_html": "<p>2.2 招标范围：本次招标包含招标文件、工程量清单、施工图纸、澄清及补充通知(如有)中要求的全部施工内容。</p><p>2.3 招标规模：总建筑面积3.8万平方米。</p>",
+    "luoyang_scope": "本次招标包含招标文件、工程量清单、施工图纸、澄清及补充通知(如有)中要求的全部施工内容。",
+    "huizhou_proxy_url": "https://183--63--34--146--s14fa09328e4df.proxy.huizhou.gov.cn/hz//projectInit/viewPdf?id=170067",
+    "huizhou_canonical_url": "https://183.63.34.146/hz//projectInit/viewPdf?id=170067",
+    "cross_district_site": "项目位于烟台市莱山区与芝罘区交界，路线北起明达西路",
+    "cross_district_listed": "莱山区"
+  }
+}
