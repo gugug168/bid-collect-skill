@@ -423,6 +423,7 @@ const ADAPTERS = {
     cats: ["003001002"], // 工程建设-招标公告
     sortField: "webdate",
     cityName: "洛阳市",
+    detail: luoyangDetail,
     defaultType: "招标公告",
   },
   zhengzhou: {
@@ -2994,11 +2995,12 @@ function zhejiangDetail(html, item, pdfText) {
   else if (scale || overviewScale) out.scale = cleanFullProjectFact(scale || overviewScale);
   if (scope) out.scope = cleanFullProjectFact(scope).replace(/[，,]\s*其中\s*[，,]?\s*□\s*建筑面积[\s\S]*$/, "").trim();
   if (nestedScope && out.scope) out.scope = out.scope.replace(/。\s*$/, "");
-  const combined = String(out.scale || "").match(/^([\s\S]{20,}?)[；;]\s*招标范围\s*[:：]\s*([\s\S]{4,1600})$/);
+  const combined = String(out.scale || "").match(/^([\s\S]{20,}?)[；;。]\s*招标范围\s*[:：]\s*([\s\S]{4,3000})$/);
   if (combined) {
     out.scale = cleanFullProjectFact(combined[1]);
     out.scope = cleanFullProjectFact(combined[2])
       .replace(/土\s+方/g, "土方")
+      .replace(/管\s+道/g, "管道")
       .replace(/[；;]\s*(?:其它|其他)具体详见[\s\S]*$/, "；").trim();
   }
   if (qualification) out.qualification = cleanQualificationOutput(cleanFactText(qualification), text, 0);
@@ -4155,6 +4157,8 @@ function mapFjDetailPayload(meta, content, item, ad) {
   const detailText = htmlToText(html);
   const exactScale = detailText.match(/(?:^|\n)\s*2\.2\.?\s*工程规模\s*[:：]?\s*([\s\S]{4,2600}?)(?=\s*2\.3\s*产业类型)/m)?.[1] || "";
   if (exactScale) out.scale = cleanProjectContent(exactScale).replace(/[；;\s]+$/, "");
+  const exactScope = fujianExactScope(detailText);
+  if (exactScope) out.scope = exactScope;
   const controlPriceDeferred = /招标控制价[\s\S]{0,120}?(?:最迟应|另行|后续)[\s\S]{0,60}?发布/.test(detailText);
   if (controlPriceDeferred) out.controlPrice = "";
   if (contractWan) recordPriceRejections(out, item, [{ label: "合同估算价", value_wan: Number(contractWan), reason_code: "PRICE_FACT_NOT_CONTROL" }]);
@@ -4167,6 +4171,13 @@ function mapFjDetailPayload(meta, content, item, ad) {
     if (link) out.docLink = toAbs(String(link), ad.base);
   }
   return out;
+}
+
+function fujianExactScope(text) {
+  const value = String(text || "");
+  const section = value.match(/(?:^|\n|\s)2\.2\.3\s*招标范围\s*[:：]?\s*([\s\S]{4,6000}?)(?=\s*(?:2\.2\.4\s*招标内容|2\.3\s*(?:投标人资格要求|产业类型)))/m)?.[1]
+    || value.match(/(?:^|\n|\s)2\.2\s*招标范围与内容[\s\S]{0,1000}?招标范围\s*[:：]?\s*([\s\S]{4,6000}?)(?=\s*2\.3\s*(?:投标人资格要求|产业类型))/m)?.[1] || "";
+  return section ? cleanFullProjectFact(section) : "";
 }
 
 async function fjDetail(ad, item) {
@@ -4713,6 +4724,7 @@ function wuhanDetail(ad, html, item) {
   const other = String(f["其他要求"] || "");
   const bidOpen = String(html).match(/id\s*=\s*["']bidOpenTime["'][^>]*value\s*=\s*["']([^"']+)/i)?.[1] || "";
   const durationValue = String(f["计划工期（日历天）"] || "").match(/\d+(?:\.\d+)?/)?.[0] || "";
+  const qualification = cleanQualificationOutput(cleanFactText(other.replace(/^[\s\S]*?投标人资格要求\s*[:：]?\s*/, "")) || grabQualification(other, flatten(other)), other, 0);
   return {
     title: f["招标项目名称"] || item.title,
     projectCode: f["招标登记编号"] || "",
@@ -4720,7 +4732,7 @@ function wuhanDetail(ad, html, item) {
     bidOpen: bidOpen ? bidOpen.slice(0, 16) : "",
     funding: "",
     duration: durationValue ? `${durationValue}日历天` : "",
-    qualification: cleanQualificationOutput(cleanFactText(other.replace(/^[\s\S]*?投标人资格要求\s*[:：]?\s*/, "")) || grabQualification(other, flatten(other)), other, 0),
+    qualification: /^(?:其他)?\s*详见招标文件[。.]?$/.test(qualification) ? "" : qualification,
     performance: grabPerformance(other, flatten(other)),
     controlPrice: "",
     budget: structuredMoneyWan(f["本次招标工程投资额(万元)"] || f["投资总额（万元）"] || ""),
@@ -4795,7 +4807,9 @@ async function nanjingList(ad, page, args) {
 
 function normalizeHuizhouUrl(href) {
   const value = String(href || "").replace(/&amp;/gi, "&");
-  return value.replace(/^https?:\/\/zyjy--huizhou--gov--cn--[^./]+\.proxy\.huizhou\.gov\.cn(?::80)?/i, "https://zyjy.huizhou.gov.cn");
+  return value
+    .replace(/^https?:\/\/zyjy--huizhou--gov--cn--[^./]+\.proxy\.huizhou\.gov\.cn(?::80)?/i, "https://zyjy.huizhou.gov.cn")
+    .replace(/^https?:\/\/(\d{1,3})--(\d{1,3})--(\d{1,3})--(\d{1,3})--[^./]+\.proxy\.huizhou\.gov\.cn(?::80)?/i, "https://$1.$2.$3.$4");
 }
 
 function hebeiDetail(html, item, pdfText) {
@@ -4824,6 +4838,14 @@ function xuzhouDetail(html, item, pdfText) {
   const exactPerformance = text.match(/(?:^|\n)\s*3\.4\s*业绩要求\s*[:：]\s*([\s\S]{4,5000}?)(?=\s*3\.5\s*投标人及拟派)/m)?.[1] || "";
   if (exactScope) out.scope = cleanFullProjectFact(exactScope);
   if (exactPerformance) out.performance = cleanFullProjectFact(exactPerformance);
+  return out;
+}
+
+function luoyangDetail(html, item, pdfText) {
+  const out = extractDetail({}, html, item, pdfText);
+  const text = String(pdfText || htmlToText(html));
+  const exactScope = text.match(/(?:^|\n|\s)2\.2\s*招标范围\s*[:：]?\s*([\s\S]{4,3000}?)(?=\s*2\.3\s*招标规模)/m)?.[1] || "";
+  if (exactScope) out.scope = cleanFullProjectFact(exactScope);
   return out;
 }
 
@@ -4910,6 +4932,7 @@ function huizhouDetail(html, item, pdfText) {
   out.duration = looseField(f, "工期（交货期）", "工期") || out.duration || "";
   const limit = f["最高投标限价（投标报价上限值）"] || f["最高投标限价"] || f["投标报价上限值"] || "";
   if (limit) out.controlPrice = structuredMoneyWan(limit);
+  if (out.docLink) out.docLink = normalizeHuizhouUrl(out.docLink);
   if (out.docLink && !/\/projectInit\/viewPdf\?id=/i.test(out.docLink)) out.docLink = "";
   return out;
 }
@@ -8036,8 +8059,14 @@ function extractMostSpecificArea(text) {
     : /(?:区|县|自治县|旗)$/.test(name) ? 3
       : /(?:市|自治州|地区|盟)$/.test(name) ? 2
         : /(?:省|自治区|生产建设兵团)$/.test(name) ? 1 : 0;
-  return KNOWN_ADMIN_AREAS.filter((name) => compact.includes(name))
-    .sort((a, b) => score(b) - score(a) || b.length - a.length)[0] || "";
+  const matches = KNOWN_ADMIN_AREAS.filter((name) => compact.includes(name))
+    .sort((a, b) => score(b) - score(a) || b.length - a.length);
+  if (!matches.length) return "";
+  const topScore = score(matches[0]);
+  const top = matches.filter((name) => score(name) === topScore);
+  // 同一项目地点同时跨两个区县时，不能按词表顺序任取其一；回退到列表官方地区或adapter管辖区。
+  if (topScore >= 3 && new Set(top.map(normalizeArea)).size > 1) return "";
+  return matches[0];
 }
 
 function jurisdictionFromAdapter(ad) {
@@ -9009,7 +9038,7 @@ function resolveOutputPaths(args) {
 
 
 module.exports = { ADAPTERS, PROV_ALIAS, PROJECT18_AUDIT_FIELDS, XLSX_HEADER, BIAOBIAOTONG_HEADER, PROJECT18_HEADER, CSV_HEADER, parseArgs, inferTenderType, classifySheet, cleanOutputCell, hasReachedLimit, chineseNumberToNumber, extractCandidateTables, ensureParentDir, normalizeArea, matchesCityFilter, resolveCityTargets, resolveYgpCityTargets, extractKnownArea, jurisdictionFromAdapter, resolveRecordRegion, extractNoticeTitle, isStrictZbTitle, isStrictZbDetailText, extractDetail, extractProjectContent, extractControlPriceFact, extractRejectedPriceFacts, auditedFieldValue, isFilledFieldValue, ensureFieldSources, markFieldSource, buildFieldStats, xlsxColumnWidths, buildYgpDetailUrl, parseYgpListRows, unwrapYgpPayload, parseYgpJsonText, selectYgpTenderAttachment, parseYgpDetailPayload, extractYgpAttachmentFields, attachmentStatusFromNote, extractWinDetail, grabWinner, grabProjectCode, grab, grabDateTime, grabMoneyWan, grabEvaluation, grabConsortium, grabQualification, grabQualClause, htmlToText, flatten, maybePdfText, findEmbeddedPdfHref, fetchBuffer, parseAttachmentBuffer, enrichFromAttachment, collectProvince, buildXlsxSheets, writeXlsx, buildMarkdown, classifyRunStatus, resolveCodeCommit, resolveCodeDirty, buildRunReport, writeRunReport, resolveOutputPaths, EPOINT_API, PROBE_TARGETS, epointProbeOne, probeProvince, verifyProvince, resolveProbeKey, robustFetch, classifyErr, curlFetch, httpFetch, writeProbeEvidence, probeAllEvidence, ynDetail, hbDetail, gzDetail, guizhouAttachmentUrl, nmgDetail, gsDetail, gsMapRecord, gsParseCustom, anhuiDetail, xizangDetail, conclusionNote, isAllowedSdWrapRecord, isZunyiTenderRecord, isHefeiCityRecord, parseWenzhouCmsList, parseJiaxingCmsList, ningboVisitorToken, parseNingboList, ningboSegmentControlPrice, ningboExactDuration, parseWeifangList, parseMianyangHtml, parseMianyangRelations, parseNantongPayload, parseNanjingPayload, cleanNanjingQualification, nanjingDetail, parseHuizhouHtml, parseHuizhouSearchJsonp, normalizeHuizhouUrl, huizhouDetail, parseZhongshanPayload, zhongshanControlPrice, zhongshanDetail, parseJinanPayload, jinanDetail, parseWuhanHtml, wuhanDetail, parseQingdaoHtml, parseStrongTableFields, cleanA3ScopeAmountTail, cleanQingdaoPerformance, qingdaoDetail, parseShenzhenList, parseBgTableFields, shenzhenProjectContent, qualitativeFullScore, exactMoneyWan,
-  hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, fjDetail, mapFjDetailPayload, cqList, tjList, nmgList, lnList, normalizeGsCityName, gsList };
+  hnList, hnDetail, gzList, ynList, hbList, jlList, fjList, fjDetail, mapFjDetailPayload, fujianExactScope, cqList, tjList, nmgList, lnList, normalizeGsCityName, gsList };
 module.exports.cleanQualificationOutput = cleanQualificationOutput;
 module.exports.classifySheetEvidence = classifySheetEvidence;
 module.exports.prepareFactForOutput = prepareFactForOutput;
